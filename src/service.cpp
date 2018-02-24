@@ -11,10 +11,13 @@ static DWORD g_dwProcessWatchDogId = 0;//看管服务进程ID
 
 namespace UTILS {namespace SERVICE {
 
-	int* Service::g_ProcessID = 0;
-	int* Service::g_ProcessWatchID = 0;
+	//int* Service::g_ProcessID = 0;
+	//int* Service::g_ProcessWatchID = 0;
+	//SERVER_STATUS Service::g_Status = {};
+	SERVER_STATUS Service::g_Process = {nullptr, nullptr ,nullptr ,nullptr };
 	std::function<int()> Service::gStartCB =nullptr;
-	std::function<void()> Service::gStopCB =0;
+	std::function<void()> Service::gStopCB = nullptr;
+	std::function<void(HANDLE)> Service::gRunCB = nullptr;
 	SERVICE_LIST Service::g_Service[g_ServiceCnt];
 
 #ifdef _WIN32
@@ -51,19 +54,17 @@ namespace UTILS {namespace SERVICE {
 	}
 
 	int Service::Init(PSERVICE_INFO pMain, PSERVICE_INFO pWatch, 
-		int* pMainID, int* pWatchID, 
+		PSERVER_STATUS pInfo,
 		std::function<int()> cbStart,
-		std::function<void()> cbStop) {
-		if (nullptr == pMainID) {
-			return -1;
-		}
-		if (nullptr == pWatchID) {
-			return -1;
+		std::function<void()> cbStop,
+		std::function<void(HANDLE)> cbRun) {
+		if (nullptr != pInfo) {
+			API::Memcpy(&g_Process, pInfo, sizeof(SERVER_STATUS));
 		}
 		gStartCB = cbStart;
 		gStopCB = cbStop;
-		g_ProcessID = pMainID;
-		g_ProcessWatchID = pMainID;
+		gRunCB = cbRun;
+
 		API::Memset(&g_Service[0], 0, sizeof(SERVICE_LIST));
 		API::Memset(&g_Service[1], 0, sizeof(SERVICE_LIST));
 		memcpy(&g_Service[0].stInfo, pMain, sizeof(SERVICE_INFO));
@@ -86,16 +87,16 @@ namespace UTILS {namespace SERVICE {
 		switch (argc)
 		{
 		case 1:
-			API::sprintf(szCmdLine, MAX_PATH, "%s", argv[0]);
+			API::Sprintf(szCmdLine, MAX_PATH, "%s", argv[0]);
 			break;
 		case 2:
-			API::sprintf(szCmdLine, MAX_PATH, "%s %s", argv[0], argv[1]);
+			API::Sprintf(szCmdLine, MAX_PATH, "%s %s", argv[0], argv[1]);
 			break;
 		case 3:
-			API::sprintf(szCmdLine, MAX_PATH, "%s %s %s", argv[0], argv[1], argv[2]);
+			API::Sprintf(szCmdLine, MAX_PATH, "%s %s %s", argv[0], argv[1], argv[2]);
 			break;
 		case 4:
-			API::sprintf(szCmdLine, MAX_PATH, "%s %s %s %s", argv[0], argv[1], argv[2], argv[3]);
+			API::Sprintf(szCmdLine, MAX_PATH, "%s %s %s %s", argv[0], argv[1], argv[2], argv[3]);
 			break;
 		default:
 			break;
@@ -164,10 +165,10 @@ namespace UTILS {namespace SERVICE {
 	}
 
 	//服务安装命令分析
-	int Service::AnalyseCmd(TCHAR* ptszCmdLine, SERVICE_CMD pCmd[], int iLen){
+	int Service::AnalyseCmd(const char* ptszCmdLine, SERVICE_CMD pCmd[], int iLen){
 		size_t iCmdLen = 0;
 		size_t i, k, iRet = 0, index = 0;
-		TCHAR Mess[MAX_PATH];
+		char Mess[MAX_PATH];
 		if (NULL == ptszCmdLine){
 			return 0;
 		}
@@ -298,7 +299,7 @@ namespace UTILS {namespace SERVICE {
 			char szServiceName[1024] = { 0 };
 			char szServicePath[MAX_PATH] = { 0 };
 			GetModuleFileName(NULL, szServicePath, MAX_PATH);
-			API::sprintf(szServiceName, 1024, "%s -k %s", szServicePath, pServiceName);
+			API::Sprintf(szServiceName, 1024, "%s -k %s", szServicePath, pServiceName);
 			hSCService = CreateService(
 				hSCManager,
 				pServiceName,
@@ -465,6 +466,9 @@ namespace UTILS {namespace SERVICE {
 		case SERVICE_CONTROL_STOP:// Requests the pService to Stop. 		
 		case SERVICE_CONTROL_SHUTDOWN:// Requests the pService to perform cleanup tasks, because the system is shutting down. 
 									  //For more information, see Remarks.
+			if (g_Process.bStopMainProcess != nullptr) {
+				*g_Process.bStopMainProcess = TRUE;
+			}
 			if (NULL != pService->hWaitEvent)
 				SetEvent(pService->hWaitEvent);
 			if (NULL != pService->hStatusHandle)
@@ -474,7 +478,7 @@ namespace UTILS {namespace SERVICE {
 			break;
 		case SERVICE_CONTROL_PAUSE:// Requests the pService to pause.  
 			break;
-		case SERVICE_CONTROL_CONTINUE:// Requests the paused pService to resume.  
+		case SERVICE_CONTROL_CONTINUE:// Requests the paused pService to resume.
 			break;
 		case SERVICE_CONTROL_INTERROGATE:// Requests the pService to update immediately its current status information to the pService control manager.  
 										 //SetServiceStatus(g_ssh, &g_ss);
@@ -504,11 +508,14 @@ namespace UTILS {namespace SERVICE {
 		{
 			return;
 		}
+		if (g_Process.bStopMainProcess != nullptr) {
+			*g_Process.bStopMainProcess = FALSE;
+		}
 		//更新服务状态
 		UpdateServiceStatus(pService->hStatusHandle, SERVICE_START_PENDING, NO_ERROR, 0);
 		//保存主服务进程ID
-		if (nullptr != g_ProcessID) {
-			*g_ProcessID = GetCurrentProcessId();
+		if (nullptr != g_Process.iMainProcessID) {
+			*g_Process.iMainProcessID = GetCurrentProcessId();
 		}
 		//创建主服务检测线程退出事件
 		pService->hExitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -519,8 +526,13 @@ namespace UTILS {namespace SERVICE {
 		if (0 == err) {
 			//更新服务当前状态
 			UpdateServiceStatus(pService->hStatusHandle, SERVICE_RUNNING, NO_ERROR, 0);
-			//进入服务状态检测循环函数
-			TimeCheckProcLoop(pService);
+			if (gRunCB) {
+				gRunCB(pService->hWaitEvent);
+			}
+			else {
+				//进入服务状态检测循环函数
+				TimeCheckProcLoop(pService);
+			}
 		}
 		//停止服务器
 		StopServer();
@@ -542,6 +554,9 @@ namespace UTILS {namespace SERVICE {
 		case SERVICE_CONTROL_STOP:// Requests the pService to Stop. 		
 		case SERVICE_CONTROL_SHUTDOWN:// Requests the pService to perform cleanup tasks, because the system is shutting down. 
 									  //For more information, see Remarks.
+			if (nullptr != g_Process.bStopWatchDogProccess) {
+				*g_Process.bStopWatchDogProccess = TRUE;
+			}
 			if (NULL != pService->hWaitEvent)
 				SetEvent(pService->hWaitEvent);
 			if (NULL != pService->hStatusHandle)
@@ -551,7 +566,7 @@ namespace UTILS {namespace SERVICE {
 			break;
 		case SERVICE_CONTROL_PAUSE:// Requests the pService to pause.  
 			break;
-		case SERVICE_CONTROL_CONTINUE:// Requests the paused pService to resume.  
+		case SERVICE_CONTROL_CONTINUE:// Requests the paused pService to resume. 
 			break;
 		case SERVICE_CONTROL_INTERROGATE:// Requests the pService to update immediately its current status information to the pService control manager.  
 										 //SetServiceStatus(g_ssh, &g_ss);
@@ -581,11 +596,15 @@ namespace UTILS {namespace SERVICE {
 		{
 			return;
 		}
+		if (nullptr != g_Process.bStopWatchDogProccess) {
+			*g_Process.bStopWatchDogProccess = FALSE;
+		}
+
 		//更新服务状态
 		UpdateServiceStatus(pService->hStatusHandle, SERVICE_START_PENDING, NO_ERROR, 0);
 		//保存主服务进程ID
-		if (nullptr != g_ProcessWatchID) {
-			*g_ProcessWatchID = GetCurrentProcessId();
+		if (nullptr != g_Process.iWatchDogProcessID) {
+			*g_Process.iWatchDogProcessID = GetCurrentProcessId();
 		}
 		//创建主服务检测线程退出事件
 		pService->hExitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -627,15 +646,21 @@ namespace UTILS {namespace SERVICE {
 	//主服务运行状态监控
 	BOOL Service::ServiceMonitor(HANDLE hWaitEvent)
 	{
-		if (nullptr == g_ProcessWatchID) {
+		if (nullptr == g_Process.iWatchDogProcessID) {
 			return TRUE;
 		}
 
-		if (*g_ProcessWatchID <= 0){
+		if (*g_Process.bStopWatchDogProccess) {
 			return TRUE;
 		}
 
-		HANDLE hProcess = ::OpenProcess(SYNCHRONIZE, FALSE, *g_ProcessWatchID);
+		if (*g_Process.iWatchDogProcessID <= 0) {
+			*g_Process.iWatchDogProcessID = 0;
+			StartupService(g_Service[1].stInfo.szName);
+			return TRUE;
+		}
+
+		HANDLE hProcess = ::OpenProcess(SYNCHRONIZE, FALSE, *g_Process.iWatchDogProcessID);
 		HANDLE handles[] = { hWaitEvent, hProcess };
 		DWORD dwWait = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
 		CloseHandle(hProcess);
@@ -643,8 +668,10 @@ namespace UTILS {namespace SERVICE {
 		switch (dwWait)
 		{
 		case WAIT_OBJECT_0 + 1:
-			*g_ProcessWatchID = 0;
-			StartupService(g_Service[1].stInfo.szName);
+			if (!(*g_Process.bStopWatchDogProccess)) {
+				*g_Process.iWatchDogProcessID = 0;
+				StartupService(g_Service[1].stInfo.szName);
+			}
 			break;
 		case WAIT_OBJECT_0:
 		default:
@@ -658,15 +685,21 @@ namespace UTILS {namespace SERVICE {
 	//看管服务运行状态监控
 	BOOL Service::WatchDogServiceMonitor(HANDLE hWaitEvent)
 	{
-		if (nullptr == g_ProcessID) {
+		if (nullptr == g_Process.iMainProcessID) {
 			return TRUE;
 		}
 
-		if (*g_ProcessID <= 0) {
+		if (*g_Process.bStopMainProcess) {
 			return TRUE;
 		}
 
-		HANDLE hProcess = ::OpenProcess(SYNCHRONIZE, FALSE, *g_ProcessID);
+		if (*g_Process.iMainProcessID <= 0) {
+			*g_Process.iMainProcessID = 0;
+			StartupService(g_Service[0].stInfo.szName);
+			return TRUE;
+		}
+
+		HANDLE hProcess = ::OpenProcess(SYNCHRONIZE, FALSE, *g_Process.iMainProcessID);
 		HANDLE handles[] = { hWaitEvent, hProcess };
 		DWORD dwWait = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
 		CloseHandle(hProcess);
@@ -674,8 +707,10 @@ namespace UTILS {namespace SERVICE {
 		switch (dwWait)
 		{
 		case WAIT_OBJECT_0 + 1:
-			*g_ProcessID = 0;
-			StartupService(g_Service[0].stInfo.szName);
+			if (!(*g_Process.bStopMainProcess)) {
+				*g_Process.iMainProcessID = 0;
+				StartupService(g_Service[0].stInfo.szName);
+			}
 			break;
 		case WAIT_OBJECT_0:
 		default:

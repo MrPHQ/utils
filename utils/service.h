@@ -51,8 +51,17 @@ namespace UTILS{ namespace SERVICE{
 		PSERVICE_LIST pService;
 	}SERVICE_CMD,*PSERVICE_CMD;
 
+	typedef struct _SERVER_STATUS {
+		int* iMainProcessID;
+		int* iWatchDogProcessID;
+		BOOL* bStopMainProcess;
+		BOOL* bStopWatchDogProccess;
+	}SERVER_STATUS, *PSERVER_STATUS;
+
 	template class UTILS_API std::function<int()>;
 	template class UTILS_API std::function<void()>;
+	template class UTILS_API std::function<void(HANDLE)>;
+
 
 	class UTILS_API Service final {
 
@@ -60,10 +69,12 @@ namespace UTILS{ namespace SERVICE{
 		Service();
 		~Service();
 
-		static int Init(PSERVICE_INFO, PSERVICE_INFO, int*, int*, std::function<int()>, std::function<void()>);
+		static int Init(PSERVICE_INFO, PSERVICE_INFO, 
+			PSERVER_STATUS,
+			std::function<int()>, std::function<void()>, std::function<void(HANDLE)>);
 		//服务安装命令分析
 		static int AnalyseCmd(int argc, char* argv[]);
-		static int AnalyseCmd(LPSTR szCmdLine, SERVICE_CMD pCmd[], int iLen);
+		static int AnalyseCmd(const char* szCmdLine, SERVICE_CMD pCmd[], int iLen);
 		static int AnalyseCmdEx(const TCHAR* pCmdLine, PSERVICE_CMD pCmd);
 
 		//更新服务状态
@@ -105,10 +116,12 @@ namespace UTILS{ namespace SERVICE{
 	private:
 		const static int g_ServiceCnt = 2;
 		static SERVICE_LIST g_Service[g_ServiceCnt];
-		static int* g_ProcessID;
-		static int* g_ProcessWatchID;
+		static SERVER_STATUS g_Process;
+		//static int* g_ProcessWatchID;
 		static std::function<int()> gStartCB;
 		static std::function<void()> gStopCB;
+		static std::function<void(HANDLE)> gRunCB;
+		//static SERVER_STATUS g_Status;
 	};
 #else
 

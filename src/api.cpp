@@ -37,7 +37,7 @@ namespace UTILS {namespace API {
 	}
 	
 
-	int sprintf(char* buffer, int size, const char* format, ...) {
+	int Sprintf(char* buffer, int size, const char* format, ...) {
 		if ((buffer == NULL) || (size <= 0)){
 			return -1;
 		}
@@ -45,12 +45,25 @@ namespace UTILS {namespace API {
 		int iRet = 0;
 		va_start(va, format);
 #ifdef _WIN32
-		iRet = vsnprintf_s(buffer, size, _TRUNCATE, format, va);
+		iRet = _vsnprintf_s(buffer, size, size-1, format, va);
 #else
 		iRet = vsnprintf(buffer, count, format, argptr);
 #endif
 		va_end(va);
-		buffer[iRet - 1] = '\0';
+		buffer[min(iRet, size-1)] = '\0';
+		return iRet;
+	}
+
+	int Strcpy(char* _Destination, char const* _Source, int _MaxCount) {
+		if ((_Destination == nullptr) || (_Source == nullptr)) {
+			return -1;
+		}
+		int iRet = 0;
+#ifdef _WIN32
+		iRet = strncpy_s(_Destination, _TRUNCATE, _Source, _MaxCount);
+#else
+		iRet = strncpy(_Destination, _Source, _MaxCount);
+#endif
 		return iRet;
 	}
 }}

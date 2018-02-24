@@ -4,13 +4,14 @@
 
 namespace UTILS { namespace API {
 	
-	void* Malloc(int size, bool init=false);
-	void Free(void* buf);
-	void* Memcpy(void* dest, const void* src, int count);
-	void* Memset(void* dest, int c, int count, int bCatch=0);
-	void* Memmove(void* dest, const void* src, int count);
-	int	Memcmp(const void* dest, const void* src, int count);
+	UTILS_API void* Malloc(int size, bool init=false);
+	UTILS_API void Free(void* buf);
+	UTILS_API void* Memcpy(void* dest, const void* src, int count);
+	UTILS_API void* Memset(void* dest, int c, int count, int bCatch=0);
+	UTILS_API void* Memmove(void* dest, const void* src, int count);
+	UTILS_API int	Memcmp(const void* dest, const void* src, int count);
 
-	int sprintf(char* buffer, int size, const char* format, ...);
+	UTILS_API int Sprintf(char* buffer, int size, const char* format, ...);
+	UTILS_API int Strcpy(char* _Destination, char const* _Source, int _MaxCount);
 }}
 #endif

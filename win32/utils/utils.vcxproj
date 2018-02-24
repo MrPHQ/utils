@@ -139,6 +139,7 @@
     <ClInclude Include="..\..\utils\define.h" />
     <ClInclude Include="..\..\utils\error.h" />
     <ClInclude Include="..\..\utils\service.h" />
+    <ClInclude Include="..\..\utils\Singleton.h" />
     <ClInclude Include="..\..\utils\socket.h" />
     <ClInclude Include="..\..\utils\utils.h" />
     <ClInclude Include="resource.h" />
