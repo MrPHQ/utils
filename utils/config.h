@@ -1,5 +1,5 @@
-#ifndef __UTILS_CONFIG__
-#define __UTILS_CONFIG__
+#ifndef __COMMON_CONFIG__
+#define __COMMON_CONFIG__
 
 #if (defined( __WIN32__ ) || defined( _WIN32 )) && !defined(XXX_STATIC)
 #   ifdef UTILS_EXPORTS
@@ -74,6 +74,6 @@
 #include <string>
 #endif //WIN32
 
-extern HINSTANCE ghInstance;
+extern HINSTANCE ghUtilsInstance;
 
 #endif //_CONFIG_H__

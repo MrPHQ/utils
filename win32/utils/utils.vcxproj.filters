@@ -48,6 +48,15 @@
     <ClInclude Include="..\..\utils\Singleton.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\utils\logger.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\dll.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\internal.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils.cpp">
@@ -60,6 +69,12 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\api.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\logger.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\internal.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,5 +1,5 @@
-#ifndef __UTILITY_DEFINE__
-#define __UTILITY_DEFINE__
+#ifndef __COMMON_DEFINE__
+#define __COMMON_DEFINE__
 
 /// Four-byte alignment
 #define PAD_SIZE(s) (((s)+3)&~3)

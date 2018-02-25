@@ -1,4 +1,5 @@
 #include "../utils/api.h"
+#include "internal.h"
 
 
 namespace UTILS {namespace API {
@@ -65,5 +66,70 @@ namespace UTILS {namespace API {
 		iRet = strncpy(_Destination, _Source, _MaxCount);
 #endif
 		return iRet;
+	}
+
+	const char* GetCurrentPath(HINSTANCE hInstance /*= NULL*/)
+	{
+		static char gstrCurrentPath[MAX_PATH] = { 0 };
+		DWORD dwLength = GetModuleFileName(hInstance, gstrCurrentPath, MAX_PATH);
+		if (dwLength != 0 && gstrCurrentPath[0] != '\0') {
+			char *p = strrchr(gstrCurrentPath, '\\');
+			if (p) {
+				//*(++p) = _T('\0');
+				*(p) = '\0';
+			}
+		}
+		return gstrCurrentPath;
+	}
+
+	int CharacterConvert(
+		const char* tocode,
+		const char* fromcode,
+		char *inbuf,
+		int inlen,
+		char *outbuf,
+		int outlen,
+		int* OutIdleLen,
+		int* NoConvertLen)
+	{
+		if (tocode == NULL || fromcode == NULL || inbuf == NULL || outbuf == NULL)
+		{
+			return UTILITY_ERROR_PAR;
+		}
+		if (!libiconvLoadSucc()) {
+			return UTILITY_ERROR_EXISTS;
+		}
+		iconv_t cd;
+		char **pin = &inbuf;
+		char **pout = &outbuf;
+		cd = DLLIMPORTCALL(__libiconv, libiconv_open)(tocode, fromcode);
+		if (cd == 0)
+			return UTILITY_ERROR_FAIL;
+		size_t lenIn = inlen;
+		size_t lenOut = outlen;
+		int ret = DLLIMPORTCALL(__libiconv, libiconv)(cd, pin, &lenIn, pout, &lenOut);
+		if (NoConvertLen != NULL)
+			*NoConvertLen = (int)lenIn;
+		if (OutIdleLen != NULL)
+			*OutIdleLen = (int)lenOut;
+		if (ret == -1) {
+			switch (errno)
+			{
+			case E2BIG:
+				//printf("E2BiG\n");
+				break;
+			case EILSEQ:
+				//printf("EILSEQ\n");
+				break;
+			case EINVAL:
+				//printf("EINVAL\n");
+				break;
+			default:
+				//printf("errno:%d\n", errno);
+				break;
+			}
+		}
+		DLLIMPORTCALL(__libiconv, libiconv_close)(cd);
+		return ret != -1 ? UTILITY_ERROR_SUCCESS : UTILITY_ERROR_FAIL;
 	}
 }}

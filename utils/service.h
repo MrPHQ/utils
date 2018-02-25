@@ -58,9 +58,9 @@ namespace UTILS{ namespace SERVICE{
 		BOOL* bStopWatchDogProccess;
 	}SERVER_STATUS, *PSERVER_STATUS;
 
-	template class UTILS_API std::function<int()>;
-	template class UTILS_API std::function<void()>;
-	template class UTILS_API std::function<void(HANDLE)>;
+	//template class UTILS_API std::function<int()>;
+	//template class UTILS_API std::function<void()>;
+	//template class UTILS_API std::function<void(HANDLE)>;
 
 
 	class UTILS_API Service final {

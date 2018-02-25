@@ -13,5 +13,10 @@ namespace UTILS { namespace API {
 
 	UTILS_API int Sprintf(char* buffer, int size, const char* format, ...);
 	UTILS_API int Strcpy(char* _Destination, char const* _Source, int _MaxCount);
+
+	UTILS_API const char* GetCurrentPath(HINSTANCE hInstance = NULL);
+	UTILS_API int CharacterConvert(const char* tocode, const char* fromcode,
+		char *inbuf, int inlen, char *outbuf,
+		int outlen, int* OutIdleLen, int* NoConvertLen);
 }}
 #endif
