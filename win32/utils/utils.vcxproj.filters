@@ -60,6 +60,9 @@
     <ClInclude Include="..\..\utils\ConfigFile.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\utils\Time.h">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils.cpp">
@@ -81,6 +84,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\win32\ConfigFile.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Time.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

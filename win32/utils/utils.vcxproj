@@ -145,6 +145,7 @@
     <ClInclude Include="..\..\utils\service.h" />
     <ClInclude Include="..\..\utils\Singleton.h" />
     <ClInclude Include="..\..\utils\socket.h" />
+    <ClInclude Include="..\..\utils\Time.h" />
     <ClInclude Include="..\..\utils\utils.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
@@ -154,6 +155,7 @@
     <ClCompile Include="..\..\src\logger.cpp" />
     <ClCompile Include="..\..\src\service.cpp" />
     <ClCompile Include="..\..\src\socket.cpp" />
+    <ClCompile Include="..\..\src\Time.cpp" />
     <ClCompile Include="..\..\src\utils.cpp" />
     <ClCompile Include="..\..\src\win32\ConfigFile.cpp" />
   </ItemGroup>
