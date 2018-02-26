@@ -18,5 +18,14 @@ namespace UTILS { namespace API {
 	UTILS_API int CharacterConvert(const char* tocode, const char* fromcode,
 		char *inbuf, int inlen, char *outbuf,
 		int outlen, int* OutIdleLen, int* NoConvertLen);
+
+	UTILS_API void SleepTime(int ms);
+	/**
+		获取当前进程ID
+	*/
+	UTILS_API int GetCurrentProcessID();
+
+
+	UTILS_API bool IsPathExists(const char*);
 }}
 #endif

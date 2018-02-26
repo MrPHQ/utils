@@ -57,6 +57,9 @@
     <ClInclude Include="..\..\src\internal.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\utils\ConfigFile.h">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils.cpp">
@@ -75,6 +78,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\internal.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\win32\ConfigFile.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

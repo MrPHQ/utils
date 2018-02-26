@@ -1,6 +1,6 @@
 #include "../utils/api.h"
 #include "internal.h"
-
+#include <io.h>
 
 namespace UTILS {namespace API {
 
@@ -131,5 +131,37 @@ namespace UTILS {namespace API {
 		}
 		DLLIMPORTCALL(__libiconv, libiconv_close)(cd);
 		return ret != -1 ? UTILITY_ERROR_SUCCESS : UTILITY_ERROR_FAIL;
+	}
+
+	int GetCurrentProcessID() {
+
+#ifdef _WIN32
+		return GetCurrentProcessId();
+#else
+#endif
+
+	}
+
+	UTILS_API void SleepTime(int ms) {
+#ifdef _WIN32
+		Sleep(ms);
+#else
+		usleep(ms*1000);
+#endif
+	}
+
+	UTILS_API bool IsPathExists(const char* path)
+	{
+		if (NULL == path){
+			return false;
+		}
+#ifdef _WIN32
+		if (_access(path, 0) == 0){
+			return true;
+		}
+#else
+		
+#endif
+		return false;
 	}
 }}
