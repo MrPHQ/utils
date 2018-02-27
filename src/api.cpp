@@ -25,6 +25,26 @@
 	#endif
 #endif
 
+#ifdef ENABLE_CRYPTOPP
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
+#include <cryptopp/include/cryptlib.h>
+#include <cryptopp/include/filters.h>
+#include <cryptopp/include/aes.h>
+#include <cryptopp/include/Hex.h>     // StreamTransformationFilter  
+#include <cryptopp/include/modes.h>    // CFB_Mode  
+#include <cryptopp/include/md5.h>
+#include <cryptopp/include/base64.h>
+#include <cryptopp/include/sha.h>
+#include <cryptopp/include/hmac.h>
+#include <cryptopp/include/files.h>
+
+#ifdef _DEBUG
+#pragma comment(lib,"cryptopp/lib/cryptlibd.lib") 
+#else
+#pragma comment(lib,"cryptopp/lib/cryptlib.lib")
+#endif
+#endif
+
 namespace UTILS {namespace API {
 
 	void* Malloc(int size, bool init /*= false*/){
@@ -407,4 +427,49 @@ namespace UTILS {namespace API {
 
 #endif
 	}
+
+#ifdef ENABLE_CRYPTOPP
+	int EncryptionFile(const char* src, const char* des, const char* key, const char* iv) {
+		if (nullptr == src || nullptr == des || nullptr == key || nullptr == iv) {
+			return UTILS_ERROR_PAR;
+		}
+		if (!IsPathExists(src)) {
+			return UTILS_ERROR_EXISTS;
+		}
+		std::string strKey(key);
+		std::string strKeyIV(iv);
+
+		CryptoPP::CBC_Mode<CryptoPP::AES>::Encryption e;
+		e.SetKeyWithIV((byte*)key, 16, (byte*)iv);
+
+		try{
+			CryptoPP::FileSource(src, true, new CryptoPP::StreamTransformationFilter(e, new CryptoPP::FileSink(des)));
+		}
+		catch (const CryptoPP::Exception& e){
+			//std::cout << "errnr:" << e.GetErrorType() << std::endl;
+			//std::cout << "error:" << e.what() << std::endl;
+			return UTILS_ERROR_FAIL;
+		}
+		return UTILS_ERROR_SUCCESS;
+	}
+
+	int DecryptionFile(const char* src, const char* des, const char* key, const char* iv) {
+		if (nullptr == src || nullptr == des || nullptr == key || nullptr == iv) {
+			return UTILS_ERROR_PAR;
+		}
+		if (!IsPathExists(src)) {
+			return UTILS_ERROR_EXISTS;
+		}
+		CryptoPP::CBC_Mode<CryptoPP::AES>::Decryption e;
+		e.SetKeyWithIV((byte*)key, 16, (byte*)iv);
+
+		try{
+			CryptoPP::FileSource(src, true, new CryptoPP::StreamTransformationFilter(e, new CryptoPP::FileSink(des)));
+		}
+		catch (const CryptoPP::Exception& e){
+			return UTILS_ERROR_FAIL;
+		}
+		return UTILS_ERROR_SUCCESS;
+	}
+#endif
 }}

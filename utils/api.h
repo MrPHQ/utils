@@ -2,8 +2,6 @@
 #define __UTILS_API__
 #include <utils/utils.h>
 
-#define ENABLE_ZIP
-
 namespace UTILS { namespace API {
 	
 	/*
@@ -55,6 +53,14 @@ namespace UTILS { namespace API {
 #ifdef ENABLE_ZIP
 	UTILS_API bool ZipDirectory(const char*, char* toFile);
 	UTILS_API bool UnZipFile(const char* file, const char* toDirectory);
+#endif
+
+	/*
+		加解密相关.
+	*/
+#ifdef ENABLE_CRYPTOPP
+	UTILS_API int EncryptionFile(const char* src, const char* des, const char* key, const char* iv);
+	UTILS_API int DecryptionFile(const char* src, const char* des, const char* key, const char* iv);
 #endif
 }}
 #endif

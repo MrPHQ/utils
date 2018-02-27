@@ -11,6 +11,9 @@
 #   define UTILS_API
 #endif
 
+#define ENABLE_ZIP
+#define ENABLE_CRYPTOPP
+
 #ifdef _WIN32 //windows相关
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers

@@ -11,6 +11,18 @@ int main()
 {
 	std::cin.ignore();
 	{
+		char key[] = "puhuaqiang123456";
+		char* pkey = key;
+		char iv[] = "0123456789654321";
+		char* piv = iv;
+		int err = UTILS::API::EncryptionFile("proj.zip", "_proj.bin", pkey, piv);
+		std::cout << "¼ÓÃÜ:" << err << std::endl;
+		err = UTILS::API::DecryptionFile("_proj.bin", "proj2.zip", pkey, piv);
+		std::cout << "½âÃÜ:" << err << std::endl;
+	}
+
+	std::cin.ignore();
+	{
 		char dir[] = "F:\\X\\Y\\Z\\";
 		char* pdir = dir;
 		char dir2[] = "F:\\XX\\YY\\ZZ";
