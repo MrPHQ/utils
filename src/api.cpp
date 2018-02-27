@@ -1,6 +1,29 @@
 #include "../utils/api.h"
 #include "internal.h"
+#include <fstream>
+
+#ifdef _WIN32
 #include <io.h>
+#include <Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+#endif
+
+#ifdef ENABLE_ZIP
+#include <zlib\include\zlib.h>
+#include <libzip\include\zip.h>
+#include <libzippp\libzippp.h>
+	#ifdef _WIN32
+		#ifdef _DEBUG
+		#pragma comment(lib, "zlib/lib/zlibd.lib")
+		#pragma comment(lib, "libzip/lib/zipd.lib")
+		#pragma comment(lib, "libzippp/libzipppd.lib")
+		#else
+		#pragma comment(lib, "zlib/lib/zlib.lib")
+		#pragma comment(lib, "libzip/lib/zip.lib")
+		#pragma comment(lib, "libzippp/libzippp.lib")
+		#endif
+	#endif
+#endif
 
 namespace UTILS {namespace API {
 
@@ -94,17 +117,17 @@ namespace UTILS {namespace API {
 	{
 		if (tocode == NULL || fromcode == NULL || inbuf == NULL || outbuf == NULL)
 		{
-			return UTILITY_ERROR_PAR;
+			return UTILS_ERROR_PAR;
 		}
 		if (!libiconvLoadSucc()) {
-			return UTILITY_ERROR_EXISTS;
+			return UTILS_ERROR_EXISTS;
 		}
 		iconv_t cd;
 		char **pin = &inbuf;
 		char **pout = &outbuf;
 		cd = DLLIMPORTCALL(__libiconv, libiconv_open)(tocode, fromcode);
 		if (cd == 0)
-			return UTILITY_ERROR_FAIL;
+			return UTILS_ERROR_FAIL;
 		size_t lenIn = inlen;
 		size_t lenOut = outlen;
 		int ret = DLLIMPORTCALL(__libiconv, libiconv)(cd, pin, &lenIn, pout, &lenOut);
@@ -130,7 +153,7 @@ namespace UTILS {namespace API {
 			}
 		}
 		DLLIMPORTCALL(__libiconv, libiconv_close)(cd);
-		return ret != -1 ? UTILITY_ERROR_SUCCESS : UTILITY_ERROR_FAIL;
+		return ret != -1 ? UTILS_ERROR_SUCCESS : UTILS_ERROR_FAIL;
 	}
 
 	int GetCurrentProcessID() {
@@ -150,8 +173,7 @@ namespace UTILS {namespace API {
 #endif
 	}
 
-	UTILS_API bool IsPathExists(const char* path)
-	{
+	UTILS_API bool IsPathExists(const char* path){
 		if (NULL == path){
 			return false;
 		}
@@ -163,5 +185,226 @@ namespace UTILS {namespace API {
 		
 #endif
 		return false;
+	}
+
+#ifdef ENABLE_ZIP
+	UTILS_API bool ZipDirectory(const char* pPath, char* toFile) {
+#ifdef _WIN32
+		if (nullptr == pPath || nullptr == toFile) {
+			return false;
+		}
+		std::list<std::string> dirs, files;
+		EnumDirectoryFiles(pPath, nullptr, 0, &dirs, &files, true);
+		libzippp::ZipArchive zipFile(toFile);
+		if (!zipFile.open(libzippp::ZipArchive::WRITE)) {
+			return false;
+		}
+		char path[MAX_PATH], tmp[MAX_PATH];
+		char* p = nullptr;
+		for (auto& it : dirs)
+		{
+			path[0] = '\0';
+			//相对路径
+			PathRelativePathTo(path,
+				pPath,
+				FILE_ATTRIBUTE_DIRECTORY,
+				it.data(),
+				FILE_ATTRIBUTE_DIRECTORY);
+			if (PathIsRelative(path))
+			{//	如: ./x/y  去掉前面的./  得到x/y
+				p = (path + 2);
+				Sprintf(tmp, sizeof(tmp), "%s", p);
+				Strcpy(path, tmp, min(MAX_PATH-1,strlen(tmp)));
+			}
+			//在末尾加 '/'
+			PathAddBackslash(path);
+			CharConvert(path, '\\', '/');
+			if (!zipFile.addEntry(path)) {
+				return false;
+			}
+		}
+		for (auto& it : files)
+		{
+			path[0] = '\0';
+			//相对路径
+			PathRelativePathTo(path,
+				pPath,
+				FILE_ATTRIBUTE_DIRECTORY,
+				it.data(),
+				FILE_ATTRIBUTE_NORMAL);
+			if (PathIsRelative(path)){
+				Sprintf(tmp, sizeof(tmp), "%s", path + 2);
+				Strcpy(path, tmp, min(MAX_PATH - 1, strlen(tmp)));
+			}
+
+			//去掉末尾的 '/'
+			PathRemoveBackslash(path);
+			CharConvert(path, '\\', '/');
+
+			Strcpy(tmp, it.data(), min(MAX_PATH - 1, it.length()));
+			CharConvert(tmp, '\\', '/');
+			if (!zipFile.addFile(path, tmp)) {
+				return false;
+			}
+		}
+		zipFile.close();
+#else
+#endif
+		return true;
+	}
+
+	UTILS_API bool UnZipFile(const char* file, const char* toDirectory) {
+		if (nullptr == file || nullptr == toDirectory) {
+			return false;
+		}
+#ifdef _WIN32
+		if (_access(toDirectory, 0) != 0){
+			return false;
+		}
+		char tmp[MAX_PATH], path[MAX_PATH];
+		libzippp::ZipArchive zipFile(file);
+		if (!zipFile.open(libzippp::ZipArchive::READ_ONLY)) {
+			return false;
+		}
+		std::vector<libzippp::ZipEntry> vEntrys = zipFile.getEntries();
+		for (auto& it : vEntrys)
+		{
+			Strcpy(tmp, it.getName().data(), min(MAX_PATH-1, it.getName().length()));
+			CharConvert(tmp, '/', '\\');
+			Sprintf(path, MAX_PATH, "%s\\%s", toDirectory, tmp);
+
+			if (it.isDirectory()) {
+				CreateDirectory(path, nullptr);
+			}
+			else if (it.isFile()) {
+				std::ofstream ofUnzippedFile(path, std::ios::binary);
+				if (!static_cast<bool>(ofUnzippedFile)) {
+					return false;
+				}
+				int err = it.readContent(ofUnzippedFile);
+				if (err != 0) {
+					return false;
+				}
+				ofUnzippedFile.close();
+			}
+		}
+		zipFile.close();
+		//z2.unlink();会删除zip文件
+		return true;
+#else
+#endif
+	}
+#endif
+
+	void EnumDirectoryFiles(const char* pDir,
+		char pExt[][16],
+		int iExtNum,
+		std::list<std::string>* lstDirs,
+		std::list<std::string>* lstFiles,
+		bool bRecursive) {
+#ifdef _WIN32
+		if (pDir == NULL){
+			return;
+		}
+
+		WIN32_FIND_DATAA FindFileData;
+		BOOL IsFinded = TRUE;
+		char szPath[MAX_PATH], szSubDir[MAX_PATH];
+		char szDir[MAX_PATH], szFile[MAX_PATH];
+
+		szDir[0] = '\0';
+		Strcpy(szDir, pDir, min(MAX_PATH - 1, strlen(pDir)));
+		if (szDir[strlen(szDir) - 1] == '\\' || szDir[strlen(szDir) - 1] == '/'){
+			szDir[strlen(szDir) - 1] = '\0';
+		}
+
+		Memset(&FindFileData, 0, sizeof(WIN32_FIND_DATAA));
+		Sprintf(szPath, sizeof(szPath), "%s\\*.*", szDir);
+		HANDLE hFile = FindFirstFile(szPath, &FindFileData);
+		while (IsFinded){
+			if (strcmp(FindFileData.cFileName, ".") && strcmp(FindFileData.cFileName, "..")) {
+
+				Sprintf(szFile, sizeof(szFile), "%s\\%s", szDir, FindFileData.cFileName);
+				if (!PathIsDirectory(szFile)){
+					if (lstFiles){
+						char* p = PathFindExtension(FindFileData.cFileName);//.txt
+						if (pExt != NULL && p != NULL && iExtNum > 0){
+							for (int i = 0; i < iExtNum; i++){
+								if (!strcmp(p, pExt[i])){
+									lstFiles->push_back(szFile);
+									break;
+								}
+							}
+						}
+						else {
+							lstFiles->push_back(szFile);
+						}
+					}
+				}
+				else {
+					if (lstDirs){
+						lstDirs->push_back(szFile);
+					}
+					if (bRecursive){
+						Sprintf(szSubDir, sizeof(szSubDir), "%s\\%s", szDir, FindFileData.cFileName);
+						EnumDirectoryFiles(szSubDir, pExt, iExtNum, lstDirs, lstFiles, bRecursive);
+					}
+				}
+			}
+			IsFinded = FindNextFile(hFile, &FindFileData);
+		}
+		if (hFile != INVALID_HANDLE_VALUE) {
+			FindClose(hFile);
+		}
+#else
+#endif
+	}
+
+	void CharConvert(char* str, char s, char d) {
+		if (nullptr == str) {
+			return;
+		}
+		int len = strlen(str);
+		for (int i = 0; i < len; i++){
+			if (str[i] == s) {
+				str[i] = d;
+			}
+		}
+	}
+
+	void CreateFolders(const char* path) {
+		if (nullptr == path) {
+			return;
+		}
+#ifdef _WIN32
+		char tmp[MAX_PATH];
+		char* p = nullptr;
+		char* ptr = nullptr;
+		tmp[0] = '\0';
+		Strcpy(tmp, path, min(MAX_PATH-1,strlen(path)));
+		CharConvert(tmp, '/', '\\');
+
+		ptr = tmp;
+		do
+		{
+			p = strchr(ptr, '\\');
+			if (nullptr == p) {
+				if (!IsPathExists(tmp)) {
+					CreateDirectory(tmp, nullptr);
+				}
+				break;
+			}
+			else {
+				*p = '\0';
+				if (!IsPathExists(tmp)) {
+					CreateDirectory(tmp, nullptr);
+				}
+				*p = '\\';
+			}
+			ptr = p + 1;
+		} while (true);
+#else
+
+#endif
 	}
 }}

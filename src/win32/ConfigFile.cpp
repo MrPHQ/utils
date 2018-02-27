@@ -30,7 +30,7 @@ namespace UTILS
 #else
 		if (lpszFileName == NULL || strlen(lpszFileName) <= 0)
 		{
-			return UTILITY_ERROR_PAR;
+			return UTILS_ERROR_PAR;
 		}
 #endif
 		char* pAppData = NULL;
@@ -39,10 +39,10 @@ namespace UTILS
 		int iTmp = 0;
 
 		if (lpszFileName == NULL || strlen(lpszFileName) <= 0)
-			return UTILITY_ERROR_PAR;
+			return UTILS_ERROR_PAR;
 		if (!API::IsPathExists(lpszFileName))
 		{
-			return UTILITY_ERROR_EXISTS;
+			return UTILS_ERROR_EXISTS;
 		}
 
 		lstContent.clear();
@@ -54,7 +54,7 @@ namespace UTILS
 
 		if (iTmp <= 0)
 		{
-			return UTILITY_ERROR_FAIL;
+			return UTILS_ERROR_FAIL;
 		}
 		iTmp = PAD_SIZE(iTmp);
 		pAppData = (char*)new BYTE[iTmp];
@@ -62,12 +62,12 @@ namespace UTILS
 		//如果此参数为NULL,将配置文件中的所有节点名称复制到lpReturnedString参数指定的缓冲区
 		iAppDataLen = GetPrivateProfileString(NULL, NULL, NULL, pAppData, iTmp, lpszFileName);
 		if (iAppDataLen <= 0) {
-			return UTILITY_ERROR_FAIL;
+			return UTILS_ERROR_FAIL;
 		}
 		char* pAppName = new char[iAppDataLen];
 
 		if (pAppName == NULL) {
-			return UTILITY_ERROR_FAIL;
+			return UTILS_ERROR_FAIL;
 		}
 		iAppNameLen = 0;
 
@@ -126,7 +126,7 @@ namespace UTILS
 			lstContent.emplace(lstContent.end(), mapSection);
 		}
 		delete[] pAppName;
-		return UTILITY_ERROR_SUCCESS;
+		return UTILS_ERROR_SUCCESS;
 	}
 
 	int ConfigFile::ReadStr(const char* lpszFileName,
@@ -138,11 +138,11 @@ namespace UTILS
 	{
 		if (NULL == lpszValue || iValueBuffLen <= 0 || NULL == lpszFileName || NULL == lpszSection || NULL == lpszValueName)
 		{
-			return UTILITY_ERROR_PAR;
+			return UTILS_ERROR_PAR;
 		}
 		if (!API::IsPathExists(lpszFileName))
 		{
-			return UTILITY_ERROR_EXISTS;
+			return UTILS_ERROR_EXISTS;
 		}
 		::GetPrivateProfileString(lpszSection, lpszValueName, lpszDefaultValue == NULL ? "" : lpszDefaultValue, lpszValue, iValueBuffLen, lpszFileName);
 		return 0;
@@ -156,11 +156,11 @@ namespace UTILS
 	{
 		if (NULL == lpszFileName || NULL == lpszSection || NULL == lpszValueName)
 		{
-			return UTILITY_ERROR_PAR;
+			return UTILS_ERROR_PAR;
 		}
 		if (!API::IsPathExists(lpszFileName))
 		{
-			return UTILITY_ERROR_EXISTS;
+			return UTILS_ERROR_EXISTS;
 		}
 		iValue = ::GetPrivateProfileInt(lpszSection, lpszValueName, iDefaultValue, lpszFileName);
 		return 0;
@@ -173,11 +173,11 @@ namespace UTILS
 	{
 		if (NULL == lpszValue || NULL == lpszFileName || NULL == lpszSection || NULL == lpszValueName)
 		{
-			return UTILITY_ERROR_PAR;
+			return UTILS_ERROR_PAR;
 		}
 		if (!API::IsPathExists(lpszFileName))
 		{
-			return UTILITY_ERROR_EXISTS;
+			return UTILS_ERROR_EXISTS;
 		}
 		::WritePrivateProfileString(lpszSection, lpszValueName, lpszValue, lpszFileName);
 		return 0;
@@ -190,11 +190,11 @@ namespace UTILS
 	{
 		if (NULL == lpszFileName || NULL == lpszSection || NULL == lpszValueName)
 		{
-			return UTILITY_ERROR_PAR;
+			return UTILS_ERROR_PAR;
 		}
 		if (!API::IsPathExists(lpszFileName))
 		{
-			return UTILITY_ERROR_EXISTS;
+			return UTILS_ERROR_EXISTS;
 		}
 		char szValue[32] = { 0 };
 		API::Sprintf(szValue, sizeof(szValue), "%d", iValue);
@@ -208,11 +208,11 @@ namespace UTILS
 	{
 		if (NULL == lpszFileName || NULL == lpszSection || NULL == lpszKeyName)
 		{
-			return UTILITY_ERROR_PAR;
+			return UTILS_ERROR_PAR;
 		}
 		if (!API::IsPathExists(lpszFileName))
 		{
-			return UTILITY_ERROR_EXISTS;
+			return UTILS_ERROR_EXISTS;
 		}
 		::WritePrivateProfileString(lpszSection, lpszKeyName, NULL, lpszFileName);
 		return 0;
@@ -223,11 +223,11 @@ namespace UTILS
 	{
 		if (NULL == lpszFileName || NULL == lpszSection)
 		{
-			return UTILITY_ERROR_PAR;
+			return UTILS_ERROR_PAR;
 		}
 		if (!API::IsPathExists(lpszFileName))
 		{
-			return UTILITY_ERROR_EXISTS;
+			return UTILS_ERROR_EXISTS;
 		}
 		::WritePrivateProfileString(lpszSection, NULL, NULL, lpszFileName);
 		return 0;
@@ -237,7 +237,7 @@ namespace UTILS
 	{
 		std::list<std::map<std::string, std::list<std::pair<std::string, std::string>>>> lstContent;
 		int ret = ConfigFile::ReadData(lpszFileName, lstContent);
-		if (ret != UTILITY_ERROR_SUCCESS)
+		if (ret != UTILS_ERROR_SUCCESS)
 		{
 			return ret;
 		}
@@ -248,6 +248,6 @@ namespace UTILS
 				ConfigFile::DeleteNode(lpszFileName, itNode.first.data());
 			}
 		}
-		return UTILITY_ERROR_SUCCESS;
+		return UTILS_ERROR_SUCCESS;
 	}
 }

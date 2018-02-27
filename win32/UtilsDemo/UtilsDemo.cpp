@@ -11,6 +11,15 @@ int main()
 {
 	std::cin.ignore();
 	{
+		char dir[] = "F:\\X\\Y\\Z\\";
+		char* pdir = dir;
+		char dir2[] = "F:\\XX\\YY\\ZZ";
+		char* pdir2 = dir2;
+		UTILS::API::CreateFolders(pdir);
+		UTILS::API::CreateFolders(pdir2);
+	}
+	std::cin.ignore();
+	{
 		UTILS::LOG::LOG_INIT("test.properties", false);
 		UTILS::LOG::LOG_DEBUG("日志:%d 内容:%s", 111, "sdfa 撒旦法");
 		UTILS::LOG::LOG_WARN("日志:%d ", 3454);
@@ -36,6 +45,21 @@ int main()
 			buff2[1024 - iOutIdleLen] = '\0';
 			std::cout << "还原后字符串:" << "\t" << buff2 << std::endl;
 		}
+	}
+	std::cin.ignore();
+	{
+		char dir[] = "F:\\Proj";
+		char* pDir = dir;
+		char file[] = "F:\\Proj\\proj.zip";
+		char* pFile = file;
+		bool err = UTILS::API::ZipDirectory(pDir, pFile);
+		std::cout << "压缩 err:" << err << std::endl;
+
+		char dir2[] = "F:\\tmp";
+		char* pDir2 = dir2;
+		CreateDirectory(dir2,nullptr);
+		err = UTILS::API::UnZipFile(pFile, pDir2);
+		std::cout << "解压 err:" << err << std::endl;
 	}
 	std::cin.ignore();
     return 0;
