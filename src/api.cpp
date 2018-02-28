@@ -273,12 +273,12 @@ namespace UTILS {namespace API {
 		return true;
 	}
 
-	UTILS_API bool UnZipFile(const char* file, const char* toDirectory) {
+	UTILS_API bool UnZipFile(const char* file, const char* toDirectory, bool del /*= false*/) {
 		if (nullptr == file || nullptr == toDirectory) {
 			return false;
 		}
 #ifdef _WIN32
-		if (_access(toDirectory, 0) != 0){
+		if (_access(toDirectory, 0) != 0) {
 			return false;
 		}
 		char tmp[MAX_PATH], path[MAX_PATH];
@@ -289,7 +289,7 @@ namespace UTILS {namespace API {
 		std::vector<libzippp::ZipEntry> vEntrys = zipFile.getEntries();
 		for (auto& it : vEntrys)
 		{
-			Strcpy(tmp, it.getName().data(), min(MAX_PATH-1, it.getName().length()));
+			Strcpy(tmp, it.getName().data(), min(MAX_PATH - 1, it.getName().length()));
 			CharConvert(tmp, '/', '\\');
 			Sprintf(path, MAX_PATH, "%s\\%s", toDirectory, tmp);
 
@@ -309,11 +309,75 @@ namespace UTILS {namespace API {
 			}
 		}
 		zipFile.close();
-		//z2.unlink();会删除zip文件
+		if (del) {
+			zipFile.unlink(); //会删除zip文件
+		}
+		//
 		return true;
 #else
 #endif
 	}
+
+
+	UTILS_API bool UnZipFile(const char* file, PZIP_COMMENT buff, int len, bool del /*= false*/) {
+		if (nullptr == file || nullptr == buff) {
+			return false;
+		}
+#ifdef _WIN32
+		char tmp[MAX_PATH], path[MAX_PATH];
+		libzippp::ZipArchive zipFile(file);
+		if (!zipFile.open(libzippp::ZipArchive::READ_ONLY)) {
+			return false;
+		}
+		int iTotal = 0, num = sizeof(ZIP_COMMENT);
+		PZIP_COMMENT pInfo = nullptr;
+		BYTE* pComment = nullptr;
+		std::vector<libzippp::ZipEntry> vEntrys = zipFile.getEntries();
+
+		for (auto& it : vEntrys){
+			iTotal += num;
+			if (it.isFile()) {
+				iTotal += it.getSize();
+			}
+		}
+		if (len < iTotal) {
+			return UTILS_ERROR_BUFFER_SMALL;
+		}
+
+		for (auto& it : vEntrys){
+			if (!it.isDirectory() && !it.isFile()) {
+				continue;
+			}
+
+			pInfo = (PZIP_COMMENT)(buff + iTotal);
+			iTotal += num;
+			Strcpy(pInfo->name, it.getName().data(), min(MAX_PATH - 1, it.getName().length()));
+			if (it.isDirectory()) {
+				pInfo->entry = 0;
+			}
+			else if (it.isFile()) {
+				pInfo->entry = 1;
+				pInfo->len = it.getSize();
+				pComment = (BYTE*)it.readAsBinary();
+				if (nullptr != pComment) {
+					iTotal += pInfo->len;
+					memcpy(pInfo->buff, pComment, pInfo->len);
+					delete[] pComment;
+				}
+				else {
+					pInfo->len = 0;
+				}
+			}
+		}
+		zipFile.close();
+		if (del) {
+			zipFile.unlink(); //会删除zip文件
+		}
+		return true;
+#else
+#endif
+	}
+
 #endif
 
 	void EnumDirectoryFiles(const char* pDir,
@@ -453,6 +517,39 @@ namespace UTILS {namespace API {
 		return UTILS_ERROR_SUCCESS;
 	}
 
+	UTILS_API int EncryptionFile(const char* src, char* buff, int len, const char* key, const char* iv) {
+		if (nullptr == src || nullptr == buff || nullptr == key || nullptr == iv) {
+			return UTILS_ERROR_PAR;
+		}
+		if (!IsPathExists(src)) {
+			return UTILS_ERROR_EXISTS;
+		}
+		std::string strDes;
+
+		CryptoPP::CBC_Mode<CryptoPP::AES>::Encryption e;
+		e.SetKeyWithIV((byte*)key, 16, (byte*)iv);
+
+		try {
+			CryptoPP::FileSource(src, true, new CryptoPP::StreamTransformationFilter(e, new CryptoPP::StringSink(strDes)));
+			/*CryptoPP::FileSource(src, true,
+				new CryptoPP::StreamTransformationFilter(e,
+					new CryptoPP::StringSink(strDecTxt),
+					CryptoPP::BlockPaddingSchemeDef::BlockPaddingScheme::ONE_AND_ZEROS_PADDING,
+					true)*/
+
+		}
+		catch (const CryptoPP::Exception& e) {
+			//std::cout << "errnr:" << e.GetErrorType() << std::endl;
+			//std::cout << "error:" << e.what() << std::endl;
+			return UTILS_ERROR_FAIL;
+		}
+		if (len < strDes.length()) {
+			return UTILS_ERROR_BUFFER_SMALL;
+		}
+		Memcpy(buff, strDes.data(), strDes.length());
+		return UTILS_ERROR_SUCCESS;
+	}
+
 	int DecryptionFile(const char* src, const char* des, const char* key, const char* iv) {
 		if (nullptr == src || nullptr == des || nullptr == key || nullptr == iv) {
 			return UTILS_ERROR_PAR;
@@ -471,5 +568,41 @@ namespace UTILS {namespace API {
 		}
 		return UTILS_ERROR_SUCCESS;
 	}
+
+	int DecryptionFile(const char* src, char* buff, int len, const char* key, const char* iv) {
+		if (nullptr == src || nullptr == buff || nullptr == key || nullptr == iv) {
+			return UTILS_ERROR_PAR;
+		}
+		if (!IsPathExists(src)) {
+			return UTILS_ERROR_EXISTS;
+		}
+		std::string strDes;
+		CryptoPP::CBC_Mode<CryptoPP::AES>::Decryption e;
+		e.SetKeyWithIV((byte*)key, 16, (byte*)iv);
+
+		try {
+			CryptoPP::FileSource(src, true, new CryptoPP::StreamTransformationFilter(e, new CryptoPP::StringSink(strDes)));
+		}
+		catch (const CryptoPP::Exception& e) {
+			return UTILS_ERROR_FAIL;
+		}
+		if (len < strDes.length()) {
+			return UTILS_ERROR_BUFFER_SMALL;
+		}
+		Memcpy(buff, strDes.data(), strDes.length());
+		return UTILS_ERROR_SUCCESS;
+	}
 #endif
+
+	void DEBUG_INFO(char* fmt, ...) {
+#ifdef _WIN32
+		va_list args;
+		char sOut[256];
+		va_start(args, fmt);
+		_vsnprintf_s(sOut, sizeof(sOut)-1, fmt, args);
+		va_end(args);
+		OutputDebugString(sOut);
+#else
+#endif
+	}
 }}

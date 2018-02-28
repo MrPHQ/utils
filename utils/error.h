@@ -24,6 +24,8 @@ namespace UTILS
 		UTILS_ERROR_NOSUPPOERT = 7,
 		/// 不存在..
 		UTILS_ERROR_EXISTS = 8,
+		/// 缓存区太小..
+		UTILS_ERROR_BUFFER_SMALL = 9,
 	};
 }
 #endif //_TYPEDEF_H__

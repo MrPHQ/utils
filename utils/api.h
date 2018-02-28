@@ -51,8 +51,15 @@ namespace UTILS { namespace API {
 		压缩相关.
 	*/
 #ifdef ENABLE_ZIP
+	typedef struct _ZIP_COMMENT{
+		char name[256];
+		int entry;//0-文件夹 1-文件
+		int len;//数据长度
+		BYTE buff[4];
+	}ZIP_COMMENT, *PZIP_COMMENT;
 	UTILS_API bool ZipDirectory(const char*, char* toFile);
-	UTILS_API bool UnZipFile(const char* file, const char* toDirectory);
+	UTILS_API bool UnZipFile(const char* file, const char* toDirectory, bool del = false);
+	UTILS_API bool UnZipFile(const char* file, PZIP_COMMENT buff, int len, bool del = false);
 #endif
 
 	/*
@@ -60,7 +67,14 @@ namespace UTILS { namespace API {
 	*/
 #ifdef ENABLE_CRYPTOPP
 	UTILS_API int EncryptionFile(const char* src, const char* des, const char* key, const char* iv);
+	UTILS_API int EncryptionFile(const char* src, char* buff, int len, const char* key, const char* iv);
 	UTILS_API int DecryptionFile(const char* src, const char* des, const char* key, const char* iv);
+	UTILS_API int DecryptionFile(const char* src, char* buff, int len, const char* key, const char* iv);
 #endif
+
+	/*
+		打印调试信息
+	*/
+	UTILS_API void DEBUG_INFO(char*, ...);
 }}
 #endif
