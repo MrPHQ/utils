@@ -11,6 +11,17 @@ int main()
 {
 	std::cin.ignore();
 	{
+		int v = 2383459;
+		char str[] = "2383459";
+		char* pstr = str;
+		std::string strx = UTILS::API::StringSHA256(pstr,strlen(pstr));
+		std::cout << strx.data() << std::endl;
+		std::string strx2 = UTILS::API::StringSHA1(pstr, strlen(pstr));
+		std::cout << strx2.data() << std::endl;
+	}
+
+	std::cin.ignore();
+	{
 		char key[] = "puhuaqiang123456";
 		char* pkey = key;
 		char iv[] = "0123456789654321";

@@ -111,6 +111,19 @@ namespace UTILS {namespace API {
 		return iRet;
 	}
 
+	UTILS_API int Strcmp(const char* s, const char* d) {
+		if ((s == nullptr) || (d == nullptr)) {
+			return -1;
+		}
+		int iRet = 0;
+#ifdef _WIN32
+		iRet = strcmp(s, d);
+#else
+		iRet = strcmp(s, d);
+#endif
+		return iRet;
+	}
+
 	const char* GetCurrentPath(HINSTANCE hInstance /*= NULL*/)
 	{
 		static char gstrCurrentPath[MAX_PATH] = { 0 };
@@ -324,7 +337,6 @@ namespace UTILS {namespace API {
 			return false;
 		}
 #ifdef _WIN32
-		char tmp[MAX_PATH], path[MAX_PATH];
 		libzippp::ZipArchive zipFile(file);
 		if (!zipFile.open(libzippp::ZipArchive::READ_ONLY)) {
 			return false;
@@ -341,7 +353,7 @@ namespace UTILS {namespace API {
 			}
 		}
 		if (len < iTotal) {
-			return UTILS_ERROR_BUFFER_SMALL;
+			return false;
 		}
 
 		for (auto& it : vEntrys){
@@ -603,6 +615,28 @@ namespace UTILS {namespace API {
 		}
 		return dst;
 	}
+	std::string StringSHA256(const char* data, int len) {
+		CryptoPP::SHA256 sha256;
+		std::string dst;
+		try {
+			CryptoPP::StringSource((const byte*)data, len, true, new CryptoPP::HashFilter(sha256, new CryptoPP::HexEncoder(new CryptoPP::StringSink(dst))));
+		}
+		catch (const CryptoPP::Exception& e) {
+			return dst;
+		}
+		return dst;
+	}
+	std::string StringSHA1(const char* data, int len) {
+		CryptoPP::SHA1 sha1;
+		std::string dst;
+		try {
+			CryptoPP::StringSource((const byte*)data, len, true, new CryptoPP::HashFilter(sha1, new CryptoPP::HexEncoder(new CryptoPP::StringSink(dst))));
+		}
+		catch (const CryptoPP::Exception& e) {
+			return dst;
+		}
+		return dst;
+	}
 #endif
 
 	void DEBUG_INFO(char* fmt, ...) {
@@ -617,7 +651,7 @@ namespace UTILS {namespace API {
 #endif
 	}
 
-	bool DreateFolders(const char* folders) {
+	bool DelFolders(const char* folders) {
 		if (folders == NULL){
 			return false;
 		}
@@ -643,5 +677,50 @@ namespace UTILS {namespace API {
 			}
 		}
 		return !bFail;
+	}
+
+	void PathRemoveExtension(char* path) {
+#ifdef _WIN32
+		if (NULL == path){
+			return;
+		}
+		PathRemoveExtension(path);
+#else
+
+#endif // _WIN32
+
+	}
+
+	void PathRemoveFileSpec(char* path) {
+#ifdef _WIN32
+		if (NULL == path){
+			return;
+		}
+		return PathRemoveFileSpec(path);
+#else
+
+#endif // _WIN32
+	}
+
+	void PathStripPath(char* path) {
+#ifdef _WIN32
+		if (NULL == path){
+			return;
+		}
+		PathStripPath(path);
+#else
+
+#endif // _WIN32
+	}
+
+	char* PathFindExtension(char* path) {
+#ifdef _WIN32
+		if (NULL == path){
+			return NULL;
+		}
+		return PathFindExtension(path);
+#else
+
+#endif // _WIN32
 	}
 }}

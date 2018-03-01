@@ -19,6 +19,7 @@ namespace UTILS { namespace API {
 	*/
 	UTILS_API int Sprintf(char* buffer, int size, const char* format, ...);
 	UTILS_API int Strcpy(char* _Destination, char const* _Source, int _MaxCount);
+	UTILS_API int Strcmp(const char*, const char*);
 
 	UTILS_API int CharacterConvert(const char* tocode, const char* fromcode,
 		char *inbuf, int inlen, char *outbuf,
@@ -39,13 +40,21 @@ namespace UTILS { namespace API {
 	UTILS_API const char* GetCurrentPath(HINSTANCE hInstance = NULL);
 	UTILS_API bool IsPathExists(const char*);
 	UTILS_API void CreateFolders(const char*);
-	UTILS_API bool DreateFolders(const char*);
+	UTILS_API bool DelFolders(const char*);
 	UTILS_API void EnumDirectoryFiles(const char* pDir,
 		char pExt[][16],
 		int iExtNum,
 		std::list<std::string>* lstDirs,
 		std::list<std::string>* lstFiles,
 		bool bRecursive);
+	/// 去除文件路径扩展名
+	UTILS_API void PathRemoveExtension(char*);
+	/// 去除文件名，得到目录
+	UTILS_API void PathRemoveFileSpec(char*);
+	/// 去掉路径中的目录部分,得到文件名
+	UTILS_API void PathStripPath(char*);
+	/// 查找路径的扩展名
+	UTILS_API char* PathFindExtension(char*);
 
 
 	/*
@@ -72,6 +81,8 @@ namespace UTILS { namespace API {
 	UTILS_API int DecryptionFile(const char* src, const char* des, const char* key, const char* iv);
 	UTILS_API int DecryptionFile(const char* src, char* buff, int len, const char* key, const char* iv);
 	UTILS_API std::string FileSHA(const char*);
+	UTILS_API std::string StringSHA256(const char*, int len);
+	UTILS_API std::string StringSHA1(const char*, int len);
 #endif
 
 	/*
