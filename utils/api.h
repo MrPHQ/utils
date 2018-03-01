@@ -39,6 +39,7 @@ namespace UTILS { namespace API {
 	UTILS_API const char* GetCurrentPath(HINSTANCE hInstance = NULL);
 	UTILS_API bool IsPathExists(const char*);
 	UTILS_API void CreateFolders(const char*);
+	UTILS_API bool DreateFolders(const char*);
 	UTILS_API void EnumDirectoryFiles(const char* pDir,
 		char pExt[][16],
 		int iExtNum,
@@ -70,6 +71,7 @@ namespace UTILS { namespace API {
 	UTILS_API int EncryptionFile(const char* src, char* buff, int len, const char* key, const char* iv);
 	UTILS_API int DecryptionFile(const char* src, const char* des, const char* key, const char* iv);
 	UTILS_API int DecryptionFile(const char* src, char* buff, int len, const char* key, const char* iv);
+	UTILS_API std::string FileSHA(const char*);
 #endif
 
 	/*

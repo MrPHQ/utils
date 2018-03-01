@@ -592,6 +592,17 @@ namespace UTILS {namespace API {
 		Memcpy(buff, strDes.data(), strDes.length());
 		return UTILS_ERROR_SUCCESS;
 	}
+	std::string FileSHA(const char* file) {
+		CryptoPP::SHA256 sha256;
+		std::string dst;
+		try {
+			CryptoPP::FileSource((const char*)file, true, new CryptoPP::HashFilter(sha256, new CryptoPP::HexEncoder(new CryptoPP::StringSink(dst))));
+		}
+		catch (const CryptoPP::Exception& e) {
+			return dst;
+		}
+		return dst;
+	}
 #endif
 
 	void DEBUG_INFO(char* fmt, ...) {
@@ -604,5 +615,33 @@ namespace UTILS {namespace API {
 		OutputDebugString(sOut);
 #else
 #endif
+	}
+
+	bool DreateFolders(const char* folders) {
+		if (folders == NULL){
+			return false;
+		}
+		std::list<std::string> lstDirs;
+		std::list<std::string> lstFiles;
+		EnumDirectoryFiles(folders, NULL, 0, &lstDirs, &lstFiles, true);
+		bool bFail = false;
+		for (auto& it : lstFiles){
+			if (!DeleteFile(it.c_str())) {
+				bFail = true;
+			}
+		}
+		auto it = lstDirs.crbegin();
+		auto itEnd = lstDirs.crend();
+		for (; it != itEnd; it++){
+			if (!RemoveDirectory(it->c_str())) {
+				bFail = true;
+			}
+		}
+		if (IsPathExists(folders)){
+			if (!RemoveDirectory(folders)) {
+				bFail = true;
+			}
+		}
+		return !bFail;
 	}
 }}
