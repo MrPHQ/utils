@@ -48,14 +48,16 @@ namespace UTILS { namespace API {
 		std::list<std::string>* lstFiles,
 		bool bRecursive);
 	/// 去除文件路径扩展名
-	UTILS_API void PathRemoveExtension(char*);
+	UTILS_API void RemoveExtension(char*);
 	/// 去除文件名，得到目录
-	UTILS_API void PathRemoveFileSpec(char*);
+	UTILS_API void RemoveFileSpec(char*);
 	/// 去掉路径中的目录部分,得到文件名
-	UTILS_API void PathStripPath(char*);
+	UTILS_API void StripPath(char*);
 	/// 查找路径的扩展名
-	UTILS_API char* PathFindExtension(char*);
+	UTILS_API char* FindExtension(char*);
 
+	/// 获取文件大小
+	UTILS_API uint64_t FileSize(const char*);
 
 	/*
 		压缩相关.

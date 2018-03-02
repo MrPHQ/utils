@@ -679,7 +679,7 @@ namespace UTILS {namespace API {
 		return !bFail;
 	}
 
-	void PathRemoveExtension(char* path) {
+	void RemoveExtension(char* path) {
 #ifdef _WIN32
 		if (NULL == path){
 			return;
@@ -691,18 +691,18 @@ namespace UTILS {namespace API {
 
 	}
 
-	void PathRemoveFileSpec(char* path) {
+	void RemoveFileSpec(char* path) {
 #ifdef _WIN32
 		if (NULL == path){
 			return;
 		}
-		return PathRemoveFileSpec(path);
+		PathRemoveFileSpec(path);
 #else
 
 #endif // _WIN32
 	}
 
-	void PathStripPath(char* path) {
+	void StripPath(char* path) {
 #ifdef _WIN32
 		if (NULL == path){
 			return;
@@ -713,12 +713,32 @@ namespace UTILS {namespace API {
 #endif // _WIN32
 	}
 
-	char* PathFindExtension(char* path) {
+	char* FindExtension(char* path) {
 #ifdef _WIN32
 		if (NULL == path){
 			return NULL;
 		}
 		return PathFindExtension(path);
+#else
+
+#endif // _WIN32
+	}
+
+	uint64_t FileSize(const char* file) {
+#ifdef _WIN32
+		if (NULL == file) {
+			return 0;
+		}
+		HANDLE hFile = nullptr;
+		LARGE_INTEGER FileSize;
+		hFile = CreateFile(file, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (hFile == nullptr) {
+			return 0;
+		}
+		GetFileSizeEx(hFile, &FileSize);
+		//printf("File size are %lld bytes and %4.2f KB and %4.2f MB and %4.2f GB\n", FileSize.QuadPart, (float)FileSize.QuadPart / 1024, (float)FileSize.QuadPart / (1024 * 1024), (float)FileSize.QuadPart / (1024 * 1024 * 1024));
+		CloseHandle(hFile);
+		return FileSize.QuadPart;
 #else
 
 #endif // _WIN32
