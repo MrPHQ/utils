@@ -14,6 +14,20 @@ namespace UTILS { namespace API {
 	UTILS_API void* Memmove(void* dest, const void* src, int count);
 	UTILS_API int	Memcmp(const void* dest, const void* src, int count);
 
+	/**
+		\brief
+			重新分配内存.
+			重新分配内存,会保留原来的数据.
+		\param iNewLen
+			新分配内存大小.
+		\param pBuff
+			缓存区地址.
+		\param iDataLen
+			缓存区原有数据大小.
+		\param bDel
+			是否释放源缓存区.
+	*/
+	UTILS_API int MallocMemory(unsigned int iNewLen, BYTE*& pBuff, int iDataLen, BOOL bDel /*= TRUE*/);
 	/*
 		字符串操作相关.
 	*/

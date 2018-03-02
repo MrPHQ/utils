@@ -743,4 +743,38 @@ namespace UTILS {namespace API {
 
 #endif // _WIN32
 	}
+
+	int MallocMemory(unsigned int iNewLen, BYTE*& pBuff, int iDataLen, BOOL bDel /*= TRUE*/) {
+		if (iNewLen <= 0){
+			return 0;
+		}
+		BYTE* tmp = NULL;
+		int datalen = 0, bufflen = 0;
+		if (pBuff != NULL){
+			if (iDataLen > 0){
+				datalen = iDataLen;
+				tmp = new BYTE[datalen];
+				if (tmp != NULL){
+					memcpy(tmp, pBuff, datalen);
+				}
+			}
+			if (bDel){
+				delete[] pBuff;
+				pBuff = NULL;
+			}
+		}
+
+		bufflen = PAD_SIZE(iNewLen);
+		pBuff = new BYTE[bufflen];
+		if (pBuff == NULL){
+			return 0;
+		}
+		if (datalen > 0 && tmp != NULL && pBuff != NULL){
+			Memcpy(pBuff, tmp, min(datalen, bufflen));
+		}
+		if (tmp != NULL){
+			delete[] tmp;
+		}
+		return bufflen;
+	}
 }}
