@@ -1,7 +1,7 @@
 #include "../utils/api.h"
 #include "internal.h"
 #include <fstream>
-
+#include <random>
 #ifdef _WIN32
 #include <io.h>
 #include <Shlwapi.h>
@@ -776,5 +776,18 @@ namespace UTILS {namespace API {
 			delete[] tmp;
 		}
 		return bufflen;
+	}
+
+	int Random(int start, int end) {
+		std::default_random_engine generator;
+		std::uniform_int_distribution<int> distribution(start, end);
+		int dice_roll = distribution(generator);
+		return dice_roll;
+		/*
+			For repeated uses, both can be bound together:
+
+			auto dice = std::bind ( distribution, generator );
+			int wisdom = dice()+dice()+dice();
+		*/
 	}
 }}

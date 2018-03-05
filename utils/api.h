@@ -105,5 +105,10 @@ namespace UTILS { namespace API {
 		打印调试信息
 	*/
 	UTILS_API void DEBUG_INFO(char*, ...);
+
+	/*
+		随机数c++11
+	*/
+	UTILS_API int Random(int start, int end);
 }}
 #endif
