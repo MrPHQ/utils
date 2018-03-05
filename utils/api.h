@@ -104,7 +104,7 @@ namespace UTILS { namespace API {
 	/*
 		打印调试信息
 	*/
-	UTILS_API void DEBUG_INFO(char*, ...);
+	UTILS_API void DEBUG_INFO(char* flag, char*, ...);
 
 	/*
 		随机数c++11

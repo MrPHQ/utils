@@ -5,10 +5,82 @@
 #include <utils\utils.h>
 #include <utils\logger.h>
 #include <iostream>
+#include <bitset>
 
 #pragma comment(lib, "utils/utils.lib")
 int main()
 {
+	std::cin.ignore();
+	{
+		std::bitset<32> _bit;
+
+		_bit.set(0);
+		_bit.set(1);
+		_bit.set(2);
+		_bit.set(3);
+		std::cout << _bit.to_ulong() << std::endl;
+		std::cout << _bit.test(0) << std::endl;
+		std::cout << _bit.test(1) << std::endl;
+		std::cout << _bit.test(2) << std::endl;
+		std::cout << _bit.test(3) << std::endl;
+		std::cout << _bit.test(4) << std::endl;
+		std::cout << _bit.test(5) << std::endl;
+		std::cout << std::endl;
+		std::bitset<32> _bit2(17);
+		std::cout << _bit2.to_ulong() << std::endl;
+		std::cout << _bit2.test(0) << std::endl;
+		std::cout << _bit2.test(1) << std::endl;
+		std::cout << _bit2.test(2) << std::endl;
+		std::cout << _bit2.test(3) << std::endl;
+		std::cout << _bit2.test(4) << std::endl;
+		std::cout << _bit2.test(5) << std::endl;
+
+		for (int i = 0; i < _bit2.size(); i++)
+		{
+			std::cout << _bit2.test(i) << std::endl;
+		}
+
+		std::cout << ((_bit2 & std::bitset<32>(1)) != 1) << std::endl;
+		std::cout << ((_bit2 & std::bitset<32>(2)) == 0) << std::endl;
+		std::cout << (_bit2 & std::bitset<32>(10)) << std::endl;
+		std::cout << ((_bit2 & std::bitset<32>(16)) == std::bitset<32>(16)) << std::endl;
+
+		std::bitset<32> _bit3(8);
+		std::bitset<32> _bit4(32);
+		std::cout << (_bit3 |= _bit4).to_string() << std::endl;
+
+	}
+
+	std::cin.ignore();
+	{
+		char str[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\F1B74DA7-6520-4AE5-B196-114C53F5C881";
+		char* pstr = str;
+		char file[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\F1B74DA7-6520-4AE5-B196-114C53F5C881.zip";
+		char* pfile = file;
+		UTILS::API::ZipDirectory(pstr, pfile);
+
+		char key[] = "2E3234F6591B4E69";
+		char* pkey = key;
+		char iv[] = "B91D10A7BE5B1FAB";
+		char* piv = iv;
+
+		char file2[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\F1B74DA7-6520-4AE5-B196-114C53F5C881.patch";
+		char* pfile2 = file2;
+
+		int err = UTILS::API::EncryptionFile(pfile, pfile2, pkey, piv);
+		std::cout << "¼ÓÃÜ:" << err << std::endl;
+		err = UTILS::API::DecryptionFile(pfile2, "x.zip", pkey, piv);
+		std::cout << "½âÃÜ:" << err << std::endl;
+	}
+
+	std::cin.ignore();
+	{
+		char str[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\F1B74DA7-6520-4AE5-B196-114C53F5C881\\patch_file.zip";
+		char* pstr = str;
+		std::string strx = UTILS::API::FileSHA(pstr);
+		std::cout << strx << std::endl;
+	}
+
 	std::cin.ignore();
 	{
 		int v = 2383459;

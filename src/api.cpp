@@ -479,7 +479,6 @@ namespace UTILS {namespace API {
 		tmp[0] = '\0';
 		Strcpy(tmp, path, min(MAX_PATH-1,strlen(path)));
 		CharConvert(tmp, '/', '\\');
-
 		ptr = tmp;
 		do
 		{
@@ -639,14 +638,23 @@ namespace UTILS {namespace API {
 	}
 #endif
 
-	void DEBUG_INFO(char* fmt, ...) {
+	void DEBUG_INFO(char* flag, char* fmt, ...) {
 #ifdef _WIN32
 		va_list args;
+		char sLog[256];
 		char sOut[256];
+		sLog[0] = '\0';
+		sOut[0] = '\0';
 		va_start(args, fmt);
 		_vsnprintf_s(sOut, sizeof(sOut)-1, fmt, args);
 		va_end(args);
-		OutputDebugString(sOut);
+		if (nullptr != flag && strlen(flag) > 0) {
+			strncat_s(sLog, 256, "[", 1);
+			strncat_s(sLog, 256, flag, min(255, strlen(flag)));
+			strncat_s(sLog, 256, "] ", 2);
+		}
+		strncat_s(sLog, 256, sOut, min(255-strlen(sLog), strlen(sOut)));
+		OutputDebugString(sLog);
 #else
 #endif
 	}
@@ -765,12 +773,16 @@ namespace UTILS {namespace API {
 		}
 
 		bufflen = PAD_SIZE(iNewLen);
+		char log[64];
+		_snprintf_s(log, _TRUNCATE, "phq  %d %d %d %d", iNewLen, bufflen, datalen, iDataLen);
+		OutputDebugString(log);
 		pBuff = new BYTE[bufflen];
 		if (pBuff == NULL){
 			return 0;
 		}
 		if (datalen > 0 && tmp != NULL && pBuff != NULL){
 			Memcpy(pBuff, tmp, min(datalen, bufflen));
+			OutputDebugString("...........phq...");
 		}
 		if (tmp != NULL){
 			delete[] tmp;
