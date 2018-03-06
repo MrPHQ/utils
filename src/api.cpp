@@ -4,8 +4,12 @@
 #include <random>
 #ifdef _WIN32
 #include <io.h>
+#include <algorithm>
+#include <TlHelp32.h>
+#include <shellapi.h>
 #include <Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
+#include <Shlobj.h>
 #endif
 
 #ifdef ENABLE_ZIP
@@ -124,6 +128,29 @@ namespace UTILS {namespace API {
 		return iRet;
 	}
 
+	int Transform(std::string& str, bool tolow /*= true*/) {
+		if (tolow) {
+			std::transform(str.begin(), str.end(), str.begin(), tolower);
+		}
+		else {
+			std::transform(str.begin(), str.end(), str.begin(), toupper);
+		}
+		return 0;
+	}
+
+	int Transform(char* str, bool tolow /*= true*/) {
+		if (nullptr == str) {
+			return -1;
+		}
+		if (tolow) {
+			_strlwr_s(str, strlen(str)+1);
+		}
+		else {
+			_strupr_s(str, strlen(str) + 1);
+		}
+		return 0;
+	}
+
 	const char* GetCurrentPath(HINSTANCE hInstance /*= NULL*/)
 	{
 		static char gstrCurrentPath[MAX_PATH] = { 0 };
@@ -138,8 +165,7 @@ namespace UTILS {namespace API {
 		return gstrCurrentPath;
 	}
 
-	int CharacterConvert(
-		const char* tocode,
+	int CharacterConvert(const char* tocode,
 		const char* fromcode,
 		char *inbuf,
 		int inlen,
@@ -196,6 +222,72 @@ namespace UTILS {namespace API {
 #else
 #endif
 
+	}
+
+	int ForceKillProcess(const char* name) {
+		if (nullptr == name) {
+			return -1;
+		}
+		HANDLE hSnapshot = NULL, hProcess = NULL;
+		PROCESSENTRY32	pe;
+		BOOL bMore;
+		DWORD dwExitCode;
+		char szProName[128] , szModuleName[128];
+		Sprintf(szProName, sizeof(szProName), "%s", name);
+		Transform(szProName, 128);
+
+		hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+		if (INVALID_HANDLE_VALUE == hSnapshot)
+			return FALSE;
+		ZeroMemory(&pe, sizeof(pe));
+		pe.dwSize = (DWORD)sizeof(pe);
+
+		bMore = Process32First(hSnapshot, &pe);
+		while (bMore) {
+			bMore = Process32Next(hSnapshot, &pe);
+			strcpy_s(szModuleName, 128, pe.szExeFile);
+			_strlwr_s(szModuleName, 128);
+			if (strstr(szModuleName, szProName) != nullptr) {
+				hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe.th32ProcessID);
+				if (NULL != hProcess) {
+					if (GetExitCodeProcess(hProcess, &dwExitCode)) {
+						TerminateProcess(hProcess, dwExitCode);
+					}
+					CloseHandle(hProcess);
+				}
+			}
+		}
+		CloseHandle(hSnapshot);
+		hSnapshot = NULL;
+		return TRUE;
+	}
+
+	int RunProcess(const char* cmd, unsigned int uiTimeOut /*= 0*/) {
+		int ret = UTILS::UTILS_ERROR_SUCCESS;
+		if (cmd == NULL){
+			ret = UTILS::UTILS_ERROR_PAR;
+			return ret;
+		}
+		STARTUPINFO	stStartInfo;
+		PROCESS_INFORMATION	stProcessInfo = { 0 };
+
+		Memset(&stStartInfo, 0, sizeof(STARTUPINFO));
+		stStartInfo.cb = sizeof(STARTUPINFO);
+		stStartInfo.dwFlags = STARTF_USESHOWWINDOW;
+		stStartInfo.wShowWindow = SW_HIDE;
+		BOOL bRet = CreateProcess(NULL, (char*)cmd, NULL, NULL, FALSE, 0, NULL, NULL, &stStartInfo, &stProcessInfo);
+		if (stProcessInfo.hProcess == NULL) {
+			ret = UTILS::UTILS_ERROR_FAIL;
+			return ret;
+		}
+		if (uiTimeOut > 0){
+			DWORD dwTimeout = WaitForSingleObject(stProcessInfo.hProcess, uiTimeOut);
+			if (dwTimeout == WAIT_TIMEOUT) {
+				ret = UTILS::UTILS_ERROR_TIMEOUT;
+				return ret;
+			}
+		}
+		return ret;
 	}
 
 	UTILS_API void SleepTime(int ms) {
@@ -802,4 +894,290 @@ namespace UTILS {namespace API {
 			int wisdom = dice()+dice()+dice();
 		*/
 	}
+
+	BOOL RelativePathTo(char* pszPath, char* pszFrom, DWORD dwAttrFrom, char* pszTo, DWORD dwAttrTo) {
+		return PathRelativePathTo(pszPath,pszFrom,FILE_ATTRIBUTE_DIRECTORY,pszTo,FILE_ATTRIBUTE_DIRECTORY);
+	}
+
+	BOOL IsRelativePath(char* path) {
+		return PathIsRelative(path);
+	}
+
+	void ConverToRelative(char* from, char* to, int len) {
+		char tmp[256];
+		tmp[0] = '\0';
+		if (nullptr == from || nullptr == to) {
+			return;
+		}
+		Sprintf(tmp, 256, ".%s", from);
+		Strcpy(to, tmp, min(256-1,len));
+	}
+
+	void CombinePath(char* buff, const char* first, const char* second) {
+		if (NULL == buff || NULL == first || NULL == second){
+			return;
+		}
+		PathCombine(buff, first, second);
+	}
+
+	BOOL DelFile(const char* file) {
+		if (nullptr == file) {
+			return FALSE;
+		}
+		return DeleteFile(file);
+	}
+
+	BOOL FileCopy(const char* from, const char* to, BOOL exists) {
+		if (nullptr == from || nullptr == to) {
+			return FALSE;
+		}
+		return CopyFile(from, to, exists);
+	}
+
+	BOOL VerifyOSVersionInfo(DWORD dwMajorVersion, DWORD dwMinorVersion, DWORD wProductType)
+	{
+		OSVERSIONINFOEX osvi;
+		DWORDLONG dwlConditionMask = 0;
+		int op = VER_EQUAL;//µÈÓÚ
+
+		// Initialize the OSVERSIONINFOEX structure.
+
+		ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+		osvi.dwMajorVersion = dwMajorVersion;
+		osvi.dwMinorVersion = dwMinorVersion;
+		osvi.wProductType = wProductType;
+
+		// Initialize the condition mask.
+
+		VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, op);
+		VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, op);
+		VER_SET_CONDITION(dwlConditionMask, VER_PRODUCT_TYPE, op);
+
+		// Perform the test.
+
+		return VerifyVersionInfo(
+			&osvi,
+			VER_MAJORVERSION | VER_MINORVERSION | VER_PRODUCT_TYPE,
+			dwlConditionMask);
+	}
+
+	BOOL Is64() {
+		SYSTEM_INFO si;
+		GetNativeSystemInfo(&si);
+		if ((si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64) || 
+			(si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64)) {
+			return TRUE;
+		}
+		return FALSE;
+	}
+	int GetOSVersion() {
+		OSVERSIONINFOEX osvi;
+		BOOL bIsWindowsXPorLater;
+		SYSTEM_INFO si;
+
+		ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+
+		//GetVersionEx((OSVERSIONINFO*)&osvi);
+		GetNativeSystemInfo(&si);
+
+		if (VerifyOSVersionInfo(5, 0, VER_NT_SERVER)) {
+			return OS_VERSION_2000;
+		}
+		if (VerifyOSVersionInfo(5, 1, VER_NT_WORKSTATION) || 
+			((VerifyOSVersionInfo(5, 2, VER_NT_WORKSTATION) && (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64)))) {
+			return OS_VERSION_XP;
+		}
+		if (VerifyOSVersionInfo(5, 2, VER_NT_SERVER)) {
+			return OS_VERSION_2003;
+		}
+		if (VerifyOSVersionInfo(6, 0, VER_NT_WORKSTATION)) {
+			return OS_VERSION_VISTA;
+		}
+		if ((VerifyOSVersionInfo(6, 0, VER_NT_SERVER)) || 
+			(VerifyOSVersionInfo(6, 1, VER_NT_SERVER))) {
+			return OS_VERSION_2008;
+		}
+		if (VerifyOSVersionInfo(6, 1, VER_NT_WORKSTATION)) {
+			return OS_VERSION_WIN7;
+		}
+		if ((VerifyOSVersionInfo(6, 2, VER_NT_SERVER)) || 
+			(VerifyOSVersionInfo(6, 3, VER_NT_SERVER))) {
+			return OS_VERSION_2012;
+		}
+		if ((VerifyOSVersionInfo(6, 2, VER_NT_WORKSTATION)) ||
+			(VerifyOSVersionInfo(6, 3, VER_NT_WORKSTATION))) {
+			return OS_VERSION_WIN8;
+		}
+		if (VerifyOSVersionInfo(10, 0, VER_NT_WORKSTATION)) {
+			return OS_VERSION_WIN10;
+		}
+		if (VerifyOSVersionInfo(10, 0, VER_NT_SERVER)) {
+			return OS_VERSION_2016;
+		}
+#if 0
+		bIsWindowsXPorLater =((osvi.dwMajorVersion > 5) ||
+			((osvi.dwMajorVersion == 5) && (osvi.dwMinorVersion >= 1)));
+		if (osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 0){
+			return OS_VERSION_2000;
+		}
+		if ((osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 1) || 
+			(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 2 && 
+			osvi.wProductType == VER_NT_WORKSTATION && si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64)) {
+			return OS_VERSION_XP;
+		}
+		if (osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 2) {
+			if ((osvi.wSuiteMask & VER_SUITE_WH_SERVER) != VER_SUITE_WH_SERVER) {
+				//GetSystemMetrics(SM_SERVERR2) == 0
+				//GetSystemMetrics(SM_SERVERR2) != 0 2003 R2
+				return OS_VERSION_2003;
+			}
+		}
+		if (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 0 && osvi.wProductType == VER_NT_WORKSTATION) {
+			return OS_VERSION_VISTA;
+		}
+		if ((osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 0 && osvi.wProductType != VER_NT_WORKSTATION) || 
+			(osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 1 && osvi.wProductType != VER_NT_WORKSTATION)) {
+			return OS_VERSION_2008;
+		}
+		if (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 1 && osvi.wProductType == VER_NT_WORKSTATION) {
+			return OS_VERSION_WIN7;
+		}
+		if ((osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 2 && osvi.wProductType != VER_NT_WORKSTATION) || 
+			(osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 3 && osvi.wProductType != VER_NT_WORKSTATION)) {
+			return OS_VERSION_2012;
+		}
+		if ((osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 2 && osvi.wProductType == VER_NT_WORKSTATION) || 
+			(osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 3 && osvi.wProductType == VER_NT_WORKSTATION)) {
+			return OS_VERSION_WIN8;
+		}
+		if (osvi.dwMajorVersion == 10 && osvi.dwMinorVersion == 0 && osvi.wProductType == VER_NT_WORKSTATION) {
+			return OS_VERSION_WIN10;
+		}
+		if (osvi.dwMajorVersion == 10 && osvi.dwMinorVersion == 0 && osvi.wProductType != VER_NT_WORKSTATION) {
+			return OS_VERSION_2016;
+		}
+#endif
+		return OS_VERSION_NONE;
+	}
+
+	int GetOSFolderPath(int csidl, char* buff, int len) {
+		if (buff == nullptr) {
+			return -1;
+		}
+		char szPath[MAX_PATH];
+		if (SUCCEEDED(SHGetFolderPath(NULL, csidl, NULL, 0, szPath))) {
+
+			Strcpy(buff, szPath, min(len, strlen(szPath)));
+			return 0;
+		}
+		return -1;
+
+		int os = GetOSVersion();
+		if (os < OS_VERSION_VISTA) {
+			// CSIDL_PERSONAL | CSIDL_FLAG_CREATE
+			if (SUCCEEDED(SHGetFolderPath(NULL, csidl,NULL,0,szPath))){
+
+				Strcpy(buff, szPath, min(len, strlen(szPath)));
+			}
+		}
+		else {
+			//FOLDERID_AccountPictures
+
+		}
+	}
+
+	int GetOSFolderPath(GUID csidl, char* buff, int len) {
+		char szPath[MAX_PATH];
+		wchar_t* p = nullptr;
+		if (SUCCEEDED(SHGetKnownFolderPath(csidl, 0, NULL, &p))) {
+			if (nullptr != p) {
+				szPath[0] = '\0';
+				WcharToChar(p, szPath, MAX_PATH);
+				Strcpy(buff, szPath, min(len, strlen(szPath)));
+			}
+			return 0;
+		}
+		return -1;
+	}
+
+	char* WcharToChar(wchar_t* wc){
+		int len = WideCharToMultiByte(CP_ACP, 0, wc, wcslen(wc), NULL, 0, NULL, NULL);
+		char* p = new char[len + 1];
+		if (nullptr == p) {
+			return nullptr;
+		}
+		WideCharToMultiByte(CP_ACP, 0, wc, wcslen(wc), p, len, NULL, NULL);
+		p[len] = '\0';
+		return p;
+	}
+	wchar_t* CharToWchar(char* c){
+		int len = MultiByteToWideChar(CP_ACP, 0, c, strlen(c), NULL, 0);
+		wchar_t* p = new wchar_t[len + 1];
+		if (nullptr == p) {
+			return nullptr;
+		}
+		MultiByteToWideChar(CP_ACP, 0, c, strlen(c), p, len);
+		p[len] = '\0';
+		return p;
+	}
+	void WcharToChar(wchar_t* wc, char* buff, int len){
+		char _buff[1024];
+		int _len = WideCharToMultiByte(CP_ACP, 0, wc, wcslen(wc), NULL, 0, NULL, NULL);
+		if (_len >= 1024) {
+			return;
+		}
+		WideCharToMultiByte(CP_ACP, 0, wc, wcslen(wc), _buff, 1024, NULL, NULL);
+		_buff[_len] = '\0';
+		Strcpy(buff, _buff, min(len,strlen(_buff)));
+	}
+
+	void CharToWchar(char* c, wchar_t* buff, int len){
+		wchar_t _buff[1024];
+		int _len = MultiByteToWideChar(CP_ACP, 0, c, strlen(c), NULL, 0);
+		if (_len >= 1024) {
+			return;
+		}
+		MultiByteToWideChar(CP_ACP, 0, c, strlen(c), _buff, 1024);
+		_buff[_len] = '\0';
+		wcsncpy_s(buff, 1024, _buff, min(len, wcslen(_buff)));
+	}
+
+#ifdef UTILS_ENABLE_REGEDIT
+	int ReadRegString(HKEY hKey, const char* section, const char* Entry, char* buff, int len) {
+		HKEY _hKey = NULL;
+		DWORD DataType = REG_SZ, BuffLen = 1024;
+		char str[1024];
+
+		if ((nullptr == section) || (nullptr == Entry) || (nullptr == buff)) {
+			return -1;
+		}
+		str[0] = '\0';
+		if (RegOpenKeyEx(hKey, section, 0, KEY_READ, &_hKey) == ERROR_SUCCESS){
+			if (RegQueryValueEx(_hKey, Entry, 0, &DataType, (BYTE*)&str, &BuffLen) == ERROR_SUCCESS){
+				Strcpy(buff, str, min(len, strlen(str)));
+				return 0;
+			}
+			RegCloseKey(_hKey);
+		}
+		return -2;
+	}
+	int ReadRegInt(HKEY hKey, const char* section, const char* Entry, int& v) {
+		HKEY _hKey = NULL;
+		DWORD DataType = REG_DWORD, BuffLen = 4;
+
+		if ((nullptr == section) || (nullptr == Entry)) {
+			return -1;
+		}
+		if (RegOpenKeyEx(hKey, section, 0, KEY_READ, &_hKey) == ERROR_SUCCESS) {
+			if (RegQueryValueEx(_hKey, Entry, 0, &DataType, (BYTE*)&v, &BuffLen) == ERROR_SUCCESS) {
+				return 0;
+			}
+			RegCloseKey(_hKey);
+		}
+		return -2;
+	}
+#endif
+
 }}

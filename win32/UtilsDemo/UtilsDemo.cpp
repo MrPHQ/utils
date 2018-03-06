@@ -2,14 +2,186 @@
 //
 
 #include "stdafx.h"
+#define UTILS_ENABLE_ZIP
+#define UTILS_ENABLE_CRYPTOPP
+#define UTILS_ENABLE_REGEDIT
+
 #include <utils\utils.h>
 #include <utils\logger.h>
 #include <iostream>
 #include <bitset>
+#include <Shlobj.h>
+
+#include <windows.h>
+#include <malloc.h>
+#include <stdio.h>
+#include <winperf.h>
 
 #pragma comment(lib, "utils/utils.lib")
+
+void QueryKey(HKEY hKey);
+
+#define TOTALBYTES    8192
+#define BYTEINCREMENT 4096
+
 int main()
 {
+	//https://msdn.microsoft.com/en-us/library/windows/desktop/ms725501(v=vs.85).aspx
+	std::cin.ignore();
+	{
+		TCHAR   inBuf[80];
+		HKEY   hKey1, hKey2;
+		DWORD  dwDisposition;
+		LONG   lRetCode;
+		TCHAR   szData[] = TEXT("USR:App Name\\Section1");
+
+		// Create the .ini file key. 
+		lRetCode = RegCreateKeyEx(HKEY_LOCAL_MACHINE,
+			TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\IniFileMapping\\appname.ini"),
+			0,
+			NULL,
+			REG_OPTION_NON_VOLATILE,
+			KEY_WRITE,
+			NULL,
+			&hKey1,
+			&dwDisposition);
+
+		if (lRetCode != ERROR_SUCCESS)
+		{
+			printf("Error in creating appname.ini key (%d).\n", lRetCode);
+			return (0);
+		}
+
+		// Set a section value 
+		lRetCode = RegSetValueEx(hKey1,
+			TEXT("Section1"),
+			0,
+			REG_SZ,
+			(BYTE *)szData,
+			sizeof(szData));
+
+		if (lRetCode != ERROR_SUCCESS)
+		{
+			printf("Error in setting Section1 value\n");
+			// Close the key
+			lRetCode = RegCloseKey(hKey1);
+			if (lRetCode != ERROR_SUCCESS)
+			{
+				printf("Error in RegCloseKey (%d).\n", lRetCode);
+				return (0);
+			}
+		}
+	}
+	std::cin.ignore();
+	{
+
+#if 0
+		DWORD BufferSize = TOTALBYTES;
+		DWORD cbData;
+		DWORD dwRet;
+
+		PPERF_DATA_BLOCK PerfData = (PPERF_DATA_BLOCK)malloc(BufferSize);
+		cbData = BufferSize;
+
+		printf("\nRetrieving the data...");
+
+		dwRet = RegQueryValueEx(HKEY_PERFORMANCE_DATA,
+			TEXT("Global"),
+			NULL,
+			NULL,
+			(LPBYTE)PerfData,
+			&cbData);
+		while (dwRet == ERROR_MORE_DATA)
+		{
+			// Get a buffer that is big enough.
+
+			BufferSize += BYTEINCREMENT;
+			PerfData = (PPERF_DATA_BLOCK)realloc(PerfData, BufferSize);
+			cbData = BufferSize;
+
+			printf(".");
+			dwRet = RegQueryValueEx(HKEY_PERFORMANCE_DATA,
+				TEXT("Global"),
+				NULL,
+				NULL,
+				(LPBYTE)PerfData,
+				&cbData);
+		}
+		if (dwRet == ERROR_SUCCESS)
+			printf("\n\nFinal buffer size is %d\n", BufferSize);
+		else printf("\nRegQueryValueEx failed (%d)\n", dwRet);
+#else
+		DWORD BufferSize = TOTALBYTES;
+		DWORD cbData;
+		DWORD dwRet;
+
+		PPERF_DATA_BLOCK PerfData = (PPERF_DATA_BLOCK)malloc(1024*16);
+		cbData = BufferSize;
+		char str[256];
+		DWORD ValueLen = 256;
+		DWORD DataType = REG_SZ;
+		DWORD DataType2 = REG_DWORD;
+		int v = 2;
+		DWORD vl = 4;
+		HKEY hKey;
+		//if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Wow6432Node\\DT Soft\\DAEMON Tools Pro"), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\DT Soft\\DAEMON Tools Pro"), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+		{
+			if (RegQueryValueEx(hKey, "Version Major", 0, &DataType, (BYTE*)&str, &ValueLen) == ERROR_SUCCESS)
+			{
+				std::cout << "XXXXXXXXXXX "<< str << std::endl;
+			}
+			else
+			{
+				printf("Get SystemPrefix from regedit error!\n");
+			}
+			if (RegQueryValueEx(hKey, "Config\\AdapterStateDT", 0, &DataType2, (BYTE*)&v, &vl) == ERROR_SUCCESS)
+			{
+				std::cout << "ccccccc " << v << std::endl;
+			}
+			else
+			{
+				printf("Get SystemPrefix from regedit error!\n");
+			}
+		}
+		else
+		{
+			printf("Get SystemPrefix from regedit error!\n");
+		}
+
+
+		UTILS::API::ReadRegString(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Wow6432Node\\Google\\Update"), "LastInstallerSuccessLaunchCmdLine", str, 256);
+		std::cout << "sdfsdfasdf " << str << std::endl;
+		UTILS::API::ReadRegInt(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Wow6432Node\\Google\\Update"), "IsMSIHelperRegistered", v);
+		std::cout << "xazc " << v << std::endl;
+		//write key
+		//https://msdn.microsoft.com/en-us/library/windows/desktop/ms725501(v=vs.85).aspx
+#endif
+	}
+
+	std::cin.ignore();
+	{
+		HKEY hTestKey;
+
+		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,TEXT("SOFTWARE\\Wow6432Node\\DT Soft\\DAEMON Tools Pro"),0,KEY_READ,&hTestKey) == ERROR_SUCCESS)
+		{
+			QueryKey(hTestKey);
+		}
+
+		RegCloseKey(hTestKey);
+	}
+
+	std::cin.ignore();
+	{
+		char buff[1024];
+		std::cout << UTILS::API::GetOSVersion() << std::endl;
+		std::cout << UTILS::API::GetOSFolderPath(FOLDERID_System, buff, 1024) << std::endl;
+		std::cout << buff << std::endl;
+		buff[0] = '\0';
+		std::cout << UTILS::API::GetOSFolderPath(CSIDL_SYSTEM, buff, 1024) << std::endl;
+		std::cout << buff << std::endl;
+	}
+
 	std::cin.ignore();
 	{
 		std::bitset<32> _bit;
@@ -160,3 +332,89 @@ int main()
     return 0;
 }
 
+#define MAX_KEY_LENGTH 255
+#define MAX_VALUE_NAME 16383
+
+void QueryKey(HKEY hKey)
+{
+	TCHAR    achKey[MAX_KEY_LENGTH];   // buffer for subkey name
+	DWORD    cbName;                   // size of name string 
+	TCHAR    achClass[MAX_PATH] = TEXT("");  // buffer for class name 
+	DWORD    cchClassName = MAX_PATH;  // size of class string 
+	DWORD    cSubKeys = 0;               // number of subkeys 
+	DWORD    cbMaxSubKey;              // longest subkey size 
+	DWORD    cchMaxClass;              // longest class string 
+	DWORD    cValues;              // number of values for key 
+	DWORD    cchMaxValue;          // longest value name 
+	DWORD    cbMaxValueData;       // longest value data 
+	DWORD    cbSecurityDescriptor; // size of security descriptor 
+	FILETIME ftLastWriteTime;      // last write time 
+
+	DWORD i, retCode;
+
+	TCHAR  achValue[MAX_VALUE_NAME];
+	DWORD cchValue = MAX_VALUE_NAME;
+
+	// Get the class name and the value count. 
+	retCode = RegQueryInfoKey(
+		hKey,                    // key handle 
+		achClass,                // buffer for class name 
+		&cchClassName,           // size of class string 
+		NULL,                    // reserved 
+		&cSubKeys,               // number of subkeys 
+		&cbMaxSubKey,            // longest subkey size 
+		&cchMaxClass,            // longest class string 
+		&cValues,                // number of values for this key 
+		&cchMaxValue,            // longest value name 
+		&cbMaxValueData,         // longest value data 
+		&cbSecurityDescriptor,   // security descriptor 
+		&ftLastWriteTime);       // last write time 
+
+								 // Enumerate the subkeys, until RegEnumKeyEx fails.
+
+	if (cSubKeys)
+	{
+		printf("\nNumber of subkeys: %d\n", cSubKeys);
+
+		for (i = 0; i<cSubKeys; i++)
+		{
+			cbName = MAX_KEY_LENGTH;
+			retCode = RegEnumKeyEx(hKey, i,
+				achKey,
+				&cbName,
+				NULL,
+				NULL,
+				NULL,
+				&ftLastWriteTime);
+			if (retCode == ERROR_SUCCESS)
+			{
+				_tprintf(TEXT("(%d) %s\n"), i + 1, achKey);
+			}
+		}
+	}
+
+	// Enumerate the key values. 
+
+	if (cValues)
+	{
+		printf("\nNumber of values: %d\n", cValues);
+
+		for (i = 0, retCode = ERROR_SUCCESS; i<cValues; i++)
+		{
+			cchValue = MAX_VALUE_NAME;
+			achValue[0] = '\0';
+			retCode = RegEnumValue(hKey, i,
+				achValue,
+				&cchValue,
+				NULL,
+				NULL,
+				NULL,
+				NULL);
+
+			if (retCode == ERROR_SUCCESS)
+			{
+				_tprintf(TEXT("(%d) %s\n"), i + 1, achValue);
+			}
+		}
+	}
+}
