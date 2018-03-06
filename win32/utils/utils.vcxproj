@@ -149,7 +149,6 @@
     <ClInclude Include="..\..\utils\socket.h" />
     <ClInclude Include="..\..\utils\Time.h" />
     <ClInclude Include="..\..\utils\utils.h" />
-    <ClInclude Include="..\..\utils\win\RegEdit.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -161,7 +160,6 @@
     <ClCompile Include="..\..\src\Time.cpp" />
     <ClCompile Include="..\..\src\utils.cpp" />
     <ClCompile Include="..\..\src\win32\ConfigFile.cpp" />
-    <ClCompile Include="..\..\src\win32\RegEdit.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="utils.rc" />

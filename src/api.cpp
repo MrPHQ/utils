@@ -1145,13 +1145,83 @@ namespace UTILS {namespace API {
 	}
 
 #ifdef UTILS_ENABLE_REGEDIT
+	HKEY CreateRegKey(HKEY hKey, const char* section, bool close /*= true*/) {
+		HKEY hAppKey = NULL;
+		DWORD dw = 0;
+		if (RegCreateKeyEx(hKey, section, 0, REG_NONE,
+			REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL,&hAppKey, &dw) == ERROR_SUCCESS)
+		{
+			if (close) {
+				RegCloseKey(hAppKey);
+				hAppKey = NULL;
+			}
+			return hAppKey;
+			//dw =.
+			//REG_CREATED_NEW_KEY，0x00000001L 该键是新创建的键
+			//REG_OPENED_EXISTING_KEY，0x00000002L 该键是已经存在的键
+		}
+		return NULL;
+	}
+	int WriteRegString(HKEY hKey, const char* section, const char* name, const char* value, int len) {
+		if (nullptr == name) {
+			return UTILS_ERROR_PAR;
+		}
+		bool bClose = false;
+		HKEY _hKey = NULL;
+		if (section != NULL) {
+			if (RegOpenKeyEx(hKey, section, 0, KEY_WRITE, &_hKey) != ERROR_SUCCESS) {
+				return UTILS_ERROR_FAIL;
+			}
+			bClose = true;
+		}
+		else {
+			_hKey = hKey;
+		}
+		int lRetCode = RegSetValueEx(_hKey,name,0,REG_SZ,(BYTE *)value,len);
+		if (bClose) {
+			RegCloseKey(_hKey);
+		}
+		return lRetCode == ERROR_SUCCESS ? UTILS_ERROR_SUCCESS : UTILS_ERROR_FAIL;
+	}
+
+	int CloseRegKey(HKEY hKey) {
+		if (hKey != NULL) {
+			RegCloseKey(hKey);
+		}
+		return 0;
+	}
+	int WriteRegInt(HKEY hKey, const char* section, const char* name, int value) {
+		HKEY _hKey = NULL;
+		if (nullptr == name) {
+			return UTILS_ERROR_PAR;
+		}
+		bool bClose = false;
+		if (section != NULL) {
+			if (RegOpenKeyEx(hKey, section, 0, KEY_WRITE, &_hKey) != ERROR_SUCCESS) {
+				return UTILS_ERROR_FAIL;
+			}
+			bClose = true;
+		}
+		else {
+			_hKey = hKey;
+		}
+		if (_hKey == NULL) {
+			return UTILS_ERROR_FAIL;
+		}
+		int lRetCode = RegSetValueEx(_hKey, name, 0, REG_DWORD, (BYTE *)&value, sizeof(int));
+		if (bClose) {
+			RegCloseKey(_hKey);
+		}
+		return lRetCode == ERROR_SUCCESS ? UTILS_ERROR_SUCCESS : UTILS_ERROR_FAIL;
+	}
+
 	int ReadRegString(HKEY hKey, const char* section, const char* Entry, char* buff, int len) {
 		HKEY _hKey = NULL;
 		DWORD DataType = REG_SZ, BuffLen = 1024;
 		char str[1024];
 
 		if ((nullptr == section) || (nullptr == Entry) || (nullptr == buff)) {
-			return -1;
+			return UTILS_ERROR_PAR;
 		}
 		str[0] = '\0';
 		if (RegOpenKeyEx(hKey, section, 0, KEY_READ, &_hKey) == ERROR_SUCCESS){
@@ -1161,14 +1231,15 @@ namespace UTILS {namespace API {
 			}
 			RegCloseKey(_hKey);
 		}
-		return -2;
+		return UTILS_ERROR_FAIL;
 	}
+
 	int ReadRegInt(HKEY hKey, const char* section, const char* Entry, int& v) {
 		HKEY _hKey = NULL;
 		DWORD DataType = REG_DWORD, BuffLen = 4;
 
 		if ((nullptr == section) || (nullptr == Entry)) {
-			return -1;
+			return UTILS_ERROR_PAR;
 		}
 		if (RegOpenKeyEx(hKey, section, 0, KEY_READ, &_hKey) == ERROR_SUCCESS) {
 			if (RegQueryValueEx(_hKey, Entry, 0, &DataType, (BYTE*)&v, &BuffLen) == ERROR_SUCCESS) {
@@ -1176,7 +1247,7 @@ namespace UTILS {namespace API {
 			}
 			RegCloseKey(_hKey);
 		}
-		return -2;
+		return UTILS_ERROR_FAIL;
 	}
 #endif
 

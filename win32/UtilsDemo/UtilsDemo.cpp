@@ -26,6 +26,15 @@ void QueryKey(HKEY hKey);
 
 int main()
 {
+	std::cin.ignore();
+	{
+		HKEY hKey = UTILS::API::CreateRegKey(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\phq"), false);
+		if (hKey != NULL) {
+			UTILS::API::WriteRegString(hKey, NULL, "str", "test_str", 8);
+			UTILS::API::WriteRegInt(hKey, NULL, "int", 100);
+			UTILS::API::CloseRegKey(hKey);
+		}
+	}
 	//https://msdn.microsoft.com/en-us/library/windows/desktop/ms725501(v=vs.85).aspx
 	std::cin.ignore();
 	{

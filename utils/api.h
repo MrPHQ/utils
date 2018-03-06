@@ -163,6 +163,11 @@ namespace UTILS { namespace API {
 		注册表相关..
 	*/
 #ifdef UTILS_ENABLE_REGEDIT
+	/// 创建KEY ，如果存在则打开, close创建后是否关闭
+	UTILS_API HKEY CreateRegKey(HKEY, const char* section, bool close = true);
+	UTILS_API int CloseRegKey(HKEY);
+	UTILS_API int WriteRegString(HKEY, const char* section, const char* name, const char* value, int len);
+	UTILS_API int WriteRegInt(HKEY, const char* section, const char* name, int value);
 	// HKEY_LOCAL_MACHINE..  section.=SOFTWARE\\InControl\\Install  Entry..= install
 	UTILS_API int ReadRegString(HKEY, const char* section, const char* Entry, char* buff, int len);
 	UTILS_API int ReadRegInt(HKEY, const char* section, const char* Entry, int& v);
