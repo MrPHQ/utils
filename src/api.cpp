@@ -102,13 +102,13 @@ namespace UTILS {namespace API {
 		return iRet;
 	}
 
-	int Strcpy(char* _Destination, char const* _Source, int _MaxCount) {
-		if ((_Destination == nullptr) || (_Source == nullptr)) {
+	int Strcpy(char* _Destination, int len, char const* _Source) {
+		if ((_Destination == nullptr) || (_Source == nullptr) || len <=0) {
 			return -1;
 		}
 		int iRet = 0;
 #ifdef _WIN32
-		iRet = strncpy_s(_Destination, _TRUNCATE, _Source, _MaxCount);
+		iRet = strncpy_s(_Destination, len, _Source, min((unsigned int)(len - 1), strlen(_Source)));
 #else
 		iRet = strncpy(_Destination, _Source, _MaxCount);
 #endif
@@ -122,6 +122,19 @@ namespace UTILS {namespace API {
 		int iRet = 0;
 #ifdef _WIN32
 		iRet = strcmp(s, d);
+#else
+		iRet = strcmp(s, d);
+#endif
+		return iRet;
+	}
+
+	UTILS_API int Strcat(char* s, int len, const char*d ) {
+		if ((s == nullptr) || (d == nullptr)) {
+			return -1;
+		}
+		int iRet = 0;
+#ifdef _WIN32
+		iRet = strncat_s(s, len, d, min((unsigned int)(len - 1 - strlen(s)), strlen(d)));
 #else
 		iRet = strcmp(s, d);
 #endif
@@ -325,6 +338,8 @@ namespace UTILS {namespace API {
 			return false;
 		}
 		char path[MAX_PATH], tmp[MAX_PATH];
+		char buff[1024],  buff2[1024];
+		int iOutIdleLen = 0, iNoConvertLen = 0, error=0;
 		char* p = nullptr;
 		for (auto& it : dirs)
 		{
@@ -339,12 +354,20 @@ namespace UTILS {namespace API {
 			{//	如: ./x/y  去掉前面的./  得到x/y
 				p = (path + 2);
 				Sprintf(tmp, sizeof(tmp), "%s", p);
-				Strcpy(path, tmp, min(MAX_PATH-1,strlen(tmp)));
+				Strcpy(path, sizeof(path), tmp);
 			}
 			//在末尾加 '/'
 			PathAddBackslash(path);
 			CharConvert(path, '\\', '/');
-			if (!zipFile.addEntry(path)) {
+			buff[0] = '\0';
+			error = UTILS::API::CharacterConvert("UTF-8", "GBK", path, strlen(path), buff, 1024, &iOutIdleLen, &iNoConvertLen);
+			if (error != 0) {
+				MSG_INFO("[function]ZipDirectory, ERROR, LINE:%d", __LINE__);
+				return false;
+			}
+			buff[1024 - iOutIdleLen] = '\0';
+			if (!zipFile.addEntry(buff)) {
+				MSG_INFO("[function]ZipDirectory, ERROR, [des]Entry:%s LINE:%d", path, __LINE__);
 				return false;
 			}
 		}
@@ -359,16 +382,31 @@ namespace UTILS {namespace API {
 				FILE_ATTRIBUTE_NORMAL);
 			if (PathIsRelative(path)){
 				Sprintf(tmp, sizeof(tmp), "%s", path + 2);
-				Strcpy(path, tmp, min(MAX_PATH - 1, strlen(tmp)));
+				Strcpy(path, sizeof(path), tmp);
 			}
 
 			//去掉末尾的 '/'
 			PathRemoveBackslash(path);
 			CharConvert(path, '\\', '/');
 
-			Strcpy(tmp, it.data(), min(MAX_PATH - 1, it.length()));
+			Strcpy(tmp, sizeof(tmp), it.data());
 			CharConvert(tmp, '\\', '/');
-			if (!zipFile.addFile(path, tmp)) {
+
+			error = UTILS::API::CharacterConvert("UTF-8", "GBK", path, strlen(path), buff, 1024, &iOutIdleLen, &iNoConvertLen);
+			if (error != 0) {
+				MSG_INFO("[function]ZipDirectory, ERROR, LINE:%d", __LINE__);
+				return false;
+			}
+			buff[1024 - iOutIdleLen] = '\0';
+			error = UTILS::API::CharacterConvert("UTF-8", "GBK", tmp, strlen(tmp), buff2, 1024, &iOutIdleLen, &iNoConvertLen);
+			if (error != 0) {
+				MSG_INFO("[function]ZipDirectory, ERROR, LINE:%d", __LINE__);
+				return false;
+			}
+			buff2[1024 - iOutIdleLen] = '\0';
+			std::string str(buff, 1024 - iOutIdleLen);
+			if (!zipFile.addFile(buff, buff2)) {
+				MSG_INFO("[function]ZipDirectory, ERROR, [des]Entry:%s file:%s LINE:%d", path, tmp, __LINE__);
 				return false;
 			}
 		}
@@ -387,6 +425,8 @@ namespace UTILS {namespace API {
 			return false;
 		}
 		char tmp[MAX_PATH], path[MAX_PATH];
+		char buff[1024];
+		int iOutIdleLen = 0, iNoConvertLen = 0, error = 0;
 		libzippp::ZipArchive zipFile(file);
 		if (!zipFile.open(libzippp::ZipArchive::READ_ONLY)) {
 			return false;
@@ -394,9 +434,15 @@ namespace UTILS {namespace API {
 		std::vector<libzippp::ZipEntry> vEntrys = zipFile.getEntries();
 		for (auto& it : vEntrys)
 		{
-			Strcpy(tmp, it.getName().data(), min(MAX_PATH - 1, it.getName().length()));
-			CharConvert(tmp, '/', '\\');
-			Sprintf(path, MAX_PATH, "%s\\%s", toDirectory, tmp);
+			error = UTILS::API::CharacterConvert("GBK", "UTF-8", (char*)it.getName().data(), it.getName().length(), buff, 1024, &iOutIdleLen, &iNoConvertLen);
+			if (error != 0) {
+				MSG_INFO("[function]UnZipFile, ERROR, LINE:%d  :%s", __LINE__, it.getName().data());
+				return false;
+			}
+			buff[1024 - iOutIdleLen] = '\0';
+
+			CharConvert(buff, '/', '\\');
+			Sprintf(path, MAX_PATH, "%s\\%s", toDirectory, buff);
 
 			if (it.isDirectory()) {
 				CreateDirectory(path, nullptr);
@@ -404,10 +450,12 @@ namespace UTILS {namespace API {
 			else if (it.isFile()) {
 				std::ofstream ofUnzippedFile(path, std::ios::binary);
 				if (!static_cast<bool>(ofUnzippedFile)) {
+					MSG_INFO("解压.读取文件[%s].失败", path);
 					return false;
 				}
 				int err = it.readContent(ofUnzippedFile);
 				if (err != 0) {
+					MSG_INFO("解压.读取文件[%s]..失败", path);
 					return false;
 				}
 				ofUnzippedFile.close();
@@ -455,7 +503,7 @@ namespace UTILS {namespace API {
 
 			pInfo = (PZIP_COMMENT)(buff + iTotal);
 			iTotal += num;
-			Strcpy(pInfo->name, it.getName().data(), min(MAX_PATH - 1, it.getName().length()));
+			Strcpy(pInfo->name,sizeof(pInfo->name), it.getName().data());
 			if (it.isDirectory()) {
 				pInfo->entry = 0;
 			}
@@ -501,7 +549,7 @@ namespace UTILS {namespace API {
 		char szDir[MAX_PATH], szFile[MAX_PATH];
 
 		szDir[0] = '\0';
-		Strcpy(szDir, pDir, min(MAX_PATH - 1, strlen(pDir)));
+		Strcpy(szDir,sizeof(szDir), pDir);
 		if (szDir[strlen(szDir) - 1] == '\\' || szDir[strlen(szDir) - 1] == '/'){
 			szDir[strlen(szDir) - 1] = '\0';
 		}
@@ -569,7 +617,7 @@ namespace UTILS {namespace API {
 		char* p = nullptr;
 		char* ptr = nullptr;
 		tmp[0] = '\0';
-		Strcpy(tmp, path, min(MAX_PATH-1,strlen(path)));
+		Strcpy(tmp, sizeof(tmp),path);
 		CharConvert(tmp, '/', '\\');
 		ptr = tmp;
 		do
@@ -613,6 +661,7 @@ namespace UTILS {namespace API {
 			CryptoPP::FileSource(src, true, new CryptoPP::StreamTransformationFilter(e, new CryptoPP::FileSink(des)));
 		}
 		catch (const CryptoPP::Exception& e){
+			MSG_INFO("ERROR:%d, LINE:%d", e.GetErrorType(), __LINE__);
 			//std::cout << "errnr:" << e.GetErrorType() << std::endl;
 			//std::cout << "error:" << e.what() << std::endl;
 			return UTILS_ERROR_FAIL;
@@ -642,11 +691,12 @@ namespace UTILS {namespace API {
 
 		}
 		catch (const CryptoPP::Exception& e) {
+			MSG_INFO("ERROR:%d, LINE:%d", e.GetErrorType(), __LINE__);
 			//std::cout << "errnr:" << e.GetErrorType() << std::endl;
 			//std::cout << "error:" << e.what() << std::endl;
 			return UTILS_ERROR_FAIL;
 		}
-		if (len < strDes.length()) {
+		if ((unsigned int)len < strDes.length()) {
 			return UTILS_ERROR_BUFFER_SMALL;
 		}
 		Memcpy(buff, strDes.data(), strDes.length());
@@ -667,6 +717,7 @@ namespace UTILS {namespace API {
 			CryptoPP::FileSource(src, true, new CryptoPP::StreamTransformationFilter(e, new CryptoPP::FileSink(des)));
 		}
 		catch (const CryptoPP::Exception& e){
+			MSG_INFO("ERROR:%d, LINE:%d", e.GetErrorType(), __LINE__);
 			return UTILS_ERROR_FAIL;
 		}
 		return UTILS_ERROR_SUCCESS;
@@ -687,9 +738,10 @@ namespace UTILS {namespace API {
 			CryptoPP::FileSource(src, true, new CryptoPP::StreamTransformationFilter(e, new CryptoPP::StringSink(strDes)));
 		}
 		catch (const CryptoPP::Exception& e) {
+			MSG_INFO("ERROR:%d, LINE:%d", e.GetErrorType(), __LINE__);
 			return UTILS_ERROR_FAIL;
 		}
-		if (len < strDes.length()) {
+		if ((unsigned int)len < strDes.length()) {
 			return UTILS_ERROR_BUFFER_SMALL;
 		}
 		Memcpy(buff, strDes.data(), strDes.length());
@@ -702,6 +754,7 @@ namespace UTILS {namespace API {
 			CryptoPP::FileSource((const char*)file, true, new CryptoPP::HashFilter(sha256, new CryptoPP::HexEncoder(new CryptoPP::StringSink(dst))));
 		}
 		catch (const CryptoPP::Exception& e) {
+			MSG_INFO("ERROR:%d, LINE:%d", e.GetErrorType(), __LINE__);
 			return dst;
 		}
 		return dst;
@@ -713,6 +766,7 @@ namespace UTILS {namespace API {
 			CryptoPP::StringSource((const byte*)data, len, true, new CryptoPP::HashFilter(sha256, new CryptoPP::HexEncoder(new CryptoPP::StringSink(dst))));
 		}
 		catch (const CryptoPP::Exception& e) {
+			MSG_INFO("ERROR:%d, LINE:%d", e.GetErrorType(), __LINE__);
 			return dst;
 		}
 		return dst;
@@ -724,6 +778,7 @@ namespace UTILS {namespace API {
 			CryptoPP::StringSource((const byte*)data, len, true, new CryptoPP::HashFilter(sha1, new CryptoPP::HexEncoder(new CryptoPP::StringSink(dst))));
 		}
 		catch (const CryptoPP::Exception& e) {
+			MSG_INFO("ERROR:%d, LINE:%d", e.GetErrorType(), __LINE__);
 			return dst;
 		}
 		return dst;
@@ -910,7 +965,7 @@ namespace UTILS {namespace API {
 			return;
 		}
 		Sprintf(tmp, 256, ".%s", from);
-		Strcpy(to, tmp, min(256-1,len));
+		Strcpy(to, len, tmp);
 	}
 
 	void CombinePath(char* buff, const char* first, const char* second) {
@@ -927,11 +982,11 @@ namespace UTILS {namespace API {
 		return DeleteFile(file);
 	}
 
-	BOOL FileCopy(const char* from, const char* to, BOOL exists) {
+	BOOL FileCopy(const char* from, const char* to, BOOL bFailIfExists) {
 		if (nullptr == from || nullptr == to) {
 			return FALSE;
 		}
-		return CopyFile(from, to, exists);
+		return CopyFile(from, to, bFailIfExists);
 	}
 
 	BOOL VerifyOSVersionInfo(DWORD dwMajorVersion, DWORD dwMinorVersion, DWORD wProductType)
@@ -973,7 +1028,6 @@ namespace UTILS {namespace API {
 	}
 	int GetOSVersion() {
 		OSVERSIONINFOEX osvi;
-		BOOL bIsWindowsXPorLater;
 		SYSTEM_INFO si;
 
 		ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
@@ -1062,44 +1116,89 @@ namespace UTILS {namespace API {
 		return OS_VERSION_NONE;
 	}
 
-	int GetOSFolderPath(int csidl, char* buff, int len) {
+	int GetOSFolderPath(int flag, char* buff, int len) {
+		BOOL b64 = Is64();
+		int os = GetOSVersion();
+		if (os < OS_VERSION_VISTA) {
+			int csidl = 0;
+			// CSIDL_PERSONAL | CSIDL_FLAG_CREATE
+			switch (flag)
+			{
+			case FOLDER_ADMINTOOLS:csidl = CSIDL_ADMINTOOLS;break;
+			case FOLDER_APPDATA:csidl = CSIDL_APPDATA; break;
+			case FOLDER_COMMON_ADMINTOOLS:csidl = CSIDL_COMMON_ADMINTOOLS; break;
+			case FOLDER_COMMON_APPDATA:csidl = CSIDL_COMMON_APPDATA; break;
+			case FOLDER_COMMON_DOCUMENTS:csidl = CSIDL_COMMON_DOCUMENTS; break;
+			case FOLDER_COOKIES:csidl = CSIDL_COOKIES; break;
+			case FOLDER_FLAG_CREATE:csidl = CSIDL_FLAG_CREATE; break;
+			case FOLDER_FLAG_DONT_VERIFY:csidl = CSIDL_FLAG_DONT_VERIFY; break;
+			case FOLDER_HISTORY:csidl = CSIDL_HISTORY; break;
+			case FOLDER_INTERNET_CACHE:csidl = CSIDL_INTERNET_CACHE; break;
+			case FOLDER_LOCAL_APPDATA:csidl = CSIDL_LOCAL_APPDATA; break;
+			case FOLDER_MYPICTURES:csidl = CSIDL_MYPICTURES; break;
+			case FOLDER_PERSONAL:csidl = CSIDL_PERSONAL; break;
+			case FOLDER_PROGRAM_FILES:csidl = CSIDL_PROGRAM_FILES; break;
+			case FOLDER_PROGRAM_FILES_COMMON:csidl = CSIDL_PROGRAM_FILES_COMMON; break;
+			case FOLDER_SYSTEM:csidl = CSIDL_SYSTEM; break;
+			case FOLDER_WINDOWS:csidl = CSIDL_WINDOWS; break;
+			default:
+				return UTILS_ERROR_FAIL;
+			}
+			return GetOSFolderPathUseCSIDL(csidl, buff, len);
+		}
+		else {
+			GUID _KNOWNFOLDERID;
+			// CSIDL_PERSONAL | CSIDL_FLAG_CREATE
+			switch (flag)
+			{
+			case FOLDER_ADMINTOOLS:_KNOWNFOLDERID = FOLDERID_AdminTools; break;
+			case FOLDER_APPDATA:_KNOWNFOLDERID = FOLDERID_RoamingAppData; break;
+			case FOLDER_COMMON_ADMINTOOLS:_KNOWNFOLDERID = FOLDERID_CommonAdminTools; break;
+			case FOLDER_COMMON_APPDATA:_KNOWNFOLDERID = FOLDERID_ProgramData; break;
+			case FOLDER_COMMON_DOCUMENTS:_KNOWNFOLDERID = FOLDERID_PublicDocuments; break;
+			case FOLDER_COOKIES:_KNOWNFOLDERID = FOLDERID_Cookies; break;
+			case FOLDER_FLAG_CREATE:return UTILS_ERROR_FAIL;
+			case FOLDER_FLAG_DONT_VERIFY:return UTILS_ERROR_FAIL;
+			case FOLDER_HISTORY:_KNOWNFOLDERID = FOLDERID_History; break;
+			case FOLDER_INTERNET_CACHE:_KNOWNFOLDERID = FOLDERID_InternetCache; break;
+			case FOLDER_LOCAL_APPDATA:_KNOWNFOLDERID = FOLDERID_LocalAppData; break;
+			case FOLDER_MYPICTURES:_KNOWNFOLDERID = FOLDERID_Pictures; break;
+			case FOLDER_PERSONAL:_KNOWNFOLDERID = FOLDERID_Documents; break;
+			case FOLDER_PROGRAM_FILES:_KNOWNFOLDERID = FOLDERID_ProgramFiles; break;//FOLDERID_ProgramFilesX64 ..FOLDERID_ProgramFilesX86
+			case FOLDER_PROGRAM_FILES_COMMON:_KNOWNFOLDERID = FOLDERID_ProgramFilesCommon; break;
+			case FOLDER_SYSTEM:_KNOWNFOLDERID = FOLDERID_System; break;//FOLDERID_SystemX86
+			case FOLDER_WINDOWS:_KNOWNFOLDERID = FOLDERID_Windows; break;
+			default:
+				return UTILS_ERROR_FAIL;
+			}
+			return GetOSFolderPathUseID(_KNOWNFOLDERID, buff, len);
+		}
+	}
+	int GetOSFolderPathUseCSIDL(int csidl, char* buff, int len) {
 		if (buff == nullptr) {
-			return -1;
+			return UTILS_ERROR_PAR;
 		}
 		char szPath[MAX_PATH];
 		if (SUCCEEDED(SHGetFolderPath(NULL, csidl, NULL, 0, szPath))) {
 
-			Strcpy(buff, szPath, min(len, strlen(szPath)));
+			Strcpy(buff,sizeof(buff),szPath);
 			return 0;
 		}
-		return -1;
-
-		int os = GetOSVersion();
-		if (os < OS_VERSION_VISTA) {
-			// CSIDL_PERSONAL | CSIDL_FLAG_CREATE
-			if (SUCCEEDED(SHGetFolderPath(NULL, csidl,NULL,0,szPath))){
-
-				Strcpy(buff, szPath, min(len, strlen(szPath)));
-			}
-		}
-		else {
-			//FOLDERID_AccountPictures
-
-		}
+		return UTILS_ERROR_FAIL;
 	}
 
-	int GetOSFolderPath(GUID csidl, char* buff, int len) {
+	int GetOSFolderPathUseID(GUID id, char* buff, int len) {
 		char szPath[MAX_PATH];
 		wchar_t* p = nullptr;
-		if (SUCCEEDED(SHGetKnownFolderPath(csidl, 0, NULL, &p))) {
+		if (SUCCEEDED(SHGetKnownFolderPath(id, 0, NULL, &p))) {
 			if (nullptr != p) {
 				szPath[0] = '\0';
 				WcharToChar(p, szPath, MAX_PATH);
-				Strcpy(buff, szPath, min(len, strlen(szPath)));
+				Strcpy(buff,sizeof(buff), szPath);
 			}
 			return 0;
 		}
-		return -1;
+		return UTILS_ERROR_FAIL;
 	}
 
 	char* WcharToChar(wchar_t* wc){
@@ -1130,7 +1229,7 @@ namespace UTILS {namespace API {
 		}
 		WideCharToMultiByte(CP_ACP, 0, wc, wcslen(wc), _buff, 1024, NULL, NULL);
 		_buff[_len] = '\0';
-		Strcpy(buff, _buff, min(len,strlen(_buff)));
+		Strcpy(buff, sizeof(buff),_buff);
 	}
 
 	void CharToWchar(char* c, wchar_t* buff, int len){
@@ -1141,15 +1240,18 @@ namespace UTILS {namespace API {
 		}
 		MultiByteToWideChar(CP_ACP, 0, c, strlen(c), _buff, 1024);
 		_buff[_len] = '\0';
-		wcsncpy_s(buff, 1024, _buff, min(len, wcslen(_buff)));
+		wcsncpy_s(buff, 1024, _buff, min((unsigned int)len, wcslen(_buff)));
 	}
 
-#ifdef UTILS_ENABLE_REGEDIT
 	HKEY CreateRegKey(HKEY hKey, const char* section, bool close /*= true*/) {
 		HKEY hAppKey = NULL;
 		DWORD dw = 0;
+		REGSAM samDesiredOpen = KEY_ALL_ACCESS;
+		if (API::Is64()) {
+			samDesiredOpen |= KEY_WOW64_32KEY;
+		}
 		if (RegCreateKeyEx(hKey, section, 0, REG_NONE,
-			REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL,&hAppKey, &dw) == ERROR_SUCCESS)
+			REG_OPTION_NON_VOLATILE, samDesiredOpen, NULL,&hAppKey, &dw) == ERROR_SUCCESS)
 		{
 			if (close) {
 				RegCloseKey(hAppKey);
@@ -1168,8 +1270,12 @@ namespace UTILS {namespace API {
 		}
 		bool bClose = false;
 		HKEY _hKey = NULL;
+		REGSAM samDesiredOpen = KEY_WRITE;
+		if (API::Is64()) {
+			samDesiredOpen |= KEY_WOW64_32KEY;
+		}
 		if (section != NULL) {
-			if (RegOpenKeyEx(hKey, section, 0, KEY_WRITE, &_hKey) != ERROR_SUCCESS) {
+			if (RegOpenKeyEx(hKey, section, 0, samDesiredOpen, &_hKey) != ERROR_SUCCESS) {
 				return UTILS_ERROR_FAIL;
 			}
 			bClose = true;
@@ -1195,9 +1301,13 @@ namespace UTILS {namespace API {
 		if (nullptr == name) {
 			return UTILS_ERROR_PAR;
 		}
+		REGSAM samDesiredOpen = KEY_WRITE;
+		if (API::Is64()) {
+			samDesiredOpen |= KEY_WOW64_32KEY;
+		}
 		bool bClose = false;
 		if (section != NULL) {
-			if (RegOpenKeyEx(hKey, section, 0, KEY_WRITE, &_hKey) != ERROR_SUCCESS) {
+			if (RegOpenKeyEx(hKey, section, 0, samDesiredOpen, &_hKey) != ERROR_SUCCESS) {
 				return UTILS_ERROR_FAIL;
 			}
 			bClose = true;
@@ -1223,10 +1333,14 @@ namespace UTILS {namespace API {
 		if ((nullptr == section) || (nullptr == Entry) || (nullptr == buff)) {
 			return UTILS_ERROR_PAR;
 		}
+		REGSAM samDesiredOpen = KEY_READ;
+		if (API::Is64()) {
+			samDesiredOpen |= KEY_WOW64_32KEY;
+		}
 		str[0] = '\0';
-		if (RegOpenKeyEx(hKey, section, 0, KEY_READ, &_hKey) == ERROR_SUCCESS){
+		if (RegOpenKeyEx(hKey, section, 0, samDesiredOpen, &_hKey) == ERROR_SUCCESS){
 			if (RegQueryValueEx(_hKey, Entry, 0, &DataType, (BYTE*)&str, &BuffLen) == ERROR_SUCCESS){
-				Strcpy(buff, str, min(len, strlen(str)));
+				Strcpy(buff, len, str);
 				return 0;
 			}
 			RegCloseKey(_hKey);
@@ -1241,7 +1355,12 @@ namespace UTILS {namespace API {
 		if ((nullptr == section) || (nullptr == Entry)) {
 			return UTILS_ERROR_PAR;
 		}
-		if (RegOpenKeyEx(hKey, section, 0, KEY_READ, &_hKey) == ERROR_SUCCESS) {
+		REGSAM samDesiredOpen = KEY_READ;
+		if (API::Is64()) {
+			samDesiredOpen |= KEY_WOW64_32KEY;
+			//samDesiredOpen |= KEY_WOW64_64KEY; 64.app
+		}
+		if (RegOpenKeyEx(hKey, section, 0, samDesiredOpen, &_hKey) == ERROR_SUCCESS) {
 			if (RegQueryValueEx(_hKey, Entry, 0, &DataType, (BYTE*)&v, &BuffLen) == ERROR_SUCCESS) {
 				return 0;
 			}
@@ -1249,6 +1368,5 @@ namespace UTILS {namespace API {
 		}
 		return UTILS_ERROR_FAIL;
 	}
-#endif
 
 }}

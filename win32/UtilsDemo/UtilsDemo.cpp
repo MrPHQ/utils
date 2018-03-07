@@ -26,7 +26,8 @@ void QueryKey(HKEY hKey);
 
 int main()
 {
-	std::cin.ignore();
+
+	/*std::cin.ignore();
 	{
 		HKEY hKey = UTILS::API::CreateRegKey(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\phq"), false);
 		if (hKey != NULL) {
@@ -189,48 +190,11 @@ int main()
 		buff[0] = '\0';
 		std::cout << UTILS::API::GetOSFolderPath(CSIDL_SYSTEM, buff, 1024) << std::endl;
 		std::cout << buff << std::endl;
-	}
+	}*/
 
-	std::cin.ignore();
-	{
-		std::bitset<32> _bit;
 
-		_bit.set(0);
-		_bit.set(1);
-		_bit.set(2);
-		_bit.set(3);
-		std::cout << _bit.to_ulong() << std::endl;
-		std::cout << _bit.test(0) << std::endl;
-		std::cout << _bit.test(1) << std::endl;
-		std::cout << _bit.test(2) << std::endl;
-		std::cout << _bit.test(3) << std::endl;
-		std::cout << _bit.test(4) << std::endl;
-		std::cout << _bit.test(5) << std::endl;
-		std::cout << std::endl;
-		std::bitset<32> _bit2(17);
-		std::cout << _bit2.to_ulong() << std::endl;
-		std::cout << _bit2.test(0) << std::endl;
-		std::cout << _bit2.test(1) << std::endl;
-		std::cout << _bit2.test(2) << std::endl;
-		std::cout << _bit2.test(3) << std::endl;
-		std::cout << _bit2.test(4) << std::endl;
-		std::cout << _bit2.test(5) << std::endl;
 
-		for (int i = 0; i < _bit2.size(); i++)
-		{
-			std::cout << _bit2.test(i) << std::endl;
-		}
 
-		std::cout << ((_bit2 & std::bitset<32>(1)) != 1) << std::endl;
-		std::cout << ((_bit2 & std::bitset<32>(2)) == 0) << std::endl;
-		std::cout << (_bit2 & std::bitset<32>(10)) << std::endl;
-		std::cout << ((_bit2 & std::bitset<32>(16)) == std::bitset<32>(16)) << std::endl;
-
-		std::bitset<32> _bit3(8);
-		std::bitset<32> _bit4(32);
-		std::cout << (_bit3 |= _bit4).to_string() << std::endl;
-
-	}
 
 	std::cin.ignore();
 	{
@@ -254,6 +218,7 @@ int main()
 		std::cout << "½âÃÜ:" << err << std::endl;
 	}
 
+
 	std::cin.ignore();
 	{
 		char str[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\F1B74DA7-6520-4AE5-B196-114C53F5C881\\patch_file.zip";
@@ -261,6 +226,17 @@ int main()
 		std::string strx = UTILS::API::FileSHA(pstr);
 		std::cout << strx << std::endl;
 	}
+
+	std::cin.ignore();
+	{
+		char str[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\zip";
+		char* pstr = str;
+		char file[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\patch_file.zip";
+		char* pfile = file;
+		int err = UTILS::API::ZipDirectory(pstr, pfile);
+		std::cout << "Ñ¹Ëõ:" << err << std::endl;
+	}
+
 
 	std::cin.ignore();
 	{

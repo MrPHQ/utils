@@ -32,8 +32,9 @@ namespace UTILS { namespace API {
 		字符串操作相关.
 	*/
 	UTILS_API int Sprintf(char* buffer, int size, const char* format, ...);
-	UTILS_API int Strcpy(char* _Destination, char const* _Source, int _MaxCount);
+	UTILS_API int Strcpy(char* _Destination, int len, char const* _Source);
 	UTILS_API int Strcmp(const char*, const char*);
+	UTILS_API int Strcat(char*, int len, const char*);
 	/// 默认转小写
 	UTILS_API int Transform(std::string&, bool tolow = true);
 	UTILS_API int Transform(char*, bool tolow = true);
@@ -103,7 +104,7 @@ namespace UTILS { namespace API {
 	/// 删除文件
 	UTILS_API BOOL DelFile(const char*);
 	/// 拷贝文件
-	UTILS_API BOOL FileCopy(const char*, const char*, BOOL);
+	UTILS_API BOOL FileCopy(const char*, const char*, BOOL bFailIfExists);
 
 	/// 获取文件大小
 	UTILS_API uint64_t FileSize(const char*);
@@ -127,8 +128,29 @@ namespace UTILS { namespace API {
 	};
 	UTILS_API int GetOSVersion();
 	UTILS_API BOOL Is64();
-	UTILS_API int GetOSFolderPath(int csidl, char* buff, int len);
-	UTILS_API int GetOSFolderPath(GUID csidl, char* buff, int len);
+	enum {
+		FOLDER_ADMINTOOLS = 1,
+		FOLDER_APPDATA = 2,
+		FOLDER_COMMON_ADMINTOOLS = 3,
+		FOLDER_COMMON_APPDATA = 4,//%ALLUSERSPROFILE% (%ProgramData%, %SystemDrive%\ProgramData)
+		FOLDER_COMMON_DOCUMENTS = 5,
+		FOLDER_COOKIES = 6,
+		FOLDER_FLAG_CREATE = 7,
+		FOLDER_FLAG_DONT_VERIFY = 8,
+		FOLDER_HISTORY = 9,
+		FOLDER_INTERNET_CACHE = 10,
+		FOLDER_LOCAL_APPDATA = 11,
+		FOLDER_MYPICTURES = 12,
+		FOLDER_PERSONAL = 13,
+		FOLDER_PROGRAM_FILES = 14,//C:\Program Files.
+		FOLDER_PROGRAM_FILES_COMMON = 15,//C:\Program Files\Common. Valid only for Windows XP.
+		FOLDER_SYSTEM = 16, //The Windows System folder. A typical path is C:\Windows\System32.
+		FOLDER_WINDOWS = 17,//%windir% or %SYSTEMROOT% environment variables. A typical path is C:\Windows.
+	};
+	/// 自动根据操作系统版本判断,调用'GetOSFolderPathUseCSIDL', 'GetOSFolderPathUseID'
+	UTILS_API int GetOSFolderPath(int flag, char* buff, int len);
+	UTILS_API int GetOSFolderPathUseCSIDL(int csidl, char* buff, int len);
+	UTILS_API int GetOSFolderPathUseID(GUID id, char* buff, int len);
 
 
 	/*
@@ -162,7 +184,6 @@ namespace UTILS { namespace API {
 	/*
 		注册表相关..
 	*/
-#ifdef UTILS_ENABLE_REGEDIT
 	/// 创建KEY ，如果存在则打开, close创建后是否关闭
 	UTILS_API HKEY CreateRegKey(HKEY, const char* section, bool close = true);
 	UTILS_API int CloseRegKey(HKEY);
@@ -171,7 +192,6 @@ namespace UTILS { namespace API {
 	// HKEY_LOCAL_MACHINE..  section.=SOFTWARE\\InControl\\Install  Entry..= install
 	UTILS_API int ReadRegString(HKEY, const char* section, const char* Entry, char* buff, int len);
 	UTILS_API int ReadRegInt(HKEY, const char* section, const char* Entry, int& v);
-#endif
 
 	/*
 		打印调试信息

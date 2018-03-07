@@ -10,7 +10,7 @@ namespace UTILS
 	ConfigFile::ConfigFile(const char* path)
 	{
 		API::Memset(szConfigFile, 0, sizeof(szConfigFile));
-		API::Strcpy(szConfigFile, path, strlen(path));
+		API::Strcpy(szConfigFile, sizeof(szConfigFile), path);
 	}
 	ConfigFile::~ConfigFile()
 	{
@@ -19,7 +19,7 @@ namespace UTILS
 
 	void ConfigFile::SetConfigFile(const char* path)
 	{
-		API::Strcpy(szConfigFile, path, strlen(path));
+		API::Strcpy(szConfigFile, sizeof(szConfigFile), path);
 	}
 
 	int ConfigFile::ReadData(const char* lpszFileName,
