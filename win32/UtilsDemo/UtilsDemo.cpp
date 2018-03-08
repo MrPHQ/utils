@@ -19,6 +19,8 @@
 
 #pragma comment(lib, "utils/utils.lib")
 
+#include <algorithm>
+
 void QueryKey(HKEY hKey);
 
 #define TOTALBYTES    8192
@@ -193,14 +195,11 @@ int main()
 	}*/
 
 
-
-
-
 	std::cin.ignore();
 	{
-		char str[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\F1B74DA7-6520-4AE5-B196-114C53F5C881";
+		char str[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\091622C9-0D08-4C6A-B96C-B34DF9CA66D5";
 		char* pstr = str;
-		char file[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\F1B74DA7-6520-4AE5-B196-114C53F5C881.zip";
+		char file[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\091622C9-0D08-4C6A-B96C-B34DF9CA66D5.zip";
 		char* pfile = file;
 		UTILS::API::ZipDirectory(pstr, pfile);
 
@@ -209,7 +208,7 @@ int main()
 		char iv[] = "B91D10A7BE5B1FAB";
 		char* piv = iv;
 
-		char file2[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\F1B74DA7-6520-4AE5-B196-114C53F5C881.patch";
+		char file2[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\091622C9-0D08-4C6A-B96C-B34DF9CA66D5.patch";
 		char* pfile2 = file2;
 
 		int err = UTILS::API::EncryptionFile(pfile, pfile2, pkey, piv);
@@ -221,7 +220,7 @@ int main()
 
 	std::cin.ignore();
 	{
-		char str[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\F1B74DA7-6520-4AE5-B196-114C53F5C881\\patch_file.zip";
+		char str[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\091622C9-0D08-4C6A-B96C-B34DF9CA66D5\\patch_file.zip";
 		char* pstr = str;
 		std::string strx = UTILS::API::FileSHA(pstr);
 		std::cout << strx << std::endl;
@@ -236,6 +235,7 @@ int main()
 		int err = UTILS::API::ZipDirectory(pstr, pfile);
 		std::cout << "Ñ¹Ëõ:" << err << std::endl;
 	}
+
 
 
 	std::cin.ignore();

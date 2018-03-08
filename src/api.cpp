@@ -920,16 +920,12 @@ namespace UTILS {namespace API {
 		}
 
 		bufflen = PAD_SIZE(iNewLen);
-		char log[64];
-		_snprintf_s(log, _TRUNCATE, "phq  %d %d %d %d", iNewLen, bufflen, datalen, iDataLen);
-		OutputDebugString(log);
 		pBuff = new BYTE[bufflen];
 		if (pBuff == NULL){
 			return 0;
 		}
 		if (datalen > 0 && tmp != NULL && pBuff != NULL){
 			Memcpy(pBuff, tmp, min(datalen, bufflen));
-			OutputDebugString("...........phq...");
 		}
 		if (tmp != NULL){
 			delete[] tmp;
