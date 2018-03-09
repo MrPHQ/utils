@@ -261,7 +261,7 @@ namespace UTILS
 		}
 
 		void *result = memcpy((void*)data_end(), data, bytes);
-		if (result != NULL) {
+		if (result == NULL) {
 			return 0;
 		}
 
@@ -317,6 +317,12 @@ namespace UTILS
 	{
 		if (!_init) {
 			return 0;
+		}
+		if (_end_index != 0 && _beg_index != 0) {
+			/*char log[128];
+			_snprintf_s(log, _TRUNCATE, "%d %d %d %d %d", _beg_index, _end_index, _capacity, _end_index % _capacity - _beg_index,
+				(size_t)(_end_index % _capacity - _beg_index));
+			OutputDebugString(log);*/
 		}
 		return _end_index % _capacity - _beg_index;
 	}
