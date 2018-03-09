@@ -19,6 +19,7 @@
 
 #pragma comment(lib, "utils/utils.lib")
 
+#undef min
 #include <algorithm>
 
 void QueryKey(HKEY hKey);
@@ -28,7 +29,12 @@ void QueryKey(HKEY hKey);
 
 int main()
 {
-
+	std::cin.ignore();
+	{
+		size_t bytes = 100, capacity=150, _size=200;
+		size_t bytes_to_write = std::min(bytes, capacity - _size);
+		std::cout << bytes_to_write << "\t"<< capacity - _size << std::endl;
+	}
 	/*std::cin.ignore();
 	{
 		HKEY hKey = UTILS::API::CreateRegKey(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\phq"), false);
