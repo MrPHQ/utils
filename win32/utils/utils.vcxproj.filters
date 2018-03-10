@@ -63,7 +63,7 @@
     <ClInclude Include="..\..\utils\Time.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\utils\CircularBuffer.h">
+    <ClInclude Include="..\..\utils\buffer.h">
       <Filter>utils</Filter>
     </ClInclude>
   </ItemGroup>
@@ -92,7 +92,7 @@
     <ClCompile Include="..\..\src\Time.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CircularBuffer.cpp">
+    <ClCompile Include="..\..\src\buffer.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
