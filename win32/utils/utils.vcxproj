@@ -82,7 +82,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>UTILS_EXPORTS;UTILS_ENABLE_ZIP;UTILS_ENABLE_CRYPTOPP;UTILS_ENABLE_REGEDIT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UTILS_EXPORTS;UTILS_ENABLE_ZIP;UTILS_ENABLE_CRYPTOPP;UTILS_ENABLE_REGEDIT;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -108,7 +108,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>UTILS_EXPORTS;UTILS_ENABLE_ZIP;UTILS_ENABLE_CRYPTOPP;UTILS_ENABLE_REGEDIT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UTILS_EXPORTS;UTILS_ENABLE_ZIP;UTILS_ENABLE_CRYPTOPP;UTILS_ENABLE_REGEDIT;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -144,10 +144,13 @@
     <ClInclude Include="..\..\utils\define.h" />
     <ClInclude Include="..\..\utils\dll.h" />
     <ClInclude Include="..\..\utils\error.h" />
+    <ClInclude Include="..\..\utils\file.h" />
     <ClInclude Include="..\..\utils\logger.h" />
     <ClInclude Include="..\..\utils\service.h" />
+    <ClInclude Include="..\..\utils\ShareMemory.h" />
     <ClInclude Include="..\..\utils\Singleton.h" />
     <ClInclude Include="..\..\utils\socket.h" />
+    <ClInclude Include="..\..\utils\Thread.h" />
     <ClInclude Include="..\..\utils\Time.h" />
     <ClInclude Include="..\..\utils\utils.h" />
     <ClInclude Include="resource.h" />
@@ -155,13 +158,16 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\api.cpp" />
     <ClCompile Include="..\..\src\buffer.cpp" />
+    <ClCompile Include="..\..\src\file.cpp" />
     <ClCompile Include="..\..\src\internal.cpp" />
     <ClCompile Include="..\..\src\logger.cpp" />
     <ClCompile Include="..\..\src\service.cpp" />
     <ClCompile Include="..\..\src\socket.cpp" />
+    <ClCompile Include="..\..\src\Thread.cpp" />
     <ClCompile Include="..\..\src\Time.cpp" />
     <ClCompile Include="..\..\src\utils.cpp" />
     <ClCompile Include="..\..\src\win32\ConfigFile.cpp" />
+    <ClCompile Include="..\..\src\win32\ShareMemory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="utils.rc" />

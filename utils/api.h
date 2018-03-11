@@ -1,6 +1,7 @@
 #ifndef __UTILS_API__
 #define __UTILS_API__
 #include <utils/utils.h>
+#include <utils\define.h>
 
 namespace UTILS { namespace API {
 	
@@ -51,7 +52,38 @@ namespace UTILS { namespace API {
 	UTILS_API void WcharToChar(wchar_t* wc, char* buff, int len);
 	UTILS_API void CharToWchar(char* c, wchar_t* buff, int len);
 
+	/*
+		系统相关.
+	*/
 	UTILS_API void SleepTime(int ms);
+	UTILS_API uint64_t fnGetTickCount();
+	UTILS_API int SetWorkPath(const char*);
+	UTILS_API int CreateGuid(char* buff, int len);
+	/*
+		事件相关
+	*/
+	UTILS_API HANDLE fnCreateEvent(LPSECURITY_ATTRIBUTES lpEventAttributes,
+		BOOL bManualReset,BOOL bInitialState,const char* lpName);
+	UTILS_API int fnCloseHandle(HANDLE hObject);
+	UTILS_API int fnSetEvent(HANDLE hEvent);
+	UTILS_API int fnResetEvent(HANDLE hEvent);
+	UTILS_API uint32_t fnWaitForSingleObject(HANDLE hHandle,
+		uint32_t dwMilliseconds);
+	UTILS_API uint32_t fnWaitForMultipleObjects(int iCount,
+		HANDLE *lpHandles,BOOL bWaitAll,uint32_t dwMilliseconds);
+
+	/*
+		线程相关
+	*/
+	UTILS_API HTHREAD fnCreateThread(THREAD_RET(CALLBACK* lpStartAddress)(void* lpParameter),
+		void* lpParameter,uint32_t* lpThreadId);
+	UTILS_API int fnCloseThread(HTHREAD hThread);
+	UTILS_API int fnGetExitCodeThread(HTHREAD hThread, uint32_t* lpExitCode);
+	UTILS_API int fnTerminateThread(HTHREAD hThread, uint32_t dwExitCode);
+	UTILS_API uint32_t fnWaitForThreadExit(HTHREAD hHandle, uint32_t dwMilliseconds);
+	UTILS_API void fnExitThread(uint32_t dwExitCode);
+	UTILS_API int fnSetThreadPriority(int iPriority);
+	UTILS_API uint32_t fnGetThreadId(HTHREAD hThread);
 
 	/**
 		进程相关..
@@ -70,7 +102,11 @@ namespace UTILS { namespace API {
 	\return
 		char*
 	*/
-	UTILS_API int RunProcess(const char* cmd,unsigned int uiTimeOut = 0);
+	typedef struct _PROCESS_PROPERTY {
+		uint32_t uiProcessID;
+		HANDLE hProcessHandle;
+	}PROCESS_PROPERTY, *PPROCESS_PROPERTY;
+	UTILS_API int RunProcess(const char* cmd, PPROCESS_PROPERTY pProcessProperty = NULL, unsigned int uiTimeOut = 0);
 
 	/*
 		文件路径相关.

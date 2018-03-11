@@ -36,10 +36,11 @@ namespace UTILS
 		size_t size() const;
 		/// ø…”√ø’º‰.
 		size_t space() const;
-
+		
 		virtual bool is_wiret() const = 0;
 
 		void capacity(size_t size, bool reserve = true);
+		void write(size_t size);
 		// Return number of bytes written.
 		size_t write(const char *data, size_t bytes);
 		// Return number of bytes read.

@@ -10,6 +10,8 @@
 #include <Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
 #include <Shlobj.h>
+#include <Rpc.h> //guid
+#pragma comment(lib, "Rpcrt4.lib")
 #endif
 
 #ifdef ENABLE_ZIP
@@ -275,7 +277,7 @@ namespace UTILS {namespace API {
 		return TRUE;
 	}
 
-	int RunProcess(const char* cmd, unsigned int uiTimeOut /*= 0*/) {
+	int RunProcess(const char* cmd, PPROCESS_PROPERTY pProcessProperty /*= NULL*/, unsigned int uiTimeOut /*= 0*/) {
 		int ret = UTILS::UTILS_ERROR_SUCCESS;
 		if (cmd == NULL){
 			ret = UTILS::UTILS_ERROR_PAR;
@@ -300,6 +302,15 @@ namespace UTILS {namespace API {
 				return ret;
 			}
 		}
+		else {
+			if (pProcessProperty != NULL) {
+				pProcessProperty->hProcessHandle = stProcessInfo.hProcess;
+				pProcessProperty->uiProcessID = stProcessInfo.dwProcessId;
+			}
+			else {
+				CloseHandle(stProcessInfo.hProcess);
+			}
+		}
 		return ret;
 	}
 
@@ -311,6 +322,24 @@ namespace UTILS {namespace API {
 #endif
 	}
 
+	uint64_t fnGetTickCount() {
+#ifdef _WIN32
+		return GetTickCount();
+#else
+
+#endif
+	}
+
+	int SetWorkPath(const char* path) {
+		if (path == nullptr) {
+			return -1;
+		}
+#ifdef _WIN32
+		return SetCurrentDirectory(path);
+#else
+
+#endif
+	}
 	UTILS_API bool IsPathExists(const char* path){
 		if (NULL == path){
 			return false;
@@ -884,16 +913,18 @@ namespace UTILS {namespace API {
 		if (NULL == file) {
 			return 0;
 		}
+		
 		HANDLE hFile = nullptr;
-		LARGE_INTEGER FileSize;
+		LARGE_INTEGER stFileSize;
+		Memset(&stFileSize,0, sizeof(LARGE_INTEGER));
 		hFile = CreateFile(file, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hFile == nullptr) {
 			return 0;
 		}
-		GetFileSizeEx(hFile, &FileSize);
+		GetFileSizeEx(hFile, &stFileSize);
 		//printf("File size are %lld bytes and %4.2f KB and %4.2f MB and %4.2f GB\n", FileSize.QuadPart, (float)FileSize.QuadPart / 1024, (float)FileSize.QuadPart / (1024 * 1024), (float)FileSize.QuadPart / (1024 * 1024 * 1024));
 		CloseHandle(hFile);
-		return FileSize.QuadPart;
+		return stFileSize.QuadPart;
 #else
 
 #endif // _WIN32
@@ -1365,4 +1396,142 @@ namespace UTILS {namespace API {
 		return UTILS_ERROR_FAIL;
 	}
 
+	HANDLE fnCreateEvent(LPSECURITY_ATTRIBUTES lpEventAttributes,
+		BOOL bManualReset,BOOL bInitialState,const char* lpName){
+		return CreateEvent(lpEventAttributes, bManualReset, bInitialState, lpName);
+	}
+
+	BOOL fnCloseHandle(HANDLE hObject){
+		return CloseHandle(hObject);
+	}
+
+	BOOL fnSetEvent(HANDLE hEvent){
+		return SetEvent(hEvent);
+	}
+
+	BOOL fnResetEvent(HANDLE hEvent){
+		return ResetEvent(hEvent);
+	}
+
+	uint32_t fnWaitForSingleObject(
+		HANDLE hHandle,
+		uint32_t dwMilliseconds){
+		return ::WaitForSingleObject(hHandle, dwMilliseconds);
+	}
+
+	uint32_t fnWaitForMultipleObjects(int iCount,
+		HANDLE *lpHandles,
+		BOOL bWaitAll,
+		uint32_t dwMilliseconds){
+		return ::WaitForMultipleObjects(iCount, lpHandles, bWaitAll, dwMilliseconds);
+	}
+
+	HTHREAD fnCreateThread(THREAD_RET(CALLBACK* lpStartAddress)(void* lpParameter),
+		void* lpParameter,
+		uint32_t* lpThreadId){
+#ifdef _WIN32
+		return CreateThread(NULL, 0, lpStartAddress, lpParameter, 0, (unsigned long*)lpThreadId);
+#else
+		int			iRet;
+		HTHREAD			hObject = 0;
+		pthread_attr_t	attr, *pattr = &attr;
+
+		pthread_attr_init(&attr);
+		//pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
+		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+		//因为你的线程不便于等待的关系，设置为分离线程吧    
+		iRet = pthread_create(&hObject, pattr, lpStartAddress, lpParameter);
+		if (iRet != 0){
+			hObject = 0;
+		}
+
+		if (pattr != NULL){
+			pthread_attr_destroy(pattr);
+		}
+#endif
+	}
+
+	BOOL fnGetExitCodeThread(HTHREAD hThread, uint32_t* lpExitCode){
+#ifdef _WIN32
+		return GetExitCodeThread(hThread, (unsigned long*)lpExitCode);
+#else
+		return TRUE;
+#endif
+		
+	}
+
+	BOOL fnTerminateThread(HTHREAD hThread, uint32_t dwExitCode){
+#ifdef _WIN32
+		return TerminateThread(hThread, dwExitCode);
+#else
+		if (::pthread_cancel(hThread) == 0){
+			return TRUE;
+		}
+		return FALSE;
+#endif
+	}
+
+	BOOL fnCloseThread(HTHREAD hThread){
+#ifdef _WIN32
+		return CloseHandle(hThread);
+#else
+		return TRUE;
+#endif
+	}
+
+	uint32_t fnWaitForThreadExit(HTHREAD hHandle, uint32_t dwMilliseconds){
+#ifdef _WIN32
+		return WaitForSingleObject(hHandle, dwMilliseconds);
+#else
+		void* retval = NULL;
+		return pthread_join(hHandle, (void**)&retval);
+#endif
+	}
+
+	void fnExitThread(uint32_t dwExitCode){
+#ifdef _WIN32
+		ExitThread(dwExitCode);
+#else
+		pthread_exit((void*)dwExitCode);
+#endif
+	}
+
+	BOOL fnSetThreadPriority(int iPriority){
+#ifdef _WIN32
+		::SetThreadPriority(GetCurrentThread(), iPriority);
+		return TRUE;
+#else
+		struct sched_param param;
+		param.sched_priority = iPriority;
+		sched_setscheduler(0, SCHED_FIFO, &param);
+		return TRUE;
+#endif
+	}
+
+	uint32_t fnGetThreadId(HTHREAD hThread){
+#ifdef _WIN32
+		return (uint32_t)::GetCurrentThreadId();
+#else
+		return (uint32_t)hThread;
+#endif
+	}
+
+	int CreateGuid(char* buff, int len) {
+		if (nullptr == buff) {
+			return UTILS_ERROR_PAR;
+		}
+#ifdef _WIN32
+		UUID guid = { 0 };
+		UuidCreate(&guid);
+		Sprintf(buff, len, "%x-%x-%x-%x%x-%x%x%x%x%x%x",
+			guid.Data1, guid.Data2, guid.Data3,
+			guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
+			guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+		return 0;
+#else
+		return 0;
+#endif
+
+	}
 }}

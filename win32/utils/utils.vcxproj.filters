@@ -66,6 +66,15 @@
     <ClInclude Include="..\..\utils\buffer.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\utils\ShareMemory.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\Thread.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\file.h">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils.cpp">
@@ -93,6 +102,15 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\buffer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\win32\ShareMemory.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Thread.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\file.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

@@ -8,6 +8,7 @@
 
 #include <utils\utils.h>
 #include <utils\logger.h>
+#include <utils\socket.h>
 #include <iostream>
 #include <bitset>
 #include <Shlobj.h>
@@ -16,6 +17,11 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <winperf.h>
+
+#include <functional>
+#include <thread>
+#include <mutex> // std::mutex, std::unique_lock
+#include <condition_variable> // std::condition_variable
 
 #pragma comment(lib, "utils/utils.lib")
 
@@ -51,13 +57,118 @@ struct ring_buffer* ring_buffer_init(void *buffer, uint32_t size, CRITICAL_SECTI
 struct ring_buffer* ring_buffer_init(void *buffer, uint32_t size, pthread_mutex_t *f_lock);
 #endif
 
+void func1(UTILS::ClientSocket& skt)
+{
+	char szData[1024];
+	int len = 0;
+	while (true)
+	{
+		szData[0] = '\0';
+		len = skt.read(szData, 1024);
+		if (len <= 0) {
+			continue;
+		}
+		szData[len] = '\0';
+		std::cout << szData << std::endl;
+
+		strncat_s(szData, _TRUNCATE, "—SERVER", _TRUNCATE);
+		skt.write(szData,strlen(szData));
+	}
+}
+
+void func2()
+{
+	Sleep(3000);
+
+	UTILS::ClientSocket clt;
+
+	clt.Connect("127.0.0.1", 8060);
+	if (clt.isConnect()) {
+		std::cout << "链接成功." << std::endl;
+		std::string str;
+		char buff[1024];
+		int len = 0;
+
+		while (true)
+		{
+			str = "";
+			std::cout << "输入:" << std::endl;
+			std::cin >> str;
+
+			if (str.length()) {
+				clt.write((const char*)str.data(), str.length());
+			}
+
+			len = clt.read(buff, 1024);
+			if (len > 0) {
+				buff[len] = '\0';
+				std::cout << "接收到数据:"<< buff << std::endl;
+			}
+		}
+	}
+	else {
+		std::cout << "链接失败." << std::endl;
+	}
+
+}
+
+
+std::mutex m_mtx;
+std::condition_variable m_cv;
+
+void funcx()
+{
+	std::unique_lock<std::mutex> lck(m_mtx);
+	if (!lck.owns_lock())
+	{
+		std::cout << "funcx No Lock" << std::endl;
+		return;
+	}
+	std::cout << " funcx Lock" << std::endl;
+}
+
+void funcxx()
+{
+	std::unique_lock<std::mutex> lck(m_mtx);
+	if (!lck.owns_lock())
+	{
+		std::cout << "funcxx No Lock" << std::endl;
+		return;
+	}
+	std::cout << " funcxx Lock" << std::endl;
+}
+
+
+
+void text_fun() {
+	std::unique_lock<std::mutex> lck(m_mtx);
+	Sleep(5000);
+}
 int main()
 {
 	std::cin.ignore();
 	{
-		size_t b, e;
-		size_t t = 1024;
+		std::thread test1(funcx);
+		std::thread test2(funcxx);
+		while (true)
+		{
+			text_fun();
+		}
 
+	}
+
+	std::cin.ignore();
+	{
+		UTILS::ServerSocket srv(8060);
+		UTILS::ClientSocket clt;
+		std::thread clt2(func2);
+		while (true)
+		{
+			if (srv.Accept(clt) && clt.isOpen()) {
+				new std::thread(func1, std::ref(clt));
+			}
+			Sleep(1);
+		}
 
 	}
 	std::cin.ignore();
@@ -498,9 +609,9 @@ uint32_t __ring_buffer_get(struct ring_buffer *ring_buf, void * buffer, uint32_t
     size = std::min(size, ring_buf->in - ring_buf->out);
     /* first get the data from fifo->out until the end of the buffer */
 	len = std::min(size, ring_buf->size - (ring_buf->out & (ring_buf->size - 1)));
-    memcpy(buffer, ring_buf->buffer + (ring_buf->out & (ring_buf->size - 1)), len);
+    //memcpy(buffer, ring_buf->buffer + (ring_buf->out & (ring_buf->size - 1)), len);
     /* then get the rest (if any) from the beginning of the buffer */
-	memcpy(buffer + len, ring_buf->buffer, size - len);
+	//memcpy(buffer + len, ring_buf->buffer, size - len);
     ring_buf->out += size;
     return size;
 }
@@ -512,9 +623,9 @@ uint32_t __ring_buffer_put(struct ring_buffer *ring_buf, void *buffer, uint32_t 
    size = std::min(size, ring_buf->size - ring_buf->in + ring_buf->out);
    /* first put the data starting from fifo->in to buffer end */
 	len = std::min(size, ring_buf->size - (ring_buf->in & (ring_buf->size - 1)));
-   memcpy(ring_buf->buffer + (ring_buf->in & (ring_buf->size - 1)), buffer, len);
+   //memcpy(ring_buf->buffer + (ring_buf->in & (ring_buf->size - 1)), buffer, len);
    /* then put the rest (if any) at the beginning of the buffer */
-	memcpy(ring_buf->buffer, buffer + len, size - len);
+	//memcpy(ring_buf->buffer, buffer + len, size - len);
     ring_buf->in += size;
     return size;
 }

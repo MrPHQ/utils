@@ -116,6 +116,24 @@ namespace UTILS
 		return len;
 	}
 
+	void buffer::write(size_t size) {
+		uint32_t ret;
+		if (nullptr != _lock) {
+#ifdef _WIN32
+			EnterCriticalSection(_lock);
+#else
+			pthread_mutex_lock(_lock);
+#endif
+		}
+		_in += size;
+		if (nullptr != _lock) {
+#ifdef _WIN32
+			LeaveCriticalSection(_lock);
+#else
+			pthread_mutex_unlock(_lock);
+#endif
+		}
+	}
 	size_t buffer::write(const char *data, size_t bytes)
 	{
 		uint32_t ret;
@@ -210,6 +228,9 @@ namespace UTILS
 		/* then get the rest (if any) from the beginning of the buffer */
 		data2 = _buffer;
 		bytes2 = size_ - len;
+		if (bytes2 == 0) {
+			data2 = nullptr;
+		}
 		_out += size_;
 		return size_;
 	}
@@ -221,6 +242,9 @@ namespace UTILS
 		uint32_t size_ = std::min(size, _space());
 		/* first put the data starting from fifo->in to buffer end */
 		len = std::min(size_, _size - (_in & (_size - 1)));
+		if (len < size) {
+			API::DEBUG_INFO("utils","·Ö¶Î..len:%d total:%d", len, size);
+		}
 		memcpy(_buffer + (_in & (_size - 1)), data, len);
 		/* then put the rest (if any) at the beginning of the buffer */
 		memcpy(_buffer, data + len, size_ - len);
