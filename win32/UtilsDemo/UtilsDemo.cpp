@@ -9,6 +9,7 @@
 #include <utils\utils.h>
 #include <utils\logger.h>
 #include <utils\socket.h>
+#include <utils\file.h>
 #include <iostream>
 #include <bitset>
 #include <Shlobj.h>
@@ -18,6 +19,7 @@
 #include <stdio.h>
 #include <winperf.h>
 
+#include <fstream>
 #include <functional>
 #include <thread>
 #include <mutex> // std::mutex, std::unique_lock
@@ -146,7 +148,8 @@ void text_fun() {
 }
 int main()
 {
-	std::cin.ignore();
+
+	/*std::cin.ignore();
 	{
 		std::thread test1(funcx);
 		std::thread test2(funcxx);
@@ -177,6 +180,8 @@ int main()
 		size_t bytes_to_write = std::min(bytes, capacity - _size);
 		std::cout << bytes_to_write << "\t"<< capacity - _size << std::endl;
 	}
+	*/
+
 	/*std::cin.ignore();
 	{
 		HKEY hKey = UTILS::API::CreateRegKey(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\phq"), false);
@@ -341,6 +346,22 @@ int main()
 		std::cout << UTILS::API::GetOSFolderPath(CSIDL_SYSTEM, buff, 1024) << std::endl;
 		std::cout << buff << std::endl;
 	}*/
+
+
+	std::cin.ignore();
+	{
+		//char str[] = "E:\\SVN\\SelfSVN\\SampleCode\\OpfsUpdate\\bin\\ReadyFolder\\F1B74DA7-6520-4AE5-B196-114C53F5C881.patch";
+		char str[] = "D:\\test_patch.patch";
+		char* pstr = str;
+
+		char key[] = "2E3234F6591B4E69";
+		char* pkey = key;
+		char iv[] = "B91D10A7BE5B1FAB";
+		char* piv = iv;
+
+		int err = UTILS::API::DecryptionFile(pstr, "xx.zip", pkey, piv);
+		std::cout << "解密:" << err << std::endl;
+	}
 
 
 	std::cin.ignore();
@@ -696,4 +717,66 @@ uint32_t ring_buffer_put(struct ring_buffer *ring_buf, void *buffer, uint32_t si
 #endif
 	}
     return ret;
+}
+
+void WatchDirectory(LPTSTR lpDir)
+{
+	DWORD dwWaitStatus;
+	HANDLE dwChangeHandles[3];
+	char lpDrive[4];//存储磁盘符 
+	char lpFile[_MAX_FNAME];//用于存储文件名 
+	char lpExt[_MAX_EXT];//用于存储对应文件的后缀 
+
+	_tsplitpath(lpDir, lpDrive, NULL, lpFile, lpExt);
+	lpDrive[2] = (TCHAR)'\\';
+	lpDrive[3] = (TCHAR)'\0';
+
+	//分别监控文件名，路径名，文件内容的修改  
+	dwChangeHandles[0] = FindFirstChangeNotification(
+		lpDir,
+		TRUE,
+		FILE_NOTIFY_CHANGE_FILE_NAME); //文件名    
+	if (dwChangeHandles[0] == INVALID_HANDLE_VALUE)
+		ExitProcess(GetLastError());
+
+	dwChangeHandles[1] = FindFirstChangeNotification(
+		lpDrive,
+		TRUE,
+		FILE_NOTIFY_CHANGE_DIR_NAME); //路径名   
+	if (dwChangeHandles[1] == INVALID_HANDLE_VALUE)
+		ExitProcess(GetLastError());
+
+	dwChangeHandles[2] = FindFirstChangeNotification(
+		lpDir,
+		TRUE,
+		FILE_NOTIFY_CHANGE_LAST_ACCESS| FILE_NOTIFY_CHANGE_CREATION| FILE_NOTIFY_CHANGE_ATTRIBUTES); //FILE_NOTIFY_CHANGE_LAST_WRITE文件内容/或者说最后保存时间   
+	if (dwChangeHandles[2] == INVALID_HANDLE_VALUE)
+		ExitProcess(GetLastError());
+
+	//改变通知已经设置完成，现在只需等待这些通知被触发，然后做相应处理 
+	while (TRUE)
+	{
+		dwWaitStatus = WaitForMultipleObjects(3, dwChangeHandles, FALSE, INFINITE);
+
+		switch (dwWaitStatus)
+		{
+		case WAIT_OBJECT_0:
+			//执行某对应操作 
+			if (FindNextChangeNotification(dwChangeHandles[0]) == FALSE)
+				ExitProcess(GetLastError());
+			break;
+		case WAIT_OBJECT_0 + 1:
+			//执行某对应操作 
+			if (FindNextChangeNotification(dwChangeHandles[1]) == FALSE)
+				ExitProcess(GetLastError());
+			break;
+		case WAIT_OBJECT_0 + 2:
+			//执行某对应操作 
+			if (FindNextChangeNotification(dwChangeHandles[2]) == FALSE)
+				ExitProcess(GetLastError());
+			break;
+		default:
+			ExitProcess(GetLastError());
+		}
+	}
 }

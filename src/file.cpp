@@ -1,6 +1,6 @@
-#include "../../utils/utils/file.h"
-#include "../../utils/utils/api.h"
-
+#include "../utils/file.h"
+#include "../utils/api.h"
+#include "internal.h"
 
 namespace UTILS
 {
@@ -128,19 +128,19 @@ namespace UTILS
 		if ((mode&PATH_FILE_OPENMODE_IN) == PATH_FILE_OPENMODE_IN){
 			uiMode |= std::ios_base::in;
 		}
-		else if ((mode&PATH_FILE_OPENMODE_OUT) == PATH_FILE_OPENMODE_OUT){
+		if ((mode&PATH_FILE_OPENMODE_OUT) == PATH_FILE_OPENMODE_OUT){
 			uiMode |= std::ios_base::out;
 		}
-		else if ((mode&PATH_FILE_OPENMODE_ATE) == PATH_FILE_OPENMODE_ATE){
+		if ((mode&PATH_FILE_OPENMODE_ATE) == PATH_FILE_OPENMODE_ATE){
 			uiMode |= std::ios_base::ate;
 		}
-		else if ((mode&PATH_FILE_OPENMODE_APP) == PATH_FILE_OPENMODE_APP){
+		if ((mode&PATH_FILE_OPENMODE_APP) == PATH_FILE_OPENMODE_APP){
 			uiMode |= std::ios_base::app;
 		}
-		else if ((mode&PATH_FILE_OPENMODE_TRUNC) == PATH_FILE_OPENMODE_TRUNC){
+		if ((mode&PATH_FILE_OPENMODE_TRUNC) == PATH_FILE_OPENMODE_TRUNC){
 			uiMode |= std::ios_base::trunc;
 		}
-		else if ((mode&PATH_FILE_OPENMODE_BINARY) == PATH_FILE_OPENMODE_BINARY){
+		if ((mode&PATH_FILE_OPENMODE_BINARY) == PATH_FILE_OPENMODE_BINARY){
 			uiMode |= std::ios_base::binary;
 		}
 		m_stPath.uiMode = uiMode;
@@ -210,14 +210,14 @@ namespace UTILS
 			break;
 		}
 		if ((m_stPath.uiMode&PATH_FILE_OPENMODE_IN) == PATH_FILE_OPENMODE_IN){
-			if (flag > 0){
+			if (flag != -1){
 				m_file.seekg(offset, (unsigned int)flag);
 			}else {
 				m_file.seekg(offset);
 			}
 		}
 		else {
-			if (flag > 0){
+			if (flag != -1){
 				m_file.seekp(offset, (unsigned int)flag);
 			}
 			else {

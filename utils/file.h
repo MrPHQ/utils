@@ -26,7 +26,7 @@ namespace UTILS
 		/// 打开文件，若文件已存在那么，清空文件内容..如果指定的路径不存在该文件不会创建.如果指定的路径含有该文件那么清空文件中的内容.
 		PATH_FILE_OPENMODE_TRUNC = 0x10,
 		/// 以二进制的方式对打开的文件进行读写.如果指定的路径不存在该文件不会创建.
-		PATH_FILE_OPENMODE_BINARY = 0x12,
+		PATH_FILE_OPENMODE_BINARY = 0x20,
 	};
 	enum PATH_SEEK_TYPE {
 		///文件的开头.

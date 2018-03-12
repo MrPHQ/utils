@@ -746,7 +746,7 @@ namespace UTILS {namespace API {
 			CryptoPP::FileSource(src, true, new CryptoPP::StreamTransformationFilter(e, new CryptoPP::FileSink(des)));
 		}
 		catch (const CryptoPP::Exception& e){
-			MSG_INFO("ERROR:%d, LINE:%d", e.GetErrorType(), __LINE__);
+			MSG_INFO("ERROR: errno:%d, error:%s, file:%s LINE:%d", e.GetErrorType(), e.GetWhat().data(), src, __LINE__);
 			return UTILS_ERROR_FAIL;
 		}
 		return UTILS_ERROR_SUCCESS;
@@ -1006,7 +1006,11 @@ namespace UTILS {namespace API {
 		if (nullptr == file) {
 			return FALSE;
 		}
-		return DeleteFile(file);
+		BOOL ret = DeleteFile(file);
+		if (!ret) {
+			MSG_INFO("ERROR [FUNCTION]DelFile file:%s err:%d LINE:%d", file, GetLastError(), __LINE__);
+		}
+		return ret;
 	}
 
 	BOOL FileCopy(const char* from, const char* to, BOOL bFailIfExists) {
