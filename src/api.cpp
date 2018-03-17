@@ -756,6 +756,7 @@ namespace UTILS {namespace API {
 		if (nullptr == src || nullptr == buff || nullptr == key || nullptr == iv) {
 			return UTILS_ERROR_PAR;
 		}
+#if 0
 		if (!IsPathExists(src)) {
 			return UTILS_ERROR_EXISTS;
 		}
@@ -775,6 +776,26 @@ namespace UTILS {namespace API {
 		}
 		Memcpy(buff, strDes.data(), strDes.length());
 		return UTILS_ERROR_SUCCESS;
+#else
+		if (!IsPathExists(src)) {
+			return UTILS_ERROR_EXISTS;
+		}
+		std::string strDes;
+		CryptoPP::CBC_Mode<CryptoPP::AES>::Decryption e;
+		e.SetKeyWithIV((byte*)key, 16, (byte*)iv);
+
+		try {
+			CryptoPP::ArraySink* p = new CryptoPP::ArraySink((byte*)buff,len);
+			CryptoPP::FileSource(src, true, new CryptoPP::StreamTransformationFilter(e, p));
+			MSG_INFO("缓存区剩余多少字节:%d, 处理了多少字节:%d", p->AvailableSize(), p->TotalPutLength());
+			
+		}
+		catch (const CryptoPP::Exception& e) {
+			MSG_INFO("ERROR:%d, ERR:%s LINE:%d", e.GetErrorType(), e.what(), __LINE__);
+			return UTILS_ERROR_FAIL;
+		}
+		return UTILS_ERROR_SUCCESS;
+#endif
 	}
 	std::string FileSHA(const char* file) {
 		CryptoPP::SHA256 sha256;
@@ -1274,14 +1295,18 @@ namespace UTILS {namespace API {
 		wcsncpy_s(buff, 1024, _buff, min((unsigned int)len, wcslen(_buff)));
 	}
 
-	HKEY CreateRegKey(HKEY hKey, const char* section, bool close /*= true*/) {
+	HKEY CreateRegKey(HKEY hKey, const char* subkey, bool close /*= true*/) {
 		HKEY hAppKey = NULL;
 		DWORD dw = 0;
 		REGSAM samDesiredOpen = KEY_ALL_ACCESS;
+
+		if (nullptr == subkey) {
+			return NULL;
+		}
 		if (API::Is64()) {
 			samDesiredOpen |= KEY_WOW64_32KEY;
 		}
-		if (RegCreateKeyEx(hKey, section, 0, REG_NONE,
+		if (RegCreateKeyEx(hKey, subkey, 0, REG_NONE,
 			REG_OPTION_NON_VOLATILE, samDesiredOpen, NULL,&hAppKey, &dw) == ERROR_SUCCESS)
 		{
 			if (close) {
@@ -1295,8 +1320,8 @@ namespace UTILS {namespace API {
 		}
 		return NULL;
 	}
-	int WriteRegString(HKEY hKey, const char* section, const char* name, const char* value, int len) {
-		if (nullptr == name) {
+	int WriteRegString(HKEY hKey, const char* subkey, const char* value, const char* val, int len) {
+		if (nullptr == value) {
 			return UTILS_ERROR_PAR;
 		}
 		bool bClose = false;
@@ -1305,8 +1330,8 @@ namespace UTILS {namespace API {
 		if (API::Is64()) {
 			samDesiredOpen |= KEY_WOW64_32KEY;
 		}
-		if (section != NULL) {
-			if (RegOpenKeyEx(hKey, section, 0, samDesiredOpen, &_hKey) != ERROR_SUCCESS) {
+		if (subkey != NULL) {
+			if (RegOpenKeyEx(hKey, subkey, 0, samDesiredOpen, &_hKey) != ERROR_SUCCESS) {
 				return UTILS_ERROR_FAIL;
 			}
 			bClose = true;
@@ -1314,7 +1339,7 @@ namespace UTILS {namespace API {
 		else {
 			_hKey = hKey;
 		}
-		int lRetCode = RegSetValueEx(_hKey,name,0,REG_SZ,(BYTE *)value,len);
+		int lRetCode = RegSetValueEx(_hKey, value,0,REG_SZ,(BYTE *)val,len);
 		if (bClose) {
 			RegCloseKey(_hKey);
 		}
@@ -1327,9 +1352,9 @@ namespace UTILS {namespace API {
 		}
 		return 0;
 	}
-	int WriteRegInt(HKEY hKey, const char* section, const char* name, int value) {
+	int WriteRegInt(HKEY hKey, const char* subkey, const char* value, int val) {
 		HKEY _hKey = NULL;
-		if (nullptr == name) {
+		if (nullptr == value) {
 			return UTILS_ERROR_PAR;
 		}
 		REGSAM samDesiredOpen = KEY_WRITE;
@@ -1337,8 +1362,8 @@ namespace UTILS {namespace API {
 			samDesiredOpen |= KEY_WOW64_32KEY;
 		}
 		bool bClose = false;
-		if (section != NULL) {
-			if (RegOpenKeyEx(hKey, section, 0, samDesiredOpen, &_hKey) != ERROR_SUCCESS) {
+		if (subkey != NULL) {
+			if (RegOpenKeyEx(hKey, subkey, 0, samDesiredOpen, &_hKey) != ERROR_SUCCESS) {
 				return UTILS_ERROR_FAIL;
 			}
 			bClose = true;
@@ -1349,41 +1374,53 @@ namespace UTILS {namespace API {
 		if (_hKey == NULL) {
 			return UTILS_ERROR_FAIL;
 		}
-		int lRetCode = RegSetValueEx(_hKey, name, 0, REG_DWORD, (BYTE *)&value, sizeof(int));
+		int lRetCode = RegSetValueEx(_hKey, value, 0, REG_DWORD, (BYTE *)&val, sizeof(int));
 		if (bClose) {
 			RegCloseKey(_hKey);
 		}
 		return lRetCode == ERROR_SUCCESS ? UTILS_ERROR_SUCCESS : UTILS_ERROR_FAIL;
 	}
 
-	int ReadRegString(HKEY hKey, const char* section, const char* Entry, char* buff, int len) {
+	int ReadRegString(HKEY hKey, const char* subkey, const char* value, char* buff, int len) {
 		HKEY _hKey = NULL;
 		DWORD DataType = REG_SZ, BuffLen = 1024;
 		char str[1024];
-
-		if ((nullptr == section) || (nullptr == Entry) || (nullptr == buff)) {
+		bool bClose = false;
+		if ((nullptr == value) || (nullptr == buff)) {
 			return UTILS_ERROR_PAR;
 		}
+
 		REGSAM samDesiredOpen = KEY_READ;
 		if (API::Is64()) {
 			samDesiredOpen |= KEY_WOW64_32KEY;
 		}
-		str[0] = '\0';
-		if (RegOpenKeyEx(hKey, section, 0, samDesiredOpen, &_hKey) == ERROR_SUCCESS){
-			if (RegQueryValueEx(_hKey, Entry, 0, &DataType, (BYTE*)&str, &BuffLen) == ERROR_SUCCESS){
-				Strcpy(buff, len, str);
-				return 0;
+
+		if (subkey != NULL) {
+			if (RegOpenKeyEx(hKey, subkey, 0, samDesiredOpen, &_hKey) != ERROR_SUCCESS) {
+				return UTILS_ERROR_FAIL;
 			}
+			bClose = true;
+		}
+		else {
+			_hKey = hKey;
+		}
+		str[0] = '\0';
+		//RegQueryValueEx(_hKey, value, 0, &DataType, NULL, &BuffLen);在不知道长度的时候,可以先读取需要长度.
+		int lRetCode = RegQueryValueEx(_hKey, value, 0, &DataType, (BYTE*)&str, &BuffLen);
+		if (lRetCode == ERROR_SUCCESS) {
+			Strcpy(buff, len, str);
+		}
+		if (bClose) {
 			RegCloseKey(_hKey);
 		}
-		return UTILS_ERROR_FAIL;
+		return lRetCode == ERROR_SUCCESS ? UTILS_ERROR_SUCCESS : UTILS_ERROR_FAIL;
 	}
 
-	int ReadRegInt(HKEY hKey, const char* section, const char* Entry, int& v) {
+	int ReadRegInt(HKEY hKey, const char* subkey, const char* value, int& v) {
 		HKEY _hKey = NULL;
 		DWORD DataType = REG_DWORD, BuffLen = 4;
-
-		if ((nullptr == section) || (nullptr == Entry)) {
+		bool bClose = false;
+		if (nullptr == value) {
 			return UTILS_ERROR_PAR;
 		}
 		REGSAM samDesiredOpen = KEY_READ;
@@ -1391,15 +1428,133 @@ namespace UTILS {namespace API {
 			samDesiredOpen |= KEY_WOW64_32KEY;
 			//samDesiredOpen |= KEY_WOW64_64KEY; 64.app
 		}
-		if (RegOpenKeyEx(hKey, section, 0, samDesiredOpen, &_hKey) == ERROR_SUCCESS) {
-			if (RegQueryValueEx(_hKey, Entry, 0, &DataType, (BYTE*)&v, &BuffLen) == ERROR_SUCCESS) {
-				return 0;
+
+		if (subkey != NULL) {
+			if (RegOpenKeyEx(hKey, subkey, 0, samDesiredOpen, &_hKey) != ERROR_SUCCESS) {
+				return UTILS_ERROR_FAIL;
 			}
+			bClose = true;
+		}
+		else {
+			_hKey = hKey;
+		}
+
+		int lRetCode = RegQueryValueEx(_hKey, value, 0, &DataType, (BYTE*)&v, &BuffLen);
+		if (bClose) {
 			RegCloseKey(_hKey);
 		}
-		return UTILS_ERROR_FAIL;
+		return lRetCode == ERROR_SUCCESS ? UTILS_ERROR_SUCCESS : UTILS_ERROR_FAIL;
 	}
 
+	int EnumRegKey(HKEY key, const char* subkey, std::list<std::string>* pSubKey, 
+		std::list<std::string>* pValues) {
+		char achKey[256];   // buffer for subkey name
+		DWORD cbName; // size of name string 
+		char achClass[MAX_PATH] = TEXT("");  // buffer for class name 
+		DWORD cchClassName = MAX_PATH;  // size of class string 
+		DWORD cSubKeys = 0; // number of subkeys 
+		DWORD cbMaxSubKey; // longest subkey size 
+		DWORD cchMaxClass; // longest class string 
+		DWORD cValues; // number of values for key 
+		DWORD cchMaxValue; // longest value name 
+		DWORD cbMaxValueData; // longest value data 
+		DWORD cbSecurityDescriptor; // size of security descriptor 
+		FILETIME ftLastWriteTime; // last write time 
+
+		DWORD i, retCode;
+
+		char achValue[256];
+		DWORD cchValue = 256;
+
+		HKEY _hKey = NULL;
+		REGSAM samDesiredOpen = KEY_READ;
+		if (API::Is64()) {
+			samDesiredOpen |= KEY_WOW64_32KEY;
+			//samDesiredOpen |= KEY_WOW64_64KEY; 64.app
+		}
+
+		bool bClose = false;
+		if (subkey != NULL) {
+			if (RegOpenKeyEx(key, subkey, 0, samDesiredOpen, &_hKey) != ERROR_SUCCESS) {
+				return UTILS_ERROR_FAIL;
+			}
+			bClose = true;
+		}
+		else {
+			_hKey = key;
+		}
+
+		// Get the class name and the value count. 
+		retCode = RegQueryInfoKey(
+			_hKey, // key handle 
+			achClass, // buffer for class name 
+			&cchClassName, // size of class string 
+			NULL, // reserved 
+			&cSubKeys, // number of subkeys 
+			&cbMaxSubKey, // longest subkey size 
+			&cchMaxClass, // longest class string 
+			&cValues, // number of values for this key 
+			&cchMaxValue, // longest value name 
+			&cbMaxValueData, // longest value data 
+			&cbSecurityDescriptor, // security descriptor 
+			&ftLastWriteTime); // last write time 
+		if (retCode != ERROR_SUCCESS) {
+			return UTILS_ERROR_FAIL;
+		}
+		// Enumerate the subkeys, until RegEnumKeyEx fails.
+		if (cSubKeys){
+			//printf("\nNumber of subkeys: %d\n", cSubKeys);
+
+			if (pSubKey != nullptr) {
+
+				for (i = 0; i < cSubKeys; i++)
+				{
+					cbName = 256;
+					retCode = RegEnumKeyEx(_hKey, i,
+						achKey,
+						&cbName,
+						NULL,
+						NULL,
+						NULL,
+						&ftLastWriteTime);
+					if (retCode == ERROR_SUCCESS)
+					{
+						pSubKey->emplace_back(achKey);
+						//_tprintf(TEXT("(%d) %s\n"), i + 1, achKey);
+					}
+				}
+			}
+		}
+
+		// Enumerate the key values. 
+
+		if (cValues)
+		{
+			//printf("\nNumber of values: %d\n", cValues);
+
+			if (nullptr != pValues) {
+				for (i = 0, retCode = ERROR_SUCCESS; i < cValues; i++)
+				{
+					cchValue = 256;
+					achValue[0] = '\0';
+					retCode = RegEnumValue(_hKey, i,
+						achValue,
+						&cchValue,
+						NULL,
+						NULL,
+						NULL,
+						NULL);
+
+					if (retCode == ERROR_SUCCESS)
+					{
+						pValues->emplace_back(achValue);
+						//_tprintf(TEXT("(%d) %s\n"), i + 1, achValue);
+					}
+				}
+			}
+		}
+		return UTILS_ERROR_SUCCESS;
+	}
 	HANDLE fnCreateEvent(LPSECURITY_ATTRIBUTES lpEventAttributes,
 		BOOL bManualReset,BOOL bInitialState,const char* lpName){
 		return CreateEvent(lpEventAttributes, bManualReset, bInitialState, lpName);

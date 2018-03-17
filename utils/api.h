@@ -221,13 +221,14 @@ namespace UTILS { namespace API {
 		注册表相关..
 	*/
 	/// 创建KEY ，如果存在则打开, close创建后是否关闭
-	UTILS_API HKEY CreateRegKey(HKEY, const char* section, bool close = true);
-	UTILS_API int CloseRegKey(HKEY);
-	UTILS_API int WriteRegString(HKEY, const char* section, const char* name, const char* value, int len);
-	UTILS_API int WriteRegInt(HKEY, const char* section, const char* name, int value);
+	UTILS_API HKEY CreateRegKey(HKEY key, const char* subkey, bool close = true);
+	UTILS_API int CloseRegKey(HKEY key);
+	UTILS_API int WriteRegString(HKEY key, const char* subkey, const char* value, const char* val, int len);
+	UTILS_API int WriteRegInt(HKEY key, const char* subkey, const char* value, int val);
 	// HKEY_LOCAL_MACHINE..  section.=SOFTWARE\\InControl\\Install  Entry..= install
-	UTILS_API int ReadRegString(HKEY, const char* section, const char* Entry, char* buff, int len);
-	UTILS_API int ReadRegInt(HKEY, const char* section, const char* Entry, int& v);
+	UTILS_API int ReadRegString(HKEY key, const char* subkey, const char* value, char* buff, int len);
+	UTILS_API int ReadRegInt(HKEY key, const char* subkey, const char* value, int& v);
+	UTILS_API int EnumRegKey(HKEY key, const char* subkey, std::list<std::string>* pSubKey, std::list<std::string>* pValues);
 
 	/*
 		打印调试信息

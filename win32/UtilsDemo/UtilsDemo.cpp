@@ -148,7 +148,58 @@ void text_fun() {
 }
 int main()
 {
+	std::cin.ignore();
+	{
+		std::list<std::string> lstKeys,lstValues;
+		UTILS::API::EnumRegKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\Wow6432Node\\DT Soft\\DAEMON Tools Pro",&lstKeys,&lstValues);
+		for (auto& it : lstKeys)
+		{
+			std::cout << it.data() << std::endl;
+		}
+		std::cout << std::endl;
+		for (auto& it : lstValues)
+		{
+			std::cout << it.data() << std::endl;
+		}
+	}
+	/*std::cin.ignore();
+	{
+		DWORD BufferSize = 64;
+		DWORD cbData =0;
+		DWORD dwRet;
 
+		PPERF_DATA_BLOCK PerfData = (PPERF_DATA_BLOCK)malloc(BufferSize);
+		cbData = BufferSize;
+		DWORD DataType = REG_SZ;
+		printf("\nRetrieving the data...");
+		HKEY hTestKey = NULL;
+		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Wow6432Node\\DT Soft\\DAEMON Tools Pro", 0, KEY_READ, &hTestKey) == ERROR_SUCCESS)
+		{
+			dwRet = RegQueryValueEx(hTestKey,
+				NULL,
+				NULL,
+				&DataType,
+				NULL,
+				&cbData);
+
+			printf("\n\nFinal buffer size is %d ret:%d\n", cbData, dwRet);
+		}
+
+
+
+
+	}*/
+	/*std::cin.ignore();
+	{
+		HKEY hTestKey;
+
+		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Wow6432Node\\DT Soft\\DAEMON Tools Pro"), 0, KEY_READ, &hTestKey) == ERROR_SUCCESS)
+		{
+			QueryKey(hTestKey);
+		}
+
+		RegCloseKey(hTestKey);
+	}*/
 	/*std::cin.ignore();
 	{
 		std::thread test1(funcx);
@@ -276,43 +327,7 @@ int main()
 			printf("\n\nFinal buffer size is %d\n", BufferSize);
 		else printf("\nRegQueryValueEx failed (%d)\n", dwRet);
 #else
-		DWORD BufferSize = TOTALBYTES;
-		DWORD cbData;
-		DWORD dwRet;
 
-		PPERF_DATA_BLOCK PerfData = (PPERF_DATA_BLOCK)malloc(1024*16);
-		cbData = BufferSize;
-		char str[256];
-		DWORD ValueLen = 256;
-		DWORD DataType = REG_SZ;
-		DWORD DataType2 = REG_DWORD;
-		int v = 2;
-		DWORD vl = 4;
-		HKEY hKey;
-		//if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Wow6432Node\\DT Soft\\DAEMON Tools Pro"), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
-		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\DT Soft\\DAEMON Tools Pro"), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
-		{
-			if (RegQueryValueEx(hKey, "Version Major", 0, &DataType, (BYTE*)&str, &ValueLen) == ERROR_SUCCESS)
-			{
-				std::cout << "XXXXXXXXXXX "<< str << std::endl;
-			}
-			else
-			{
-				printf("Get SystemPrefix from regedit error!\n");
-			}
-			if (RegQueryValueEx(hKey, "Config\\AdapterStateDT", 0, &DataType2, (BYTE*)&v, &vl) == ERROR_SUCCESS)
-			{
-				std::cout << "ccccccc " << v << std::endl;
-			}
-			else
-			{
-				printf("Get SystemPrefix from regedit error!\n");
-			}
-		}
-		else
-		{
-			printf("Get SystemPrefix from regedit error!\n");
-		}
 
 
 		UTILS::API::ReadRegString(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Wow6432Node\\Google\\Update"), "LastInstallerSuccessLaunchCmdLine", str, 256);
@@ -322,18 +337,6 @@ int main()
 		//write key
 		//https://msdn.microsoft.com/en-us/library/windows/desktop/ms725501(v=vs.85).aspx
 #endif
-	}
-
-	std::cin.ignore();
-	{
-		HKEY hTestKey;
-
-		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,TEXT("SOFTWARE\\Wow6432Node\\DT Soft\\DAEMON Tools Pro"),0,KEY_READ,&hTestKey) == ERROR_SUCCESS)
-		{
-			QueryKey(hTestKey);
-		}
-
-		RegCloseKey(hTestKey);
 	}
 
 	std::cin.ignore();
@@ -528,7 +531,7 @@ void QueryKey(HKEY hKey)
 
 	if (cSubKeys)
 	{
-		printf("\nNumber of subkeys: %d\n", cSubKeys);
+		printf("\nNumber of subkeys: %d %d\n", cSubKeys, cbMaxSubKey);
 
 		for (i = 0; i<cSubKeys; i++)
 		{
