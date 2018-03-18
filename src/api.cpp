@@ -838,19 +838,19 @@ namespace UTILS {namespace API {
 	void DEBUG_INFO(char* flag, char* fmt, ...) {
 #ifdef _WIN32
 		va_list args;
-		char sLog[256];
-		char sOut[256];
+		char sLog[1024];
+		char sOut[1024];
 		sLog[0] = '\0';
 		sOut[0] = '\0';
 		va_start(args, fmt);
 		_vsnprintf_s(sOut, sizeof(sOut)-1, fmt, args);
 		va_end(args);
 		if (nullptr != flag && strlen(flag) > 0) {
-			strncat_s(sLog, 256, "[", 1);
-			strncat_s(sLog, 256, flag, min(255, strlen(flag)));
-			strncat_s(sLog, 256, "] ", 2);
+			strncat_s(sLog, 1024, "[", 1);
+			strncat_s(sLog, 1024, flag, min(1023, strlen(flag)));
+			strncat_s(sLog, 1024, "] ", 2);
 		}
-		strncat_s(sLog, 256, sOut, min(255-strlen(sLog), strlen(sOut)));
+		strncat_s(sLog, 1024, sOut, min(1023-strlen(sLog), strlen(sOut)));
 		OutputDebugString(sLog);
 #else
 #endif
