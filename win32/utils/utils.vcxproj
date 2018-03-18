@@ -146,6 +146,7 @@
     <ClInclude Include="..\..\utils\error.h" />
     <ClInclude Include="..\..\utils\file.h" />
     <ClInclude Include="..\..\utils\logger.h" />
+    <ClInclude Include="..\..\utils\pipe.h" />
     <ClInclude Include="..\..\utils\service.h" />
     <ClInclude Include="..\..\utils\ShareMemory.h" />
     <ClInclude Include="..\..\utils\Singleton.h" />
@@ -161,6 +162,7 @@
     <ClCompile Include="..\..\src\file.cpp" />
     <ClCompile Include="..\..\src\internal.cpp" />
     <ClCompile Include="..\..\src\logger.cpp" />
+    <ClCompile Include="..\..\src\pipe.cpp" />
     <ClCompile Include="..\..\src\service.cpp" />
     <ClCompile Include="..\..\src\socket.cpp" />
     <ClCompile Include="..\..\src\Thread.cpp" />
