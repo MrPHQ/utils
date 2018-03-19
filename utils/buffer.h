@@ -2,7 +2,7 @@
 #define __UTILS_CIRCULAR_BUFFER__
 
 #include <utils/config.h>
-
+#include <utils/define.h>
 #define BUFFER_MAX_LEN 1024*1024*1024
 
 namespace UTILS

@@ -52,7 +52,7 @@ namespace UTILS
 	};
 
 
-	bool CCritSec::TryLock(unsigned int timeout /*= 5000*/) noexcept {
+	bool CCritSec::TryLock(unsigned int timeout /*= 5000*/) {
 		BOOL ret = FALSE;
 		DWORD dwCut = GetTickCount();
 		do
@@ -132,6 +132,17 @@ namespace UTILS
 			m_hWait = 0;
 		}
 		m_bInit = FALSE;
+	}
+
+	bool CThreadBox::Run(DWORD(WINAPI* cb)(void*), void* pParam)
+	{
+		DWORD dwThreadId = 0;
+		HANDLE hThread = CreateThread(0, 0, cb, pParam, 0, &dwThreadId);
+		if (hThread) {
+			CloseHandle(hThread);
+			return true;
+		}
+		return false;
 	}
 
 	BOOL CThreadBox::IsDone(){

@@ -1,7 +1,7 @@
 #include "../utils/file.h"
 #include "../utils/api.h"
 #include "internal.h"
-
+#include <IO.H>
 namespace UTILS
 {
 	CFile::CFile()

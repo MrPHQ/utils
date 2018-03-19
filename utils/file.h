@@ -1,6 +1,7 @@
 #ifndef __UTILS_FILE__
 #define __UTILS_FILE__
 #include <utils/config.h>
+#include <utils/define.h>
 #include <fstream>
 
 namespace UTILS

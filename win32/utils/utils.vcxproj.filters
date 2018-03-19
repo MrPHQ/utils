@@ -1,128 +1,131 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="源文件">
+    <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="头文件">
+    <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="资源文件">
+    <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="utils">
-      <UniqueIdentifier>{7db478b2-d44a-42f8-a0a2-2e8b78c7a222}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src">
-      <UniqueIdentifier>{bcdf61fe-4dc6-446d-83f8-c74279bf9c93}</UniqueIdentifier>
+      <UniqueIdentifier>{266b0f41-eba6-4fd9-a429-6c4b8cbe8e6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{db9ec567-748b-4ebd-a47e-2902cfda0807}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\win32">
+      <UniqueIdentifier>{012028ac-867b-49ae-9851-623bfec9a802}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\utils\config.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\utils\define.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\utils\error.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\utils\utils.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\utils\socket.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\utils\service.h">
-      <Filter>utils</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\utils\api.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\utils\Singleton.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\utils\logger.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\utils\dll.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\internal.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\utils\ConfigFile.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\utils\Time.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\utils\buffer.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\utils\ShareMemory.h">
+    <ClInclude Include="..\..\utils\config.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\utils\Thread.h">
+    <ClInclude Include="..\..\utils\ConfigFile.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\define.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\dll.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\error.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\utils\file.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\utils\logger.h">
+      <Filter>utils</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\utils\pipe.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\utils\service.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\ShareMemory.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\Singleton.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\socket.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\Thread.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\Time.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\utils\utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\internal.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\utils.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\socket.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\service.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\api.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\logger.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\internal.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\win32\ConfigFile.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Time.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\buffer.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\win32\ShareMemory.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Thread.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\file.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\internal.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\logger.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\pipe.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\service.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\socket.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Thread.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Time.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\utils.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\win32\ConfigFile.cpp">
+      <Filter>src\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\win32\ShareMemory.cpp">
+      <Filter>src\win32</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="utils.rc">
-      <Filter>资源文件</Filter>
+      <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
 </Project>

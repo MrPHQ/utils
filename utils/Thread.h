@@ -16,7 +16,7 @@ namespace UTILS
 		~CCritSec();
 		void Lock();
 		void Unlock();
-		bool TryLock(unsigned int timeout /*= 5000*/) noexcept;
+		bool TryLock(unsigned int timeout /*= 5000*/);
 
 		CCritSec(CCritSec const &) = delete;
 		CCritSec(CCritSec &&) = delete;
@@ -61,6 +61,7 @@ namespace UTILS
 		CThreadBox();
 		virtual ~CThreadBox();
 
+		static bool Run(DWORD(WINAPI*)(void*),void* pParam);
 	public:
 		int Init(int iPacketSize = 1024, int iPacketNum = 10, BOOL bPacket = TRUE, BOOL bCreateEvent = FALSE);
 		void UnInit();

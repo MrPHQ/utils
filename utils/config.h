@@ -14,6 +14,9 @@
 #define ENABLE_ZIP
 #define ENABLE_CRYPTOPP
 
+#include <sys/types.h>  
+#include <sys/stat.h>  
+
 #ifdef _WIN32 //windows相关
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
