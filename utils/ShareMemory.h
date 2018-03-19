@@ -72,8 +72,8 @@ public:
 	\brief
 		注册获取共享缓存中写入的数据的回调函数，初始化为CT_READER时有效
 	*/
-	/*void RegisterDataCallback(std::function<void(CommunicatorPacket_t* lpPacket, void* pUsrPar)> pCallback, 
-		void* pUsrPar);*/
+	void RegisterDataCallback(std::function<void(CommunicatorPacket_t* lpPacket, void* pUsrPar)> pCallback, 
+		void* pUsrPar);
 	/**
 	\brief
 		清空数据，初始化为CT_READER时有效
@@ -103,7 +103,7 @@ protected:
 	/// 数据读取线程，仅当创建为读取模式时创建
 	CThreadBox m_read_thr;
 	/// 数据输出回调函数
-	//std::function<void(CommunicatorPacket_t* lpPacket, void* pUsrPar)> m_pfnOutPutData;
+	std::function<void(CommunicatorPacket_t* lpPacket, void* pUsrPar)> m_pfnOutPutData;
 	void* m_pUsrpar;
 	/// 共享内存基地址.
 	BYTE* m_pBasePointer; 

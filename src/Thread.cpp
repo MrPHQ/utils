@@ -53,7 +53,7 @@ namespace UTILS
 
 
 	bool CCritSec::TryLock(unsigned int timeout /*= 5000*/) {
-		BOOL ret = FALSE;
+		BOOL ret = false;
 		DWORD dwCut = GetTickCount();
 		do
 		{
@@ -66,7 +66,7 @@ namespace UTILS
 			}
 			Sleep(10);
 		} while (true);
-		return ret;
+		return ret ? true : false;
 	}
 
 	CThreadBox::CThreadBox()

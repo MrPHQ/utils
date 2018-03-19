@@ -64,6 +64,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>../../bin/$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImportLibrary>../../bin/$(TargetName).lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
       <Command>$(SolutionDir)\git_version_commit.bat</Command>
@@ -88,6 +89,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>../../bin/$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImportLibrary>../../bin/$(TargetName).lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
       <Command>$(SolutionDir)\git_version_commit.bat</Command>

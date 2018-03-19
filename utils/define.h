@@ -24,13 +24,12 @@ typedef   long					LONG_PTR;
 typedef   unsigned long			ULONG_PTR;
 typedef   ULONG_PTR				DWORD_PTR;
 
-#ifndef UINT64_MAX
+/*#ifndef UINT64_MAX
 #define UINT64_MAX				18446744073709551615UL
 #endif
-
 #ifndef INT64_MAX
 #define INT64_MAX				9223372036854775807L
-#endif
+#endif*/
 
 #define TEMP_DATA				0x7FF0000000000000L
 

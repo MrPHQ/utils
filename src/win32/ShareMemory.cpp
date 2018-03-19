@@ -16,7 +16,6 @@ namespace UTILS
 		, m_hChangeEvent(NULL)
 		, m_hDataMutex(NULL)
 		, m_nType(CT_WRITER)
-		//, m_pfnOutPutData(NULL)
 		, m_pUsrpar(NULL)
 		, m_pBasePointer(NULL)
 	{
@@ -216,11 +215,11 @@ namespace UTILS
 		return Err;
 	}
 
-	/*void CShareMemory::RegisterDataCallback(std::function<void(CommunicatorPacket_t* lpPacket, void* pUsrPar)> pCallback,
+	void CShareMemory::RegisterDataCallback(std::function<void(CommunicatorPacket_t* lpPacket, void* pUsrPar)> pCallback,
 		void* pUsrPar){
 		m_pfnOutPutData = pCallback;
 		m_pUsrpar = pUsrPar;
-	}*/
+	}
 
 	void CShareMemory::ResetData(){
 		if (!m_bInit || CT_READER != m_nType){
@@ -273,9 +272,9 @@ namespace UTILS
 				//避免数据无法写入，在数据输出过程中可以继续写入数据
 				ReleaseMutex(m_hDataMutex);
 				//将数据输出给用户
-				/*if (NULL != m_pfnOutPutData) {
+				if (m_pfnOutPutData) {
 					m_pfnOutPutData(lpPacket, m_pUsrpar);
-				}*/
+				}
 				//标志复位，防止重复输出，若超时而未被修改，则数据将被重复输出
 				dwWait = WaitForMultipleObjects(2, ahObject, FALSE, 5000);
 				if ((WAIT_OBJECT_0 + 1) == dwWait) {
