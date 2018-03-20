@@ -44,6 +44,7 @@ namespace UTILS { namespace API {
 	UTILS_API int CharacterConvert(const char* tocode, const char* fromcode,
 		char *inbuf, int inlen, char *outbuf,
 		int outlen, int* OutIdleLen, int* NoConvertLen);
+	/// 转换字符串中的指定所有字符
 	UTILS_API void CharConvert(char*, char s, char d);
 	/// WideCharToMultiByte
 	UTILS_API char* WcharToChar(wchar_t* wc);
@@ -91,6 +92,9 @@ namespace UTILS { namespace API {
 	//获取当前进程ID
 	UTILS_API int GetCurrentProcessID();
 	UTILS_API int ForceKillProcess(const char* name);
+	UTILS_API BOOL ForceKillProcess(DWORD dwPID);
+	UTILS_API int GetprocessIDs(const char* lpszProName, DWORD dwPID[], int iSize);
+
 	/**
 	\brief
 		运行程序
@@ -121,6 +125,11 @@ namespace UTILS { namespace API {
 		std::list<std::string>* lstDirs,
 		std::list<std::string>* lstFiles,
 		bool bRecursive);
+	/// 拷贝目录下文件及其子目录到新的路径下,
+	UTILS_API int CopyFolders(const char* src, const char* des, bool bRecursive = true);
+	/// 替换目录下所有同名文件
+	UTILS_API int ReplaceFiles(const char* file, const char* des, bool bRecursive = true);
+
 	/// 去除文件路径扩展名
 	UTILS_API void RemoveExtension(char*);
 	/// 去除文件名，得到目录

@@ -152,6 +152,7 @@ namespace UTILS
 		.
 		*/
 		int Open(unsigned int mode, const char* path = NULL);
+		int ReOpen();
 
 		/**
 		\brief

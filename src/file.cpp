@@ -153,12 +153,25 @@ namespace UTILS
 		return UTILS_ERROR_SUCCESS;
 	}
 
+	int CFile::ReOpen()
+	{
+		Close();
+		m_file.open(m_stPath.szPath, m_stPath.uiMode);
+		if (!m_file.is_open() || m_file.bad()){
+			return UTILS_ERROR_FAIL;
+		}
+		return UTILS_ERROR_SUCCESS;
+	}
+
 	int CFile::Write(const char* data, int len)
 	{
 		if (NULL == data || len <= 0){
 			return UTILS_ERROR_PAR;
 		}
 		if (!m_file.is_open()){
+			return UTILS_ERROR_FAIL;
+		}
+		if (m_file.bad()){
 			return UTILS_ERROR_FAIL;
 		}
 
@@ -178,7 +191,9 @@ namespace UTILS
 		if (!m_file.is_open()){
 			return UTILS_ERROR_FAIL;
 		}
-
+		if (m_file.bad()){
+			return UTILS_ERROR_FAIL;
+		}
 		m_file.read(buff, len);
 		if (m_file.bad()){
 			return UTILS_ERROR_FAIL;
@@ -273,12 +288,12 @@ namespace UTILS
 	}
 
 	int CFile::Delete(const char* path){
-		bool ret = API::DelFile(path);
+		bool ret = API::DelFile(path) ? true : false;
 		return ret ? UTILS_ERROR_SUCCESS : UTILS_ERROR_FAIL;
 	}
 
 	int CFile::Delete(){
-		bool ret = API::DelFile(m_stPath.szPath);
+		bool ret = API::DelFile(m_stPath.szPath) ? true : false;
 		Clear();
 		return ret ? UTILS_ERROR_SUCCESS : UTILS_ERROR_FAIL;
 	}

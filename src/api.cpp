@@ -277,6 +277,54 @@ namespace UTILS {namespace API {
 		return TRUE;
 	}
 
+	BOOL ForceKillProcess(DWORD dwPID)
+	{
+		DWORD dwExitCode = 0;
+		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+		HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, dwPID);
+		if (NULL != hProcess) {
+			GetExitCodeProcess(hProcess, &dwExitCode);
+			TerminateProcess(hProcess, dwExitCode);
+			CloseHandle(hProcess);
+			hProcess = NULL;
+		}
+		SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+		return TRUE;
+	}
+
+	int GetprocessIDs(const char* lpszProName, DWORD dwPID[], int iSize)
+	{
+		if (iSize <= 0){
+			return 0;
+		}
+
+		ZeroMemory(dwPID, sizeof(DWORD)*iSize);
+		HANDLE hProcessSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+		if (INVALID_HANDLE_VALUE == hProcessSnapshot){
+			return 0;
+		}
+
+		char szProName[128] = { 0 };
+		_snprintf_s(szProName, _TRUNCATE, "%s", lpszProName);
+		int iCount = 0;
+		PROCESSENTRY32 pe32 = { 0 };
+		pe32.dwSize = sizeof(PROCESSENTRY32);
+		BOOL bMorePe = ::Process32First(hProcessSnapshot, &pe32);
+		while (bMorePe) {
+			Transform(szProName);
+			Transform(pe32.szExeFile);
+			if (strcmp(szProName, pe32.szExeFile) == 0) {
+				if (iCount < iSize) {
+					dwPID[iCount] = pe32.th32ProcessID;
+					iCount++;
+				}
+			}
+			bMorePe = ::Process32Next(hProcessSnapshot, &pe32);
+		}
+		CloseHandle(hProcessSnapshot);
+		return iCount;
+	}
+
 	int RunProcess(const char* cmd, PPROCESS_PROPERTY pProcessProperty /*= NULL*/, unsigned int uiTimeOut /*= 0*/) {
 		int ret = UTILS::UTILS_ERROR_SUCCESS;
 		if (cmd == NULL){
@@ -623,6 +671,107 @@ namespace UTILS {namespace API {
 		}
 #else
 #endif
+	}
+
+	int CopyFolders(const char* src, const char* des, bool bRecursive /*= true*/){
+		if (nullptr == src || nullptr == des) {
+			return UTILS_ERROR_PAR;
+		}
+		if (strlen(src) == 0 || strlen(des) == 0) {
+			return UTILS_ERROR_PAR;
+		}
+		int err = UTILS_ERROR_SUCCESS;
+		char tmp[MAX_PATH], relative[MAX_PATH];
+		std::list<std::string> lstDirs, lstFiles;
+
+		EnumDirectoryFiles(src, nullptr, 0, &lstDirs, &lstFiles, bRecursive);
+
+		for (auto& it : lstDirs)
+		{
+			//相对路径
+			UTILS::API::RelativePathTo(tmp,
+				(char*)src,
+				FILE_ATTRIBUTE_DIRECTORY,
+				(char*)it.data(),
+				FILE_ATTRIBUTE_DIRECTORY);
+			relative[0] = '\0';
+			if (!IsRelativePath(tmp)){
+				ConverToRelative(tmp, relative, MAX_PATH);
+			}
+			else {
+				Strcpy(relative, sizeof(relative), tmp);
+			}
+			//合并路径
+			tmp[0] = '\0';
+			UTILS::API::CombinePath(tmp, des, relative);
+			if (!IsPathExists(tmp)){
+				UTILS::API::CreateFolders(tmp);
+			}
+			if (!IsPathExists(tmp)){
+				err = UTILS_ERROR_FAIL;
+			}
+		}
+		for (auto& it : lstFiles)
+		{
+			//相对路径
+			UTILS::API::RelativePathTo(tmp,
+				(char*)src,
+				FILE_ATTRIBUTE_DIRECTORY,
+				(char*)it.data(),
+				FILE_ATTRIBUTE_NORMAL);
+			relative[0] = '\0';
+			if (!IsRelativePath(tmp)) {
+				ConverToRelative(tmp, relative, MAX_PATH);
+			}
+			else {
+				Strcpy(relative, sizeof(relative), tmp);
+			}
+
+			//合并路径
+			tmp[0] = '\0';
+			UTILS::API::CombinePath(tmp, des, relative);
+			//DEBUG_INFO("合并路径 :%s", tmp);
+			if (IsPathExists(tmp)) {
+				UTILS::API::DelFile(tmp);
+			}
+			if (!FileCopy(it.c_str(), tmp, FALSE)){
+				err = UTILS_ERROR_FAIL;
+				MSG_INFO("拷贝文件[%s] 到[%s] ..失败 LINE:%d", it.c_str(), tmp, __LINE__);
+			}
+		}
+		return err;
+	}
+
+	int ReplaceFiles(const char* file, const char* des, bool bRecursive /*= true*/){
+		if (nullptr == file || nullptr == des) {
+			return UTILS_ERROR_PAR;
+		}
+		if (strlen(file) == 0 || strlen(des) == 0) {
+			return UTILS_ERROR_PAR;
+		}
+		int err = UTILS_ERROR_SUCCESS;
+		const char* p = nullptr;
+		char szName[MAX_PATH];
+		std::list<std::string> lstFiles;
+		Strcpy(szName, MAX_PATH, file);
+		StripPath(szName);
+		if (strlen(szName) == 0) {
+			return UTILS_ERROR_PAR;
+		}
+
+		EnumDirectoryFiles(des, nullptr, 0, nullptr, &lstFiles, bRecursive);
+		for (auto& it : lstFiles){
+			p = strstr(it.data(), szName);
+			if (nullptr == p){
+				continue;
+			}
+			UTILS::API::DelFile(it.data());
+			if (!FileCopy(file, it.c_str(), FALSE)){
+				err = UTILS_ERROR_FAIL;
+				MSG_INFO("拷贝文件[%s] 到[%s] ..失败 LINE:%d", file, it.c_str(), __LINE__);
+			}
+		}
+		return err;
 	}
 
 	void CharConvert(char* str, char s, char d) {
