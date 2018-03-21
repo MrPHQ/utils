@@ -197,6 +197,18 @@ namespace UTILS { namespace API {
 	UTILS_API int GetOSFolderPathUseCSIDL(int csidl, char* buff, int len);
 	UTILS_API int GetOSFolderPathUseID(GUID id, char* buff, int len);
 
+	//本系统显示器信息
+	struct MONITOR_PROPERTY
+	{
+		unsigned int index;	//序号，从0开始  -1表示无效
+		RECT rect; //显示区域
+		BOOL bPrimary; //主显示器标识
+	};
+	//根据窗口句柄获得所处显示器
+	UTILS_API BOOL GetMonitorProperty(HWND hwnd, MONITOR_PROPERTY* pMonitorInfo);
+	//检索主显示器的工作区大小
+	UTILS_API BOOL GetMonitorWorkArea(RECT& rc);
+
 
 	/*
 		压缩相关.

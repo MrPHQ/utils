@@ -1842,4 +1842,65 @@ namespace UTILS {namespace API {
 #endif
 
 	}
+
+	BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
+	{
+		std::map<UINT, MONITOR_PROPERTY>* plstMonitorInfo = (std::map<UINT, MONITOR_PROPERTY>*) dwData;
+		MONITOR_PROPERTY info = { 0 };
+		MONITORINFO stMonitorInfo = { 0 };
+		stMonitorInfo.cbSize = sizeof(MONITORINFO);
+		GetMonitorInfo(hMonitor, &stMonitorInfo);
+		info.rect = stMonitorInfo.rcMonitor;
+		info.index = plstMonitorInfo->size();
+		if (MONITORINFOF_PRIMARY == stMonitorInfo.dwFlags){
+			info.bPrimary = TRUE;
+		}
+		plstMonitorInfo->insert(std::map<UINT, MONITOR_PROPERTY>::value_type(info.index, info));
+		return TRUE;
+	}
+
+	BOOL GetMonitorProperty(HWND hwnd, MONITOR_PROPERTY* pMonitorInfo)
+	{
+		if (NULL == pMonitorInfo){
+			return FALSE;
+		}
+
+		HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+		if (NULL != hMonitor) {
+			MONITORINFO stMonitorInfo = { 0 };
+			stMonitorInfo.cbSize = sizeof(MONITORINFO);
+			GetMonitorInfo(hMonitor, &stMonitorInfo);
+			pMonitorInfo->index = -1;
+			pMonitorInfo->rect = stMonitorInfo.rcMonitor;
+			pMonitorInfo->bPrimary = (MONITORINFOF_PRIMARY == stMonitorInfo.dwFlags);
+			std::map<int, MONITOR_PROPERTY> lstMonitorInfo;
+			lstMonitorInfo.clear();
+			EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, (LPARAM)&lstMonitorInfo);
+			int i = 0;
+			bool bFind = false;
+			std::map<int, MONITOR_PROPERTY>::iterator var = lstMonitorInfo.begin();
+			for (; var != lstMonitorInfo.end(); var++, i++) {
+				if (EqualRect(&var->second.rect, &pMonitorInfo->rect)) {
+					bFind = true;
+					break;
+				}
+			}
+			if (bFind) {
+				pMonitorInfo->index = i;
+			}
+		}
+		else {
+			pMonitorInfo->index = -1;
+			pMonitorInfo->rect.left = 0;
+			pMonitorInfo->rect.top = 0;
+			pMonitorInfo->rect.right = GetSystemMetrics(SM_CXSCREEN);
+			pMonitorInfo->rect.bottom = GetSystemMetrics(SM_CYSCREEN);
+			pMonitorInfo->bPrimary = TRUE;
+		}
+		return TRUE;
+	}
+
+	BOOL GetMonitorWorkArea(RECT& rc){
+		return SystemParametersInfo(SPI_GETWORKAREA, 0, (PVOID)&rc, 0);
+	}
 }}
