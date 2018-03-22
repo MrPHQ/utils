@@ -52,6 +52,35 @@ namespace UTILS { namespace API {
 	/// 限制在1024Bytes
 	UTILS_API void WcharToChar(wchar_t* wc, char* buff, int len);
 	UTILS_API void CharToWchar(char* c, wchar_t* buff, int len);
+	/**
+	\brief
+		根据分隔符查找子串
+
+	\param src.
+		源字符串.
+	\param delims.
+		分隔符.
+	\param index.
+		第几个分隔符.从0开始.
+	\param buff.
+		输出缓存区.
+	\param bufflen.
+		输出缓存区大小.
+	\param bMutil.
+		多分隔符..
+	\return
+		None
+	*/
+	UTILS_API void StrTok(const char* src,
+		const char* delims, 
+		int index, 
+		char* buff, 
+		int bufflen,
+		BOOL bMutil = TRUE);
+	UTILS_API void StrTok(const char*,
+		const char* delims, 
+		std::vector<std::string>&,
+		BOOL bMutil = TRUE);
 
 	/*
 		系统相关.

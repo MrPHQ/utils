@@ -1906,4 +1906,132 @@ namespace UTILS {namespace API {
 	BOOL GetMonitorWorkArea(RECT& rc){
 		return SystemParametersInfo(SPI_GETWORKAREA, 0, (PVOID)&rc, 0);
 	}
+
+	void StrTok(const char* src,const char* delims, int index,
+		char* buff, int bufflen, BOOL bMutil /*= TRUE*/)
+	{
+		const int ciBuffLen = 1024;
+		int iBuffLen = ciBuffLen, iProIndex = 0;
+		char szDelims[64], szSrc[ciBuffLen];
+		char* pSrc = NULL;
+		char* pDelims = szDelims;
+		char *strToken = nullptr;
+		char *next_token = nullptr;
+		if (delims == NULL || src == NULL || buff == NULL || bufflen <= 0){
+			return;
+		}
+		_snprintf_s(szDelims, _TRUNCATE, "%s", delims);
+		if (strlen(src) > ciBuffLen){
+			iBuffLen = PAD_SIZE(strlen(src));
+			pSrc = new char[iBuffLen];
+			if (pSrc == NULL){
+				return;
+			}
+		}
+		else {
+			pSrc = szSrc;
+		}
+		strncpy_s(pSrc, iBuffLen, src, min(iBuffLen - 1, (int)strlen(src)));
+
+		if (bMutil){
+			strToken = strtok_s(pSrc, szDelims, &next_token);//linux - strtok_r
+			if (strToken == NULL){
+				if (iBuffLen > ciBuffLen){
+					delete[] pSrc;
+				}
+				return;
+			}
+			while (strToken != NULL) {
+				strncpy_s(buff, bufflen, strToken, min(bufflen - 1, (int)strlen(strToken)));
+				if (iProIndex == index){
+					break;
+				}
+				iProIndex++;
+				strToken = strtok_s(nullptr, szDelims, &next_token);
+			}
+		}
+		else {
+			int len = 0, iIdx = 0;
+			strToken = pSrc;
+			next_token = strstr(strToken, pDelims);
+			while (next_token != NULL) {
+				len = next_token - strToken;
+				if (iIdx == index){
+					strncpy_s(buff, bufflen, strToken, min(bufflen - 1, len));
+					break;
+				}
+				iIdx++;
+				strToken = next_token + strlen(pDelims);
+				next_token = strstr(strToken, pDelims);
+			}
+			if (strlen(strToken) > 0){
+				if (iIdx == index){
+					strncpy_s(buff, bufflen, strToken, min(bufflen - 1, len));
+				}
+			}
+		}
+
+		if (iBuffLen > ciBuffLen){
+			delete[] pSrc;
+		}
+	}
+
+	void StrTok(const char* src, const char* delims,
+		std::vector<std::string>& vStr, BOOL bMutil /*= TRUE*/)
+	{
+		const int ciBuffLen = 1024;
+		int iBuffLen = ciBuffLen;
+		char szDelims[64], szSrc[ciBuffLen];
+		char* pSrc = NULL;
+		char* pDelims = szDelims;
+		char *strToken = nullptr;
+		char *next_token = nullptr;
+		if (delims == NULL || src == NULL){
+			return;
+		}
+		_snprintf_s(szDelims, _TRUNCATE, "%s", delims);
+		if (strlen(src) > ciBuffLen){
+			iBuffLen = PAD_SIZE(strlen(src));
+			pSrc = new char[iBuffLen];
+			if (pSrc == NULL){
+				return;
+			}
+		}
+		else {
+			pSrc = szSrc;
+		}
+		strncpy_s(pSrc, iBuffLen, src, min(iBuffLen - 1, (int)strlen(src)));
+
+		if (bMutil){
+			strToken = strtok_s(pSrc, szDelims, &next_token);
+			if (strToken == NULL){
+				if (iBuffLen > ciBuffLen){
+					delete[] pSrc;
+				}
+				return;
+			}
+			while (strToken != NULL) {
+				vStr.emplace_back(strToken);
+				strToken = strtok_s(nullptr, szDelims, &next_token);
+			}
+		}
+		else {
+			int len = 0;
+			strToken = pSrc;
+			next_token = strstr(strToken, pDelims);
+			while (next_token != NULL) {
+				len = next_token - strToken;
+				vStr.emplace_back(strToken, len);
+				strToken = next_token + strlen(pDelims);
+				next_token = strstr(strToken, pDelims);
+			}
+			if (strlen(strToken) > 0){
+				vStr.emplace_back(strToken);
+			}
+		}
+
+		if (iBuffLen > ciBuffLen){
+			delete[] pSrc;
+		}
+	}
 }}
