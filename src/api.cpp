@@ -634,6 +634,9 @@ namespace UTILS {namespace API {
 		Memset(&FindFileData, 0, sizeof(WIN32_FIND_DATAA));
 		Sprintf(szPath, sizeof(szPath), "%s\\*.*", szDir);
 		HANDLE hFile = FindFirstFile(szPath, &FindFileData);
+		if (hFile == INVALID_HANDLE_VALUE) {
+			return;
+		}
 		while (IsFinded){
 			if (strcmp(FindFileData.cFileName, ".") && strcmp(FindFileData.cFileName, "..")) {
 
