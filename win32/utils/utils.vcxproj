@@ -67,7 +67,7 @@
       <ImportLibrary>../../bin/$(TargetName).lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)\git_version_commit.bat</Command>
+      <Command>$(ProjectDir)..\git_version_commit.bat</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -92,7 +92,7 @@
       <ImportLibrary>../../bin/$(TargetName).lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)\git_version_commit.bat</Command>
+      <Command>$(ProjectDir)..\git_version_commit.bat</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
