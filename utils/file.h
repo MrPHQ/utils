@@ -160,7 +160,7 @@ namespace UTILS
 		\param data
 			path.
 		\return
-			int 成功写入字节长度
+			int UTILS_ERROR_SUCCESS
 		*/
 		static int Write(int mode, const char* path, const char* data, int len);
 		int Write(const char* data, int len);
