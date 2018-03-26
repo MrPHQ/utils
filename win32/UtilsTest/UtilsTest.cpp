@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#define UTILS_ENABLE_ICONV
 #define UTILS_ENABLE_ZIP
 #define UTILS_ENABLE_CRYPTOPP
 #define UTILS_ENABLE_REGEDIT
@@ -16,6 +17,16 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	std::cin.ignore();
+	{
+		HANDLE hEvent = ::OpenEvent(EVENT_MODIFY_STATE, FALSE, "Global\\E2F370BB-6824-4659-B640-E0C434D7D29C");
+		if (hEvent == NULL) {
+			OutputDebugString("1111111111111111");
+			return FALSE;
+		}
+		OutputDebugString("2222222222222222222");
+		CloseHandle(hEvent);
+	}
 	std::cin.ignore();
 	{
 		std::string str("×Ö·û¼¯×ª»»Ê¾Àý...");
