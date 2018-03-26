@@ -31,6 +31,16 @@
 	#endif
 #endif
 
+#ifdef UTILS_ENABLE_ICONV
+#ifdef _WIN32
+#ifdef _DEBUG
+#pragma comment(lib, "libiconv/lib/libiconv_debug.lib")
+#else
+#pragma comment(lib, "libiconv/lib/libiconv.lib")
+#endif
+#endif
+#endif
+
 #ifdef ENABLE_CRYPTOPP
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 #include <cryptopp/include/cryptlib.h>
@@ -189,10 +199,43 @@ namespace UTILS {namespace API {
 		int* OutIdleLen,
 		int* NoConvertLen)
 	{
-		if (tocode == NULL || fromcode == NULL || inbuf == NULL || outbuf == NULL)
-		{
+		if (tocode == NULL || fromcode == NULL || inbuf == NULL || outbuf == NULL){
 			return UTILS_ERROR_PAR;
 		}
+#ifdef UTILS_ENABLE_ICONV
+		iconv_t cd;
+		char **pin = &inbuf;
+		char **pout = &outbuf;
+		cd = iconv_open(tocode, fromcode);
+		if (cd == 0)
+			return UTILS_ERROR_FAIL;
+		size_t lenIn = inlen;
+		size_t lenOut = outlen;
+		int ret = iconv(cd, pin, &lenIn, pout, &lenOut);
+		if (NoConvertLen != NULL)
+			*NoConvertLen = (int)lenIn;
+		if (OutIdleLen != NULL)
+			*OutIdleLen = (int)lenOut;
+		if (ret == -1) {
+			switch (errno)
+			{
+			case E2BIG:
+				//printf("E2BiG\n");
+				break;
+			case EILSEQ:
+				//printf("EILSEQ\n");
+				break;
+			case EINVAL:
+				//printf("EINVAL\n");
+				break;
+			default:
+				//printf("errno:%d\n", errno);
+				break;
+			}
+		}
+		iconv_close(cd);
+		return ret != -1 ? UTILS_ERROR_SUCCESS : UTILS_ERROR_FAIL;
+#else
 		if (!libiconvLoadSucc()) {
 			return UTILS_ERROR_EXISTS;
 		}
@@ -228,6 +271,8 @@ namespace UTILS {namespace API {
 		}
 		DLLIMPORTCALL(__libiconv, libiconv_close)(cd);
 		return ret != -1 ? UTILS_ERROR_SUCCESS : UTILS_ERROR_FAIL;
+#endif
+
 	}
 
 	int GetCurrentProcessID() {
@@ -530,10 +575,13 @@ namespace UTILS {namespace API {
 					MSG_INFO("解压.读取文件[%s].失败", path);
 					return false;
 				}
-				int err = it.readContent(ofUnzippedFile);
-				if (err != 0) {
-					MSG_INFO("解压.读取文件[%s]..失败", path);
-					return false;
+				if (it.getSize() > 0){
+
+					int err = it.readContent(ofUnzippedFile);
+					if (err != 0) {
+						MSG_INFO("解压.读取文件[%s]..失败..", path);
+						return false;
+					}
 				}
 				ofUnzippedFile.close();
 			}
@@ -587,14 +635,16 @@ namespace UTILS {namespace API {
 			else if (it.isFile()) {
 				pInfo->entry = 1;
 				pInfo->len = it.getSize();
-				pComment = (BYTE*)it.readAsBinary();
-				if (nullptr != pComment) {
-					iTotal += pInfo->len;
-					memcpy(pInfo->buff, pComment, pInfo->len);
-					delete[] pComment;
-				}
-				else {
-					pInfo->len = 0;
+				if (pInfo->len > 0){
+					pComment = (BYTE*)it.readAsBinary();
+					if (nullptr != pComment) {
+						iTotal += pInfo->len;
+						memcpy(pInfo->buff, pComment, pInfo->len);
+						delete[] pComment;
+					}
+					else {
+						pInfo->len = 0;
+					}
 				}
 			}
 		}
@@ -616,7 +666,10 @@ namespace UTILS {namespace API {
 		std::list<std::string>* lstFiles,
 		bool bRecursive) {
 #ifdef _WIN32
-		if (pDir == NULL){
+		if ((pDir == NULL) || strlen(pDir) == 0){
+			return;
+		}
+		if (!IsPathExists(pDir)){
 			return;
 		}
 

@@ -40,10 +40,16 @@ namespace UTILS { namespace API {
 	UTILS_API int Transform(std::string&, bool tolow = true);
 	UTILS_API int Transform(char*, bool tolow = true);
 
+	/*
+		压缩相关.
+	*/
+#ifdef UTILS_ENABLE_ICONV
 	/// 使用libiconv
 	UTILS_API int CharacterConvert(const char* tocode, const char* fromcode,
 		char *inbuf, int inlen, char *outbuf,
 		int outlen, int* OutIdleLen, int* NoConvertLen);
+#endif
+
 	/// 转换字符串中的指定所有字符
 	UTILS_API void CharConvert(char*, char s, char d);
 	/// WideCharToMultiByte

@@ -55,7 +55,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;UTILS_EXPORTS;UTILS_ENABLE_ZIP;UTILS_ENABLE_CRYPTOPP;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;_WINDOWS;_USRDLL;UTILS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;UTILS_EXPORTS;UTILS_ENABLE_ZIP;UTILS_ENABLE_CRYPTOPP;UTILS_ENABLE_ICONV;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;_WINDOWS;_USRDLL;UTILS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -78,7 +78,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;UTILS_EXPORTS;UTILS_ENABLE_ZIP;UTILS_ENABLE_CRYPTOPP;_WINSOCK_DEPRECATED_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;UTILS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;UTILS_EXPORTS;UTILS_ENABLE_ZIP;UTILS_ENABLE_CRYPTOPP;UTILS_ENABLE_ICONV;_WINSOCK_DEPRECATED_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;UTILS_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>

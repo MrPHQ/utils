@@ -18,6 +18,29 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
 	{
+		std::string str("字符集转换示例...");
+		std::string strOut, strOut2;
+		char szStr[] = "字符集转换示例...";
+		char* pStr = szStr;
+		strOut.reserve(1024);
+		char buff[1024], buff2[1024];
+		int iOutIdleLen = 0, iNoConvertLen = 0;
+		std::cout << "源字符串:" << "\t" << pStr << std::endl;
+		//std::cout << strOut.capacity() <<"\t"<< strOut.max_size() << std::endl;
+		int error = UTILS::API::CharacterConvert("UTF-8", "GBK", pStr, strlen(pStr), buff, 1024, &iOutIdleLen, &iNoConvertLen);
+		if (error == 0)
+		{
+			buff[1024 - iOutIdleLen] = '\0';
+			std::cout << "转换后字符串:" << "\t" << buff << std::endl;
+			error = UTILS::API::CharacterConvert("GBK", "UTF-8", buff, strlen(buff), buff2, 1024, &iOutIdleLen, &iNoConvertLen);
+			buff2[1024 - iOutIdleLen] = '\0';
+			std::cout << "还原后字符串:" << "\t" << buff2 << std::endl;
+		}
+	}
+
+
+	std::cin.ignore();
+	{
 		char key[] = "2E3234F6591B4E69";
 		char* pkey = key;
 		char iv[] = "B91D10A7BE5B1FAB";
