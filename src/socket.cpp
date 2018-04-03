@@ -2,6 +2,9 @@
 #include "../utils/error.h"
 #include <atomic>
 #include <memory>
+#include <MSWSock.h>
+
+//#define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
 
 namespace UTILS
 {
@@ -142,15 +145,17 @@ namespace UTILS
 	// AbstractSocket ctors and dtor
 	//////////////////////////////////////////////////////////////////////////////
 
-	AbstractSocket::AbstractSocket()
+	AbstractSocket::AbstractSocket(PROTO_TYPE proto_type)
 		: _sock(INVALID_SOCKET),
-		_err(SOCKET_ERROR)
+		_err(SOCKET_ERROR),
+		_proto_type(proto_type)
 	{
 	}
 
-	AbstractSocket::AbstractSocket(SOCKET sock)
+	AbstractSocket::AbstractSocket(SOCKET sock, PROTO_TYPE proto_type)
 		: _sock(sock),
-		_err(SOCKET_ERROR)
+		_err(SOCKET_ERROR),
+		_proto_type(proto_type)
 	{
 	}
 
@@ -201,6 +206,11 @@ namespace UTILS
 #endif
 	}
 
+	int AbstractSocket::GetSockName(sockaddr* name, int* len) const
+	{
+		return getSockName(_sock, name, len);
+	}
+
 	int AbstractSocket::DuplicateSocket(int iSocket, DWORD pid, BYTE* pProtocolInfo, int iBuffLen, int* pDataLen) {
 #ifdef WIN32
 		WSAPROTOCOL_INFO info = { 0 };
@@ -249,26 +259,78 @@ namespace UTILS
 		return GetDuplicateSocket(pProtocolInfo, iDataLen,(int*)&_sock);
 	}
 
+	int AbstractSocket::read(char* pBuff, int iBuffLen,
+		const int ciReadLen /*= 0*/,
+		unsigned int uiTimeOut /*= 5000*/)
+	{
+		if (isError()) {
+			return 0;
+		}
+		if (!isConnect()){
+			return 0;
+		}
+		int len = UTILS::read(_sock, pBuff, iBuffLen, _err, false, nullptr, nullptr, ciReadLen, uiTimeOut);;
+		return len;
+	}
+
+	int AbstractSocket::read_from(char* pBuff, int iBuffLen,
+	struct sockaddr *from, int *fromlen,
+		const int ciReadLen /*= 0*/,
+		unsigned int uiTimeOut /*= 5000*/)
+	{
+		if (isError()) {
+			return 0;
+		}
+		int len = UTILS::read(_sock, pBuff, iBuffLen, _err, true, from, fromlen, ciReadLen, uiTimeOut);
+		return len;
+	}
+	int AbstractSocket::write(const char* pBuff, int iBuffLen,
+		unsigned int uiTimeOut /*= 5000*/)
+	{
+		if (isError()) {
+			return 0;
+		}
+		if (!isConnect()){
+			return 0;
+		}
+		int len = UTILS::write(_sock, pBuff, iBuffLen, _err, uiTimeOut);
+		return len;
+	}
+	int AbstractSocket::write_to(const char* pBuff, int iBuffLen,
+	struct sockaddr *to, int tolen,
+		unsigned int uiTimeOut /*= 5000*/)
+	{
+		if (isError()) {
+			return 0;
+		}
+		int len = UTILS::write(_sock, pBuff, iBuffLen, _err, true, to, tolen, uiTimeOut);
+		return len;
+	}
+
 	//////////////////////////////////////////////////////////////////////////////
 	// Socket ctors and dtor
 	//////////////////////////////////////////////////////////////////////////////
 
-	ClientSocket::ClientSocket()
-		: AbstractSocket()
+	ClientSocket::ClientSocket(PROTO_TYPE proto_type)
+		: AbstractSocket(proto_type)
 		, _Connected(false)
-	{ }
+	{
+		if (proto_type == PROTO_TYPE_UDP){
+			_err = 0;
+		}
+	}
 
 
-	ClientSocket::ClientSocket(const char* ip, unsigned short port)
-		: AbstractSocket()
+	ClientSocket::ClientSocket(PROTO_TYPE proto_type, const char* ip, unsigned short port)
+		: AbstractSocket(proto_type)
 		, _Connected(false)
 	{
 		Connect(ip, port);
 	}
 
 
-	ClientSocket::ClientSocket(SOCKET sock_)
-		: AbstractSocket(sock_)
+	ClientSocket::ClientSocket(SOCKET sock_, PROTO_TYPE proto_type)
+		: AbstractSocket(sock_, proto_type)
 		, _Connected(false)
 	{
 		if (isOpen()){
@@ -302,13 +364,14 @@ namespace UTILS
 		if (isConnect()){
 			return true;
 		}
-		_sock = ConnectSocket(ip, port, _err, uiTimeOut);
+		_sock = ConnectSocket(_proto_type, ip, port, _err, uiTimeOut);
 		if (_sock == INVALID_SOCKET){
 			return false;
 		}
-		int err = 0;
-		SetTCPNoDelay(_sock, true, err);
-
+		if (_proto_type == PROTO_TYPE_TCP){
+			int err = 0;
+			SetTCPNoDelay(_sock, true, err);
+		}
 		if (!isError()) {
 			_Connected = true;
 		}
@@ -317,59 +380,58 @@ namespace UTILS
 			_sock = INVALID_SOCKET;
 			return false;
 		}
-
-		SetAsyncSkt(_sock);
+		SetNoblock();
 		return true;
 	}
 
-	int ClientSocket::read(char* pBuff, int iBuffLen,
-		const int ciReadLen /*= 0*/,
-		unsigned int uiTimeOut /*= 5000*/)
+	bool ClientSocket::Init(const char* ip, unsigned short port)
 	{
-		if (isError()) {
-			return 0;
+		if (_proto_type != PROTO_TYPE_UDP){
+			return false;
 		}
-		int len= UTILS::read(_sock, pBuff, iBuffLen, _err, ciReadLen, uiTimeOut);
-		if (isError()) {
-			_Connected = FALSE;
-		}
-		return len;
-	}
-
-	int ClientSocket::write(const char* pBuff, int iBuffLen,
-		unsigned int uiTimeOut /*= 5000*/)
-	{
-		if (isError()) {
-			return 0;
-		}
-		int len = UTILS::write(_sock, pBuff, iBuffLen, _err, uiTimeOut);
-		if (isError()) {
-			_Connected = FALSE;
-		}
-		return len;
+		_sock = OpenSocket(PROTO_TYPE_UDP, ip == nullptr ? std::string() : ip, port, _err);;
+		DWORD dwBytesReturned = 0;
+		BOOL bNewBehavior = FALSE;
+		DWORD status = WSAIoctl(_sock, SIO_UDP_CONNRESET, &bNewBehavior, sizeof(bNewBehavior), NULL, 0, &dwBytesReturned, NULL, NULL);
+		SetNoblock();
+		return true;
 	}
 
 	ServerSocket::ServerSocket()
+		: AbstractSocket(PROTO_TYPE_TCP)
 	{
 	}
 
-	ServerSocket::ServerSocket(unsigned short port,
+	ServerSocket::ServerSocket(PROTO_TYPE proto_type)
+		: AbstractSocket(proto_type)
+	{
+		if (_proto_type == PROTO_TYPE_UDP){
+			_err = 0;
+		}
+	}
+
+	ServerSocket::ServerSocket(PROTO_TYPE proto_type, unsigned short port,
 		bool accept_block/* = true*/,
 		const std::string& host/* = std::string()*/)
+		: AbstractSocket(proto_type)
 	{
 		// Initialize these here so that we do not try to close invalid handles
 		// in dtor if the following `openSocket()` fails.
-
-		Init(nullptr, port);
+		if (_proto_type == PROTO_TYPE_UDP){
+			_err = 0;
+		}
+		Init(proto_type,nullptr, port);
 	}
 
 	ServerSocket::~ServerSocket()
 	{
 	}
 
-	int ServerSocket::Init(const char* ip, unsigned short port)
+	int ServerSocket::Init(PROTO_TYPE proto_type,const char* ip, unsigned short port)
 	{
-		_sock = OpenSocket(ip == nullptr ? std::string() : ip, port, _err);
+		_err = 0;
+		_proto_type = proto_type;
+		_sock = OpenSocket(_proto_type, ip == nullptr ? std::string() : ip, port, _err);
 #ifdef WIN32
 		uint32_t argp;
 		argp = 1;
@@ -395,6 +457,7 @@ namespace UTILS
 		}
 		SOCKET clientSock = AcceptSocket(_sock, _err);
 		if (clientSock != INVALID_SOCKET) {
+			clt.SetPtotoType(PROTO_TYPE_TCP);
 			clt.Attach(clientSock);
 			return true;
 		}
@@ -408,7 +471,7 @@ namespace UTILS
 		return AcceptSocket(_sock, _err);
 	}
 
-	SOCKET OpenSocket(const std::string& host,unsigned short port, int& error)
+	SOCKET OpenSocket(PROTO_TYPE proto_type, const std::string& host, unsigned short port, int& error)
 	{
 		ADDRINFOT addr_info_hints{};
 		PADDRINFOT ai = nullptr;
@@ -419,8 +482,19 @@ namespace UTILS
 		init_winsock();
 
 		addr_info_hints.ai_family = AF_INET;
-		addr_info_hints.ai_socktype = SOCK_STREAM;
-		addr_info_hints.ai_protocol = IPPROTO_TCP;
+		if (proto_type == PROTO_TYPE_TCP){
+			addr_info_hints.ai_socktype = SOCK_STREAM;
+			addr_info_hints.ai_protocol = IPPROTO_TCP;
+		}
+		else if (proto_type == PROTO_TYPE_UDP){
+			addr_info_hints.ai_socktype = SOCK_DGRAM;
+			addr_info_hints.ai_protocol = IPPROTO_UDP;
+		}
+		else{
+			error = SOCKET_ERROR;
+			return INVALID_SOCKET;
+		}
+
 		addr_info_hints.ai_flags = AI_PASSIVE;
 		retval = GetAddrInfo(host.empty() ? nullptr : host.c_str(),
 			port_str.c_str(),&addr_info_hints,&ai);
@@ -442,27 +516,57 @@ namespace UTILS
 			return skt;
 		}
 
-		if (::listen(skt, 64) != 0) {
-			error = SOCKET_ERROR;
-			return skt;
+#if 0
+		sockaddr_in src2;
+		int len = sizeof(sockaddr);
+		getsockname(skt, (sockaddr*)&src2, &len);
+		sockaddr_in* p = (sockaddr_in*)&src2;
+		char IPdotdec[64];
+		IPdotdec[0] = '\0';
+		inet_ntop(AF_INET, &p->sin_addr, IPdotdec, 64);
+		std::cout << "xxxxx : "<<IPdotdec << std::endl;
+		std::cout << p->sin_port << " | " << port_str.data()<< std::endl;
+#endif
+
+		if (proto_type == PROTO_TYPE_TCP){
+
+			if (::listen(skt, 64) != 0) {
+				error = SOCKET_ERROR;
+				return skt;
+			}
 		}
 		return skt;
 	}
 
-	SOCKET ConnectSocket(const std::string& hostn, unsigned short port,
+	SOCKET ConnectSocket(PROTO_TYPE proto_type, const std::string& hostn, unsigned short port,
 		int& error, bool bNonBlock /*= true*/, unsigned int uiTimeOut /*= 5000*/)
 	{
 		ADDRINFOT addr_info_hints{};
 		PADDRINFOT ai = nullptr;
 		std::unique_ptr<ADDRINFOT, ADDRINFOT_deleter> addr_info;
 		std::string port_str = convertIntegerToString(port);
-		int retval;
+		DWORD dwTimeOut;
+		SOCKET skt = INVALID_SOCKET;
+		bool bSuccess = false;
+		timeval tm;
+		fd_set rest, west;
+		int retval = 0,iErr = 0, len = sizeof(int);
 
 		init_winsock();
 
 		addr_info_hints.ai_family = AF_INET;
-		addr_info_hints.ai_socktype = SOCK_STREAM;
-		addr_info_hints.ai_protocol = IPPROTO_TCP;
+		if (proto_type == PROTO_TYPE_TCP){
+			addr_info_hints.ai_socktype = SOCK_STREAM;
+			addr_info_hints.ai_protocol = IPPROTO_TCP;
+		}
+		else if (proto_type == PROTO_TYPE_UDP){
+			addr_info_hints.ai_socktype = SOCK_DGRAM;
+			addr_info_hints.ai_protocol = IPPROTO_UDP;
+		}
+		else{
+			error = SOCKET_ERROR;
+			return INVALID_SOCKET;
+		}
 		addr_info_hints.ai_flags = AI_NUMERICSERV;
 		retval = GetAddrInfo(hostn.c_str(),port_str.c_str(),&addr_info_hints,&ai);
 		if (retval != 0){
@@ -471,11 +575,10 @@ namespace UTILS
 		}
 
 		addr_info.reset(ai);
-		SOCKET skt = INVALID_SOCKET;
-		bool bSuccess = false;
+
 		for (ADDRINFOT * rp = ai; rp; rp = rp->ai_next)
 		{
-#if 1
+#if 1 //print ip
 			struct sockaddr_in*  name = (sockaddr_in*)rp->ai_addr;
 			char ip[64];
 #ifdef WIN32
@@ -488,7 +591,7 @@ namespace UTILS
 			snprintf(ip, 63, "%s", inet_ntoa(name.sin_addr));
 #endif
 			OutputDebugString(ip);
-#endif
+#endif //print ip
 			skt = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 			if (skt == INVALID_SOCKET){
 				continue;
@@ -503,7 +606,7 @@ namespace UTILS
 				fcntl(fdListen, F_SETFL, flags | O_NONBLOCK); //设置成非阻塞模式；
 #endif
 			}
-			DWORD dwTimeOut = GetTickCount();
+			dwTimeOut = GetTickCount();
 			do
 			{
 				if (GetTickCount() - dwTimeOut > uiTimeOut) {
@@ -539,10 +642,7 @@ namespace UTILS
 		}
 		bSuccess = false;
 		if (bNonBlock){
-			DWORD dwTimeOut = GetTickCount();
-			timeval tm;
-			fd_set rest, west;
-			int iErr = 0, len = sizeof(int);
+			dwTimeOut = GetTickCount();
 			do
 			{
 				if (GetTickCount() - dwTimeOut > uiTimeOut) {
@@ -609,7 +709,8 @@ namespace UTILS
 		return ::shutdown(sock, SD_BOTH);
 	}
 
-	long read(SOCKET sock, char* pBuff, int iBuffLen, int& error, const int ciReadLen /*= 0*/, unsigned int uiTimeOut/* = 5000*/)
+	long read(SOCKET sock, char* pBuff, int iBuffLen, int& error, 
+		bool recvfrom /*= false*/, struct sockaddr *from /*= nullptr*/, int *fromlen /*= nullptr*/, const int ciReadLen /*= 0*/, unsigned int uiTimeOut/* = 5000*/)
 	{
 		int iDataLen = 0, iReadLen = 0;
 		BOOL bRecvData = TRUE;
@@ -617,12 +718,18 @@ namespace UTILS
 		fd_set readfd, excepfd;
 		struct timeval select_time;
 
+		if (recvfrom){
+			if (from == nullptr || fromlen == nullptr){
+				return 0;
+			}
+		}
 		do
 		{
 			if ((GetTickCount() - dwTimeOut) > (int)uiTimeOut){
 				break;
 			}
 			if (ciReadLen > 0 && ciReadLen - iDataLen <= 0){//已经读取到指定长度数据.
+				OutputDebugString("read 333");
 				break;
 			}
 			if (!bRecvData){
@@ -638,6 +745,7 @@ namespace UTILS
 					iRet = FD_ISSET(sock, &excepfd);
 					if (iRet){//error
 						error = SOCKET_ERROR;
+						OutputDebugString("33333333333");
 						break;
 					}
 					//是否有数据
@@ -648,18 +756,26 @@ namespace UTILS
 				}
 				else {//如果没有根据指定读取数据大小,则读取到多少数据就返回.
 					if (iDataLen > 0 && ciReadLen <= 0){
+						OutputDebugString("4444444444444444");
 						break;
 					}
 				}
 			}
 			else {
-				iReadLen = ::recv(sock, pBuff + iDataLen,ciReadLen > 0 ? ciReadLen - iDataLen : iBuffLen,0);
+				if (recvfrom){
+					iReadLen = ::recvfrom(sock, pBuff + iDataLen, ciReadLen > 0 ? ciReadLen - iDataLen : iBuffLen, 0, from, fromlen);
+				}
+				else{
+					iReadLen = ::recv(sock, pBuff + iDataLen, ciReadLen > 0 ? ciReadLen - iDataLen : iBuffLen, 0);
+				}
+				
 				bRecvData = FALSE;
 				if (iReadLen > 0){
 					iDataLen += iReadLen;
 				}
 				if (iReadLen == 0){//Server CloseSocket
 					error = SOCKET_ERROR;
+					OutputDebugString("1111111111");
 					break;
 				}
 				if (iReadLen == SOCKET_ERROR){
@@ -682,6 +798,9 @@ namespace UTILS
 					}
 					iError = errno;
 #endif
+					char log[64];
+					_snprintf_s(log, 64, "WSAGetLastError:%d", iError);
+					OutputDebugString(log);
 					error = SOCKET_ERROR;
 					break;
 				}
@@ -692,14 +811,19 @@ namespace UTILS
 		return iDataLen;
 	}
 
-	long write(SOCKET sock, const char* pBuff, int iBuffLen, int& error, unsigned int uiTimeOut/* = 5000*/)
+	long write(SOCKET sock, const char* pBuff, int iBuffLen, int& error,
+		bool sendto /*= false*/,struct sockaddr *to /*= nullptr*/, int tolen /*= 0*/, unsigned int uiTimeOut/* = 5000*/)
 	{
 		int iSendLen = 0, iError = 0, ret = 0;
 		BOOL bSendData = TRUE;
 		DWORD dwTimeOut = GetTickCount();
 		fd_set writefd, excepfd;
 		struct timeval select_time;
-
+		if (sendto){
+			if (to == nullptr || tolen <= 0){
+				return 0;
+			}
+		}
 		do
 		{
 			if ((GetTickCount() - dwTimeOut) > (int)uiTimeOut){
@@ -729,7 +853,13 @@ namespace UTILS
 				}
 			}
 			else {
-				ret = ::send(sock, pBuff+iSendLen, iBuffLen- iSendLen,0);
+				if (sendto){
+					ret = ::sendto(sock, pBuff + iSendLen, iBuffLen - iSendLen, 0, to, tolen);
+				}
+				else{
+					ret = ::send(sock, pBuff + iSendLen, iBuffLen - iSendLen, 0);
+				}
+				
 				bSendData = FALSE;
 				if (ret > 0){
 					iSendLen += ret;
@@ -749,6 +879,9 @@ namespace UTILS
 					}
 					//EINTR
 #endif
+					char log[64];
+					_snprintf_s(log, 64, "WSAGetLastError:%d", iError);
+					OutputDebugString(log);
 					error = SOCKET_ERROR;
 					break;
 				}
@@ -866,6 +999,11 @@ namespace UTILS
 			snprintf(ip, len, "%s", inet_ntoa(name.sin_addr));
 #endif
 		}
+		return iRet;
+	}
+	int getSockName(SOCKET skt, sockaddr* name, int* iLen)
+	{
+		int iRet = getsockname(skt, name, iLen);
 		return iRet;
 	}
 }
