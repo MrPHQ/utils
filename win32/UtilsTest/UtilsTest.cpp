@@ -31,19 +31,17 @@ void func2()
 	sockaddr src2;
 	int deslen = sizeof(sockaddr_in);
 	ZeroMemory(&src, sizeof(sockaddr_in));
-	src.sin_family = AF_INET;
-	src.sin_port = 10019;
-	src.sin_addr.s_addr = inet_addr("127.0.0.1");//
 
-	clt.Init(nullptr,9001);
-	/*len = sizeof(sockaddr);
-	clt.GetSockName(&src2, &len);
-	sockaddr_in* p = (sockaddr_in*)&src2;
+	UTILS::GetSockAddr(UTILS::PROTO_TYPE_UDP, "127.0.0.1", 8999, (sockaddr*)&src);
+	clt.UDPBind(nullptr, 9001);
+#if 0
+	sockaddr_in* p = (sockaddr_in*)&src;
 	char IPdotdec[64];
 	IPdotdec[0] = '\0';
 	inet_ntop(AF_INET, &p->sin_addr, IPdotdec, 64);
 	std::cout << IPdotdec << std::endl;
-	std::cout << p->sin_port << std::endl;*/
+	std::cout << p->sin_port << std::endl;
+#endif
 
 	while (true)
 	{
@@ -52,19 +50,7 @@ void func2()
 		std::cin >> str;
 
 		if (str.length()) {
-			
 			len = clt.write_to((const char*)str.data(), str.length(), (sockaddr*)&src, sizeof(sockaddr_in));
-			std::cout << "client write:" << len << std::endl;
-			if (len > 0){
-				/*len = sizeof(sockaddr);
-				clt.GetSockName(&src2, &len);
-				sockaddr_in* p = (sockaddr_in*)&src2;
-				char IPdotdec[64];
-				IPdotdec[0] = '\0';
-				inet_ntop(AF_INET, &p->sin_addr, IPdotdec, 64);
-				std::cout << IPdotdec << std::endl;
-				std::cout << p->sin_port << std::endl;*/
-			}
 		}
 		buff[0] = '\0';
 		len = clt.read_from(buff, 1024, (sockaddr*)&src2, &deslen, 0, 2000);
@@ -77,8 +63,81 @@ void func2()
 
 }
 
+void func1(UTILS::ClientSocket& skt)
+{
+	char szData[1024];
+	int len = 0;
+	while (true)
+	{
+		szData[0] = '\0';
+		len = skt.read(szData, 1024);
+		if (len <= 0) {
+			continue;
+		}
+		szData[len] = '\0';
+		std::cout << szData << std::endl;
+
+		strncat_s(szData, _TRUNCATE, "—SERVER", _TRUNCATE);
+		skt.write(szData, strlen(szData));
+	}
+}
+
+void func3()
+{
+	Sleep(2000);
+
+	UTILS::ClientSocket clt;
+
+	clt.Connect("127.0.0.1", 8060);
+	if (clt.isConnect()) {
+		std::cout << "链接成功." << std::endl;
+		std::string str;
+		char buff[1024];
+		int len = 0;
+
+		while (true)
+		{
+			str = "";
+			std::cout << "输入:" << std::endl;
+			std::cin >> str;
+
+			if (str.length()) {
+				len = clt.write((const char*)str.data(), str.length());
+				std::cout << "w:" << len << std::endl;
+			}
+
+			len = clt.read(buff, 1024);
+			if (len > 0) {
+				buff[len] = '\0';
+				std::cout << "接收到数据:" << buff << std::endl;
+			}
+		}
+	}
+	else {
+		std::cout << "链接失败." << std::endl;
+	}
+
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
+	//TCP
+	std::cin.ignore();
+	{
+		UTILS::AbstractSocket::InitEnv();
+		UTILS::ServerSocket tcp_server(UTILS::PROTO_TYPE_TCP,8060);
+		UTILS::ClientSocket clt;
+		std::thread clt2(func3);
+		while (true)
+		{
+			if (tcp_server.Accept(clt) && clt.isOpen()) {
+				new std::thread(func1, std::ref(clt));
+			}
+			Sleep(10);
+		}
+	}
+
+	//UDP
 	std::cin.ignore();
 	{
 		UTILS::AbstractSocket::InitEnv();
@@ -90,6 +149,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		udp_server.Init(UTILS::PROTO_TYPE_UDP, nullptr, 8999);
 
+#if 0
 		int len = sizeof(sockaddr);
 		udp_server.GetSockName((sockaddr*)&src2, &len);
 		sockaddr_in* p = (sockaddr_in*)&src2;
@@ -98,27 +158,26 @@ int _tmain(int argc, _TCHAR* argv[])
 		inet_ntop(AF_INET, &p->sin_addr, IPdotdec, 64);
 		std::cout << IPdotdec << std::endl;
 		std::cout << p->sin_port << std::endl;
+#endif
 
 		while (true)
 		{
 			buff[0] = '\0';
 			/* 填写sockaddr_in 结构 */
-			//ZeroMemory(&src, sizeof(src));
-			//src.sin_family = AF_INET;
-			//src.sin_port = htons(8999);
-			//src.sin_addr.s_addr = htonl(INADDR_ANY);// 接收任意IP发来的数据
 
 			int iDataLen = udp_server.read_from(buff, 1024,
 				(sockaddr*)&src, &addr_len, 0,
 				2000);
 			//std::cout << "Server:" << iDataLen << std::endl;
 			if (iDataLen > 0 && iDataLen < 1024) {
+#if 0
 				sockaddr_in* p = (sockaddr_in*)&src;
 				char IPdotdec[64];
 				IPdotdec[0] = '\0';
 				inet_ntop(AF_INET, &p->sin_addr, IPdotdec, 64);
 				std::cout << IPdotdec << std::endl;
 				std::cout << p->sin_port << std::endl;
+#endif
 
 				buff[iDataLen] = '\0';
 				strncat_s(buff, sizeof(buff), " Server ok", strlen(" Server ok"));

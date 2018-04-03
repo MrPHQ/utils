@@ -73,12 +73,13 @@ namespace UTILS
 	{
 	public:
 		// ctor and dtor
+		ClientSocket();
 		ClientSocket(PROTO_TYPE);
 		ClientSocket(SOCKET sock, PROTO_TYPE);
 		ClientSocket(PROTO_TYPE, const char* ip, unsigned short port);
 		virtual ~ClientSocket();
 
-		bool Init(const char* ip, unsigned short port);
+		bool UDPBind(const char* ip, unsigned short port);
 		void Attach(SOCKET sock);
 		bool isConnect() const;
 
@@ -110,6 +111,7 @@ namespace UTILS
 		bool isConnect() const { return true; }
 	};
 
+	void UTILS_API GetSockAddr(PROTO_TYPE proto_type, const char* ip, unsigned short port, sockaddr* buff);
 	SOCKET OpenSocket(PROTO_TYPE, const std::string& host,
 		unsigned short port,
 		int& error);

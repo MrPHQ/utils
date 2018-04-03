@@ -293,7 +293,7 @@ namespace UTILS
 		if (!isConnect()){
 			return 0;
 		}
-		int len = UTILS::write(_sock, pBuff, iBuffLen, _err, uiTimeOut);
+		int len = UTILS::write(_sock, pBuff, iBuffLen, _err, false, nullptr, 0, uiTimeOut);
 		return len;
 	}
 	int AbstractSocket::write_to(const char* pBuff, int iBuffLen,
@@ -310,6 +310,12 @@ namespace UTILS
 	//////////////////////////////////////////////////////////////////////////////
 	// Socket ctors and dtor
 	//////////////////////////////////////////////////////////////////////////////
+
+	ClientSocket::ClientSocket()
+		: AbstractSocket(PROTO_TYPE_TCP)
+		, _Connected(false)
+	{
+	}
 
 	ClientSocket::ClientSocket(PROTO_TYPE proto_type)
 		: AbstractSocket(proto_type)
@@ -384,12 +390,13 @@ namespace UTILS
 		return true;
 	}
 
-	bool ClientSocket::Init(const char* ip, unsigned short port)
+	bool ClientSocket::UDPBind(const char* ip, unsigned short port)
 	{
-		if (_proto_type != PROTO_TYPE_UDP){
+		_proto_type = PROTO_TYPE_UDP;
+		_sock = OpenSocket(PROTO_TYPE_UDP, ip == nullptr ? std::string() : ip, port, _err);
+		if (_sock == INVALID_SOCKET){
 			return false;
 		}
-		_sock = OpenSocket(PROTO_TYPE_UDP, ip == nullptr ? std::string() : ip, port, _err);;
 		DWORD dwBytesReturned = 0;
 		BOOL bNewBehavior = FALSE;
 		DWORD status = WSAIoctl(_sock, SIO_UDP_CONNRESET, &bNewBehavior, sizeof(bNewBehavior), NULL, 0, &dwBytesReturned, NULL, NULL);
@@ -471,6 +478,42 @@ namespace UTILS
 		return AcceptSocket(_sock, _err);
 	}
 
+	void GetSockAddr(PROTO_TYPE proto_type, const char* ip, unsigned short port, sockaddr* buff)
+	{
+		ADDRINFOT addr_info_hints{};
+		PADDRINFOT ai = nullptr;
+		std::unique_ptr<ADDRINFOT, ADDRINFOT_deleter> addr_info;
+		std::string port_str = convertIntegerToString(port);
+		int retval;
+
+		if (buff == nullptr){
+			return;
+		}
+		init_winsock();
+
+		addr_info_hints.ai_family = AF_INET;
+		if (proto_type == PROTO_TYPE_TCP){
+			addr_info_hints.ai_socktype = SOCK_STREAM;
+			addr_info_hints.ai_protocol = IPPROTO_TCP;
+		}
+		else if (proto_type == PROTO_TYPE_UDP){
+			addr_info_hints.ai_socktype = SOCK_DGRAM;
+			addr_info_hints.ai_protocol = IPPROTO_UDP;
+		}
+		else{
+			return;
+		}
+		//AI_PASSIVE  - 当hostName为NULL时，给出ADDR_ANY和IN6ADDR_ANY_INIT
+		addr_info_hints.ai_flags = AI_PASSIVE;
+		retval = GetAddrInfo(((ip == nullptr || strlen(ip) == 0) ? nullptr : ip),
+			port_str.data(), &addr_info_hints, &ai);
+		if (retval != 0){
+			return;
+		}
+		addr_info.reset(ai);
+		memcpy(buff, ai->ai_addr, min(static_cast<int>(ai->ai_addrlen), sizeof(sockaddr)));
+	}
+
 	SOCKET OpenSocket(PROTO_TYPE proto_type, const std::string& host, unsigned short port, int& error)
 	{
 		ADDRINFOT addr_info_hints{};
@@ -494,10 +537,10 @@ namespace UTILS
 			error = SOCKET_ERROR;
 			return INVALID_SOCKET;
 		}
-
+		//AI_PASSIVE  - 当hostName为NULL时，给出ADDR_ANY和IN6ADDR_ANY_INIT
 		addr_info_hints.ai_flags = AI_PASSIVE;
 		retval = GetAddrInfo(host.empty() ? nullptr : host.c_str(),
-			port_str.c_str(),&addr_info_hints,&ai);
+			port_str.data(),&addr_info_hints,&ai);
 		if (retval != 0){
 			error = SOCKET_ERROR;
 			return INVALID_SOCKET;
@@ -519,12 +562,12 @@ namespace UTILS
 #if 0
 		sockaddr_in src2;
 		int len = sizeof(sockaddr);
-		getsockname(skt, (sockaddr*)&src2, &len);
-		sockaddr_in* p = (sockaddr_in*)&src2;
+		//getsockname(skt, (sockaddr*)&src2, &len);
+		sockaddr_in* p = (sockaddr_in*)ai->ai_addr;
 		char IPdotdec[64];
 		IPdotdec[0] = '\0';
 		inet_ntop(AF_INET, &p->sin_addr, IPdotdec, 64);
-		std::cout << "xxxxx : "<<IPdotdec << std::endl;
+		std::cout << "OpenSocket : "<<IPdotdec << std::endl;
 		std::cout << p->sin_port << " | " << port_str.data()<< std::endl;
 #endif
 
@@ -729,7 +772,6 @@ namespace UTILS
 				break;
 			}
 			if (ciReadLen > 0 && ciReadLen - iDataLen <= 0){//已经读取到指定长度数据.
-				OutputDebugString("read 333");
 				break;
 			}
 			if (!bRecvData){
@@ -745,7 +787,6 @@ namespace UTILS
 					iRet = FD_ISSET(sock, &excepfd);
 					if (iRet){//error
 						error = SOCKET_ERROR;
-						OutputDebugString("33333333333");
 						break;
 					}
 					//是否有数据
@@ -756,7 +797,6 @@ namespace UTILS
 				}
 				else {//如果没有根据指定读取数据大小,则读取到多少数据就返回.
 					if (iDataLen > 0 && ciReadLen <= 0){
-						OutputDebugString("4444444444444444");
 						break;
 					}
 				}
@@ -775,7 +815,6 @@ namespace UTILS
 				}
 				if (iReadLen == 0){//Server CloseSocket
 					error = SOCKET_ERROR;
-					OutputDebugString("1111111111");
 					break;
 				}
 				if (iReadLen == SOCKET_ERROR){
