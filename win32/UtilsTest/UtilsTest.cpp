@@ -121,6 +121,13 @@ void func3()
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	std::cin.ignore();
+	{
+		UTILS::CFile file;
+		file.Open(UTILS::PATH_FILE_OPENMODE_OUT, "E:\\жпнд\\txt.txt");
+		file.Write("xxxxxxxxxx", strlen("xxxxxxxxxx"));
+		file.Close();
+	}
 	//TCP
 	std::cin.ignore();
 	{

@@ -546,10 +546,19 @@ namespace UTILS {namespace API {
 		if (_access(toDirectory, 0) != 0) {
 			return false;
 		}
+		char szSrcFile[1024], szDesPath[1024];
 		char tmp[MAX_PATH], path[MAX_PATH];
 		char buff[1024];
 		int iOutIdleLen = 0, iNoConvertLen = 0, error = 0;
-		libzippp::ZipArchive zipFile(file);
+
+		error = UTILS::API::CharacterConvert("UTF-8", "GBK", (char*)file, strlen(file), szSrcFile, 1024, &iOutIdleLen, &iNoConvertLen);
+		if (error != 0) {
+			MSG_INFO("[function]UnZipFile, ERROR, LINE:%d  :%s", __LINE__, file);
+			return false;
+		}
+		szSrcFile[1024 - iOutIdleLen] = '\0';
+
+		libzippp::ZipArchive zipFile(szSrcFile);
 		if (!zipFile.open(libzippp::ZipArchive::READ_ONLY)) {
 			return false;
 		}
@@ -570,7 +579,9 @@ namespace UTILS {namespace API {
 				CreateDirectory(path, nullptr);
 			}
 			else if (it.isFile()) {
-				std::ofstream ofUnzippedFile(path, std::ios::binary);
+
+				std::ofstream ofUnzippedFile;
+				ofUnzippedFile.open(path, std::ios::binary);
 				if (!static_cast<bool>(ofUnzippedFile)) {
 					MSG_INFO("解压.读取文件[%s].失败", path);
 					return false;
