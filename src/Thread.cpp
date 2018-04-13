@@ -145,6 +145,39 @@ namespace UTILS
 		return false;
 	}
 
+	struct _CONTEXT_THREAD_PAR
+	{
+		std::function<void(void*)> cb;
+		void* par;
+	};
+	DWORD WINAPI CallThreadFn(void* par){
+		_CONTEXT_THREAD_PAR* p = (_CONTEXT_THREAD_PAR*)par;
+		if (nullptr == p){
+			return -1;
+		}
+		if (p->cb){
+			p->cb(p->par);
+		}
+		delete p;
+		return 0;
+	}
+	bool CThreadBox::RunEx(std::function<void(void*)> cb, void* pParam)
+	{
+		_CONTEXT_THREAD_PAR* p = new _CONTEXT_THREAD_PAR();
+		if (nullptr == p){
+			return false;
+		}
+		p->cb = cb;
+		p->par = pParam;
+		DWORD dwThreadId = 0;
+		HANDLE hThread = CreateThread(0, 0, CallThreadFn, p, 0, &dwThreadId);
+		if (hThread) {
+			CloseHandle(hThread);
+			return true;
+		}
+		return false;
+	}
+
 	BOOL CThreadBox::IsDone(){
 		return m_bDone;
 	}

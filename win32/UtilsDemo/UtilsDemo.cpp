@@ -150,6 +150,15 @@ int main()
 {
 	std::cin.ignore();
 	{
+		char str1[] = "E:\\TMP\\xxx";
+		char* pstr1 = str1;
+		char str2[] = "E:\\TMP\\yyy";
+		char* pstr2 = str2;
+		UTILS::API::PathReName(pstr1, pstr2);
+	}
+
+	std::cin.ignore();
+	{
 		std::list<std::string> lstKeys,lstValues;
 		UTILS::API::EnumRegKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\Wow6432Node\\DT Soft\\DAEMON Tools Pro",&lstKeys,&lstValues);
 		for (auto& it : lstKeys)

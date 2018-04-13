@@ -151,6 +151,7 @@ namespace UTILS { namespace API {
 		文件路径相关.
 	*/
 	UTILS_API const char* GetCurrentPath(HINSTANCE hInstance = NULL);
+	UTILS_API const char* GetParentPath(const TCHAR*);
 	UTILS_API bool IsPathExists(const char*);
 	UTILS_API void CreateFolders(const char*);
 	UTILS_API bool DelFolders(const char*);
@@ -188,6 +189,16 @@ namespace UTILS { namespace API {
 
 	/// 获取文件大小
 	UTILS_API uint64_t FileSize(const char*);
+
+	///SHFileOperation
+	// 路径拷贝
+	UTILS_API bool PathCopy(const TCHAR *_pFrom, const TCHAR *_pTo);
+	// 路径重命名
+	UTILS_API bool PathReName(const TCHAR *_pFrom, const TCHAR *_pTo);
+	// 路径删除 递归删除
+	UTILS_API bool PathDelete(const TCHAR* _pFrom);
+	// 路径移动 
+	UTILS_API bool PathMove(const TCHAR *_pFrom, const TCHAR *_pTo);
 
 
 	/*

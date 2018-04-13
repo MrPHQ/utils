@@ -190,6 +190,21 @@ namespace UTILS {namespace API {
 		return gstrCurrentPath;
 	}
 
+	UTILS_API const char* GetParentPath(const TCHAR* path)
+	{
+		if (nullptr == path){
+			return nullptr;
+		}
+		static char gstrParentPath[MAX_PATH] = { 0 };
+		Strcpy(gstrParentPath, MAX_PATH, path);
+		CharConvert(gstrParentPath, '/', '\\');
+		char *p = strrchr(gstrParentPath, '\\');
+		if (p) {
+			*(p) = '\0';
+		}
+		return gstrParentPath;
+	}
+
 	int CharacterConvert(const char* tocode,
 		const char* fromcode,
 		char *inbuf,
@@ -2097,5 +2112,71 @@ namespace UTILS {namespace API {
 		if (iBuffLen > ciBuffLen){
 			delete[] pSrc;
 		}
+	}
+
+	bool PathCopy(const TCHAR *_pFrom, const TCHAR *_pTo)
+	{
+		TCHAR szTo[MAX_PATH] = { 0 }, szFrom[MAX_PATH] = { 0 };
+#if 1 //路径后2个\0\0
+		Memcpy(szTo, _pTo, lstrlen(_pTo));
+		Memcpy(szFrom, _pFrom, lstrlen(_pFrom));
+#else
+		Strcpy(szTo, MAX_PATH, _pTo);
+		Strcpy(szFrom, MAX_PATH, _pFrom);
+#endif
+
+		SHFILEOPSTRUCT FileOp = { 0 };
+		FileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+		FileOp.pFrom = szFrom;
+		FileOp.pTo = szTo;
+		FileOp.wFunc = FO_COPY;
+		return SHFileOperation(&FileOp) == 0;
+	}
+
+	bool PathReName(const TCHAR *_pFrom, const TCHAR *_pTo)
+	{
+		TCHAR szTo[MAX_PATH] = { 0 }, szFrom[MAX_PATH] = { 0 };
+#if 1 //路径后2个\0\0
+		Memcpy(szTo, _pTo, lstrlen(_pTo));
+		Memcpy(szFrom, _pFrom, lstrlen(_pFrom));
+#else
+		Strcpy(szTo, MAX_PATH, _pTo);
+		Strcpy(szFrom, MAX_PATH, _pFrom);
+#endif
+		SHFILEOPSTRUCT FileOp = { 0 };
+		FileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+		FileOp.pFrom = szFrom;
+		FileOp.pTo = szTo;
+		FileOp.wFunc = FO_RENAME;
+		return SHFileOperation(&FileOp) == 0;
+	}
+
+	bool PathDelete(const TCHAR* _pFrom)
+	{
+		//SHFileOperation将永久删除文件，除非您在由lpFileOp指向的SHFILEOPSTRUCT结构的fFlags成员中设置FOF_ALLOWUNDO标志
+		// 删除是递归的，除非您在lpFileOp中设置FOF_NORECURSION标志
+		TCHAR szFrom[MAX_PATH] = { 0 };
+		Memcpy(szFrom, _pFrom, lstrlen(_pFrom));
+
+		SHFILEOPSTRUCT FileOp = { 0 };
+		FileOp.pFrom = szFrom;
+		FileOp.pTo = NULL;//一定要是NULL
+		FileOp.fFlags = FOF_ALLOWUNDO|FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;;
+		FileOp.wFunc = FO_DELETE; //删除操作
+		return SHFileOperation(&FileOp) == 0;
+	}
+
+	bool PathMove(const TCHAR *_pFrom, const TCHAR *_pTo)
+	{
+		TCHAR szTo[MAX_PATH] = { 0 }, szFrom[MAX_PATH] = { 0 };
+		Memcpy(szTo, _pTo, lstrlen(_pTo));
+		Memcpy(szFrom, _pFrom, lstrlen(_pFrom));
+
+		SHFILEOPSTRUCT FileOp = { 0 };
+		FileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+		FileOp.pFrom = szFrom;
+		FileOp.pTo = szTo;
+		FileOp.wFunc = FO_MOVE;
+		return SHFileOperation(&FileOp) == 0;
 	}
 }}

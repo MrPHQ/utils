@@ -62,6 +62,7 @@ namespace UTILS
 		virtual ~CThreadBox();
 
 		static bool Run(DWORD(WINAPI*)(void*),void* pParam);
+		static bool RunEx(std::function<void(void*)>, void* pParam);
 	public:
 		int Init(int iPacketSize = 1024, int iPacketNum = 10, BOOL bPacket = TRUE, BOOL bCreateEvent = FALSE);
 		void UnInit();

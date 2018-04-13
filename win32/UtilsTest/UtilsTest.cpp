@@ -14,6 +14,7 @@
 #include <utils\logger.h>
 #include <utils\socket.h>
 #include <utils\file.h>
+#include <utils\Thread.h>
 #include <iostream>
 
 #pragma comment(lib, "utils/utils.lib")
@@ -121,6 +122,34 @@ void func3()
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	std::cin.ignore();
+	{
+		UTILS::CThreadBox::RunEx([](void*){
+			std::cout << "UTILS::CThreadBox::RunEx...." << std::endl;
+		}, nullptr);
+
+	}
+
+	std::cin.ignore();
+	{
+		char str[] = "E:\\TMP\\de";
+		char* pstr = str;
+		std::cout << UTILS::API::PathDelete(pstr) << std::endl;
+
+		char str1[] = "E:\\TMP\\xxx";
+		char* pstr1 = str1;
+		char str2[] = "E:\\TMP\\yyy";
+		char* pstr2 = str2;
+		std::cout<<UTILS::API::PathReName(pstr1, pstr2)<<std::endl;
+
+		char str11[] = "E:\\TMP\\sd.txt";
+		char* pstr11 = str11;
+		char str22[] = "E:\\TMP\\sddd.txt";
+		char* pstr22 = str22;
+		std::cout << UTILS::API::PathReName(pstr11, pstr22) << std::endl;
+
+	}
+
 	std::cin.ignore();
 	{
 		UTILS::CFile file;
