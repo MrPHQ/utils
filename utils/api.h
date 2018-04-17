@@ -306,5 +306,12 @@ namespace UTILS { namespace API {
 		随机数c++11
 	*/
 	UTILS_API int Random(int start, int end);
+
+	/*
+		IEEE754单精度浮点数格式
+		4个Byte
+	*/
+	UTILS_API BYTE GetBit(unsigned int dwValue, int iIndex);
+	UTILS_API float ByteToFloat(BYTE*);
 }}
 #endif

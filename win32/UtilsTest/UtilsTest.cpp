@@ -135,6 +135,21 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
 	{
+		std::cin.ignore();
+		BYTE buff[] = { 0x19, 0x57, 0xD0, 0x42 };
+		float tmp = UTILS::API::ByteToFloat(buff);
+		char szTmp[64];
+		_snprintf_s(szTmp, _TRUNCATE, "%f", tmp);
+		std::cout << tmp << "\t" << szTmp << std::endl;
+
+		std::cout << sizeof(float) << std::endl;
+		BYTE data[4];
+		memcpy(data, &tmp, min(sizeof(float), 4));
+		_snprintf_s(szTmp, _TRUNCATE, "%02x %02x %02x %02x", data[0], data[1], data[2], data[3]);
+		std::cout << szTmp << std::endl;
+	}
+	std::cin.ignore();
+	{
 		UTILS::CFile file("e:\\ÖÐÎÄ\\new.txt");
 		std::cout << file.Open(UTILS::PATH_FILE_OPENMODE_OUT | UTILS::PATH_FILE_OPENMODE_BINARY) << std::endl;
 		file.Close();
