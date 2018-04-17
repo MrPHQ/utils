@@ -120,8 +120,40 @@ void func3()
 
 }
 
+class CTest
+{
+public:
+	CTest(){
+		std::cout << "CTest()" << std::endl;
+	}
+	~CTest(){
+		std::cout << "~CTest()" << std::endl;
+	}
+
+};
 int _tmain(int argc, _TCHAR* argv[])
 {
+	std::cin.ignore();
+	{
+		UTILS::CFile file("e:\\ÖÐÎÄ\\new.txt");
+		std::cout << file.Open(UTILS::PATH_FILE_OPENMODE_OUT | UTILS::PATH_FILE_OPENMODE_BINARY) << std::endl;
+		file.Close();
+	}
+
+	std::cin.ignore();
+	{
+		std::map<int, CTest> mapTests;
+
+		mapTests.emplace(1, *(new CTest()));
+		//mapTests.insert({ 2, *(new CTest()) });
+		//mapTests[3] = *(new CTest());
+		std::cout << mapTests.size() << std::endl;
+		for (auto& it : mapTests)
+		{
+			std::cout << it.first << "\t"<< std::endl;
+		}
+	}
+
 	std::cin.ignore();
 	{
 		UTILS::CThreadBox::RunEx([](void*){

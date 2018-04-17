@@ -120,10 +120,21 @@ namespace UTILS
 
 	int CFile::Open(unsigned int mode, const char* path)
 	{
-		if (mode == 0 || NULL == path || strlen(path) <= 0){
+		if (NULL == path || strlen(path) <= 0){
+			if (strlen(m_stPath.szPath) <= 0){
+				return UTILS_ERROR_PAR;
+			}
+		}
+		if (mode == 0){
 			return UTILS_ERROR_PAR;
 		}
 		Close();
+		if (NULL != path && strlen(path) >0){
+			API::Sprintf(m_stPath.szPath, sizeof(m_stPath.szPath), path);
+		}
+		if (strlen(m_stPath.szPath) <=0){
+			return UTILS_ERROR_PAR;
+		}
 		unsigned int uiMode =0;
 		if ((mode&PATH_FILE_OPENMODE_IN) == PATH_FILE_OPENMODE_IN){
 			uiMode |= std::ios_base::in;
@@ -144,11 +155,10 @@ namespace UTILS
 			uiMode |= std::ios_base::binary;
 		}
 		m_stPath.uiMode = uiMode;
-		m_file.open(path, uiMode);
+		m_file.open(m_stPath.szPath, uiMode);
 		if (!m_file.is_open() || m_file.bad()){
 			return UTILS_ERROR_FAIL;
 		}
-		API::Sprintf(m_stPath.szPath, sizeof(m_stPath.szPath), path);
 		m_stPath.bOpen = true;
 		return UTILS_ERROR_SUCCESS;
 	}
