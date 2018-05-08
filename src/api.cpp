@@ -561,9 +561,7 @@ namespace UTILS {namespace API {
 		if (_access(toDirectory, 0) != 0) {
 			return false;
 		}
-		char szSrcFile[1024], szDesPath[1024];
-		char tmp[MAX_PATH], path[MAX_PATH];
-		char buff[1024];
+		char szSrcFile[1024], path[MAX_PATH], buff[1024];
 		int iOutIdleLen = 0, iNoConvertLen = 0, error = 0;
 
 		error = UTILS::API::CharacterConvert("UTF-8", "GBK", (char*)file, strlen(file), szSrcFile, 1024, &iOutIdleLen, &iNoConvertLen);
