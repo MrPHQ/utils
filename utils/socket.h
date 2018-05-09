@@ -116,7 +116,9 @@ namespace UTILS
 	std::string getHostname(bool fqdn);
 	int SetTCPNoDelay(SOCKET, bool, int& error);
 	void SetAsyncSkt(SOCKET);
-	int getPeerInfo(SOCKET skt, char* ip, int len, int* port);
+	int UTILS_API getPeerInfo(SOCKET skt, char* ip, int len, int* port);
+	int UTILS_API getSockName(SOCKET skt, char* ip, int len, int* port);
+
 	int getSockName(SOCKET skt, sockaddr*, int*);
 
 	static inline int getLastSocketError(){

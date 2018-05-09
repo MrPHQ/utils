@@ -79,4 +79,40 @@ namespace UTILS
 		}
 #endif
 	}
+
+	CTimeStampWrapper::CTimeStampWrapper() {
+		_uiNow = 0;
+		_iTimeOut = 0;
+	}
+	CTimeStampWrapper::~CTimeStampWrapper() {}
+
+	void CTimeStampWrapper::Init(unsigned long long uiNow, int iTimeOut) {
+		_uiNow = uiNow;
+		_iTimeOut = iTimeOut;
+	}
+
+	void CTimeStampWrapper::Update(unsigned long long uiNow) {
+		_uiNow = uiNow;
+	}
+
+	bool CTimeStampWrapper::Check(unsigned long long uiNow, bool update /*= true*/) {
+		if (abs((int)(uiNow - _uiNow)) >= _iTimeOut) {
+			if (update) {
+				_uiNow = uiNow;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	bool CTimeStampWrapper::Check(unsigned long long uiNow, int iTimeOut) {
+		if (abs((int)(uiNow - _uiNow)) >= iTimeOut) {
+			return true;
+		}
+		return false;
+	}
+
+	int CTimeStampWrapper::GetTimeOut() {
+		return _iTimeOut;
+	}
 }

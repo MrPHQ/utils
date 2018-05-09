@@ -1028,6 +1028,9 @@ namespace UTILS
 		iRet = getpeername(skt, (struct sockaddr*)&name, &iLen);
 		if (iRet != SOCKET_ERROR)
 		{
+			if (port != NULL){
+				*port = name.sin_port;
+			}
 #ifdef WIN32
 			//strncpy_s(ip, len, inet_ntoa(name.sin_addr), _TRUNCATE);
 			char IPdotdec[64];
@@ -1043,6 +1046,29 @@ namespace UTILS
 	int getSockName(SOCKET skt, sockaddr* name, int* iLen)
 	{
 		int iRet = getsockname(skt, name, iLen);
+		return iRet;
+	}
+
+	int getSockName(SOCKET skt, char* ip, int len, int* port)
+	{
+		int iRet, iLen;
+		struct sockaddr_in name;
+		iLen = (int)sizeof(struct sockaddr_in);
+		iRet = getsockname(skt, (struct sockaddr*)&name, &iLen);
+		if (iRet != SOCKET_ERROR)
+		{
+			if (port != NULL){
+				*port = name.sin_port;
+			}
+#ifdef WIN32
+			char IPdotdec[64];
+			IPdotdec[0] = '\0';
+			inet_ntop(AF_INET, &name.sin_addr, IPdotdec, 64);
+			strncpy_s(ip, len - 1, IPdotdec, _TRUNCATE);
+#else
+			snprintf(ip, len, "%s", inet_ntoa(name.sin_addr));
+#endif
+		}
 		return iRet;
 	}
 }

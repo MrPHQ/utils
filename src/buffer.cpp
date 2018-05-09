@@ -116,8 +116,26 @@ namespace UTILS
 		return len;
 	}
 
+	void buffer::clear()
+	{
+		if (nullptr != _lock) {
+#ifdef _WIN32
+			EnterCriticalSection(_lock);
+#else
+			pthread_mutex_lock(_lock);
+#endif
+		}
+		_in = _out = 0;
+		if (nullptr != _lock) {
+#ifdef _WIN32
+			LeaveCriticalSection(_lock);
+#else
+			pthread_mutex_unlock(_lock);
+#endif
+		}
+	}
+
 	void buffer::write(size_t size) {
-		uint32_t ret;
 		if (nullptr != _lock) {
 #ifdef _WIN32
 			EnterCriticalSection(_lock);

@@ -36,7 +36,7 @@ namespace UTILS
 		size_t size() const;
 		/// ø…”√ø’º‰.
 		size_t space() const;
-		
+		void clear();
 		virtual bool is_wiret() const = 0;
 
 		void capacity(size_t size, bool reserve = true);
