@@ -1029,7 +1029,7 @@ namespace UTILS
 		if (iRet != SOCKET_ERROR)
 		{
 			if (port != NULL){
-				*port = name.sin_port;
+				*port = ntohs(name.sin_port);
 			}
 #ifdef WIN32
 			//strncpy_s(ip, len, inet_ntoa(name.sin_addr), _TRUNCATE);
@@ -1058,7 +1058,7 @@ namespace UTILS
 		if (iRet != SOCKET_ERROR)
 		{
 			if (port != NULL){
-				*port = name.sin_port;
+				*port = ntohs(name.sin_port);
 			}
 #ifdef WIN32
 			char IPdotdec[64];
