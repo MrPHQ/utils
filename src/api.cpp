@@ -2029,21 +2029,23 @@ namespace UTILS {namespace API {
 		}
 		else {
 			int len = 0, iIdx = 0;
+			bool bFind = false;
 			strToken = pSrc;
 			next_token = strstr(strToken, pDelims);
 			while (next_token != NULL) {
 				len = next_token - strToken;
 				if (iIdx == index){
 					strncpy_s(buff, bufflen, strToken, min(bufflen - 1, len));
+					bFind = true;
 					break;
 				}
 				iIdx++;
 				strToken = next_token + strlen(pDelims);
 				next_token = strstr(strToken, pDelims);
 			}
-			if (strlen(strToken) > 0){
+			if (!bFind && strlen(strToken) > 0){
 				if (iIdx == index){
-					strncpy_s(buff, bufflen, strToken, min(bufflen - 1, len));
+					strncpy_s(buff, bufflen, strToken, min(bufflen - 1, strlen(strToken)));
 				}
 			}
 		}
