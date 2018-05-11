@@ -14,7 +14,7 @@
 #pragma comment(lib, "Rpcrt4.lib")
 #endif
 
-#ifdef ENABLE_ZIP
+#ifdef UTILS_ENABLE_ZIP
 #include <zlib\include\zlib.h>
 #include <libzip\include\zip.h>
 #include <libzippp\libzippp.h>
@@ -462,7 +462,7 @@ namespace UTILS {namespace API {
 		return false;
 	}
 
-#ifdef ENABLE_ZIP
+#ifdef UTILS_ENABLE_ZIP
 	UTILS_API bool ZipDirectory(const char* pPath, char* toFile) {
 #ifdef _WIN32
 		if (nullptr == pPath || nullptr == toFile) {
