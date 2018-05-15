@@ -1984,6 +1984,26 @@ namespace UTILS {namespace API {
 		return SystemParametersInfo(SPI_GETWORKAREA, 0, (PVOID)&rc, 0);
 	}
 
+	void StringReplace(const char* src, const char* from, const char* to, char* buff, int len)
+	{
+		if (nullptr == src || nullptr == from || nullptr == to || nullptr == buff || len <= 0){
+			return;
+		}
+		int toLen = strlen(to);
+		std::vector<std::string> v;
+		StrTok(src, from, v, FALSE);
+		buff[0] = '\0';
+
+		int iCnt = v.size();
+		for (int i = 0; i < iCnt; i++)
+		{
+			strncat_s(buff, len, v.at(i).data(), min(len - 1 - strlen(buff), v.at(i).length()));
+			if (i + 1 < iCnt){
+				strncat_s(buff, len, to, min(len - 1 - strlen(buff), toLen));
+			}
+		}
+	}
+
 	void StrTok(const char* src,const char* delims, int index,
 		char* buff, int bufflen, BOOL bMutil /*= TRUE*/)
 	{
@@ -2091,6 +2111,9 @@ namespace UTILS {namespace API {
 			}
 			while (strToken != NULL) {
 				vStr.emplace_back(strToken);
+				/*if (strlen(strToken) > 0){
+					vStr.emplace_back(strToken);
+				}*/
 				strToken = strtok_s(nullptr, szDelims, &next_token);
 			}
 		}
@@ -2104,7 +2127,7 @@ namespace UTILS {namespace API {
 				strToken = next_token + strlen(pDelims);
 				next_token = strstr(strToken, pDelims);
 			}
-			if (strlen(strToken) > 0){
+			if (strToken != nullptr/*strlen(strToken) > 0*/){
 				vStr.emplace_back(strToken);
 			}
 		}

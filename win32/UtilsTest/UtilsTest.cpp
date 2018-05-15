@@ -135,6 +135,63 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
 	{
+		char szTxt[128],szBuff[128];
+		_snprintf_s(szTxt, _TRUNCATE, "GIS;xChannel_id;x:2;ssssssssx");
+		UTILS::API::StringReplace(szTxt, ";x", "_+_", szBuff,128);
+		std::cout << "Դ:" << szTxt << std::endl;
+		std::cout << "Replace:"<<szBuff << std::endl;
+		std::cout << std::endl;
+
+		_snprintf_s(szTxt, _TRUNCATE, "'GIS;xChann'el_';ssssssssx'");
+		UTILS::API::StringReplace(szTxt, "'", "\'", szBuff, 128);
+		std::cout << "Դ:" << szTxt << std::endl;
+		std::cout << "Replace:" << szBuff << std::endl;
+		std::cout << std::endl;
+
+		std::vector<std::string> v;
+		UTILS::API::StrTok(szTxt, "'", v, FALSE);
+		std::cout << "SRC:" << szTxt << std::endl;
+		for (auto& it : v)
+		{
+			std::cout << ":"<<it.data() << std::endl;
+		}
+		std::cout << std::endl;
+
+		_snprintf_s(szTxt, _TRUNCATE, "GIS;xChann'el_';ssssssssx'");
+		UTILS::API::StringReplace(szTxt, "'", "\'", szBuff, 128);
+		std::cout << "Դ:" << szTxt << std::endl;
+		std::cout << "Replace:" << szBuff << std::endl;
+		std::cout << std::endl;
+
+		_snprintf_s(szTxt, _TRUNCATE, "'GIS;xChann'el_';ssssssssx");
+		UTILS::API::StringReplace(szTxt, "'", "\'", szBuff, 128);
+		std::cout << "Դ:" << szTxt << std::endl;
+		std::cout << "Replace:" << szBuff << std::endl;
+		std::cout << std::endl;
+
+		_snprintf_s(szTxt, _TRUNCATE, "GISxChann'el_'xssssssss");
+		UTILS::API::StringReplace(szTxt, "x", "v", szBuff, 128);
+		std::cout << "Դ:" << szTxt << std::endl;
+		std::cout << "Replace:" << szBuff << std::endl;
+		std::cout << std::endl;
+		_snprintf_s(szTxt, _TRUNCATE, "xGISxChann'el_'xssssssssx");
+		UTILS::API::StringReplace(szTxt, "x", "v", szBuff, 128);
+		std::cout << "Դ:" << szTxt << std::endl;
+		std::cout << "Replace:" << szBuff << std::endl;
+		std::cout << std::endl;
+		_snprintf_s(szTxt, _TRUNCATE, "xGISxChann'el_'xssssssss");
+		UTILS::API::StringReplace(szTxt, "x", "v", szBuff, 128);
+		std::cout << "Դ:" << szTxt << std::endl;
+		std::cout << "Replace:" << szBuff << std::endl;
+		std::cout << std::endl;
+		_snprintf_s(szTxt, _TRUNCATE, "GISxChann'el_'xssssssssx");
+		UTILS::API::StringReplace(szTxt, "x", "v", szBuff, 128);
+		std::cout << "Դ:" << szTxt << std::endl;
+		std::cout << "Replace:" << szBuff << std::endl;
+		std::cout << std::endl;
+	}
+	std::cin.ignore();
+	{
 		char szTxt[64];
 		_snprintf_s(szTxt, _TRUNCATE, "GIS;Channel_id:2;");
 		char szFlag[16], szContent[256];
@@ -144,6 +201,33 @@ int _tmain(int argc, _TCHAR* argv[])
 		szContent[0] = '\0';
 		UTILS::API::StrTok(szTxt, ";", 1, szContent, 256, FALSE);
 		std::cout << szContent << std::endl;
+
+		_snprintf_s(szTxt, _TRUNCATE, "GIS;,sdfwe;,sdf;wef;:2;sdfwdf,sdfwef");
+		std::vector<std::string> v;
+		szFlag[0] = '\0';
+		UTILS::API::StrTok(szTxt, ";,",v, TRUE);
+		std::cout << "SRC:"<<szTxt << std::endl;
+		for (auto& it : v)
+		{
+			std::cout << it.data() << std::endl;
+		}
+		szContent[0] = '\0';
+		UTILS::API::StrTok(szTxt, ";,", 2, szContent, 256, TRUE);
+		std::cout <<"2:    "<< szContent<<std::endl;
+		std::cout << std::endl;
+
+		v.clear();
+		UTILS::API::StrTok(szTxt, ";,", v, FALSE);
+		for (auto& it : v)
+		{
+			std::cout << it.data() << std::endl;
+		}
+
+		szContent[0] = '\0';
+		UTILS::API::StrTok(szTxt, ";,", 2, szContent, 256, FALSE);
+		std::cout << "2:    " << szContent << std::endl;
+
+		std::cout << "END" << std::endl;
 	}
 	std::cin.ignore();
 	{

@@ -58,9 +58,11 @@ namespace UTILS { namespace API {
 	/// 限制在1024Bytes
 	UTILS_API void WcharToChar(wchar_t* wc, char* buff, int len);
 	UTILS_API void CharToWchar(char* c, wchar_t* buff, int len);
+	UTILS_API void StringReplace(const char* src, const char* from, const char* to, char* buff, int len);
 	/**
 	\brief
 		根据分隔符查找子串
+		注意 ,输出的,子串有可以是空字符串, 比如 x...x ,,查找 分隔符位 'x'的子串
 
 	\param src.
 		源字符串.
