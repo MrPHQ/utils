@@ -1075,9 +1075,9 @@ namespace UTILS {namespace API {
 		_vsnprintf_s(sOut, sizeof(sOut)-1, fmt, args);
 		va_end(args);
 		if (nullptr != flag && strlen(flag) > 0) {
-			strncat_s(sLog, 1024, "[", 1);
-			strncat_s(sLog, 1024, flag, min(1023, strlen(flag)));
-			strncat_s(sLog, 1024, "] ", 2);
+			strncat_s(sLog, 1024, "[", min(1023-strlen(sLog), 1));
+			strncat_s(sLog, 1024, flag, min(1023-strlen(sLog), strlen(flag)));
+			strncat_s(sLog, 1024, "] ", min(1023-strlen(sLog), 2));
 		}
 		strncat_s(sLog, 1024, sOut, min(1023-strlen(sLog), strlen(sOut)));
 		OutputDebugString(sLog);

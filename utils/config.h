@@ -33,6 +33,8 @@
 #include <functional>
 #include <cassert>
 #include <vector>
+#include <condition_variable>
+#include <mutex>
 
 #else //linux相关
 

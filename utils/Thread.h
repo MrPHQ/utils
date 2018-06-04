@@ -53,6 +53,59 @@ namespace UTILS
 		};
 	};
 
+	/**
+	\brief
+		CLock class.
+		多线程锁, [mutex] + [condition_variable]
+	*/
+	class UTILS_API CLock
+	{
+		CLock(CLock const &) = delete;
+		CLock(CLock &&) = delete;
+		CLock & operator = (CLock const &) = delete;
+		CLock & operator = (CLock &&) = delete;
+	public:
+		CLock();
+		~CLock();
+	private:
+		std::mutex _mtx;
+		std::condition_variable _cv;
+		/// 正在使用,其他线程不允许使用.
+		bool _using;
+		/// 等待答复
+		bool _ack;
+	public:
+		/**
+		\brief
+			手动加锁
+		*/
+		bool Lock();
+		/**
+		\brief
+			手动释放锁
+		*/
+		void UnLock();
+		/**
+		\brief
+			其他其他线程处理结果
+		\param uiTimeOut
+			等待时间(毫秒).
+		\return bool
+			被激活返回 true ，超时或其他情况返回 false
+		*/
+		bool WaitAck(std::unique_lock<std::mutex>&, unsigned int uiTimeOut);
+		/**
+		\brief
+			其他线程处理完成
+		*/
+		void Ack();
+		/**
+		\brief
+			获取互斥对象
+		*/
+		std::mutex& GetMutex() { return _mtx; }
+	};
+
 	typedef void(*BOX_THREAD_PROCESS)(BOOL& bRun, HANDLE hWait, void* context);
 
 	class UTILS_API CThreadBox

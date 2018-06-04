@@ -19,7 +19,7 @@ namespace UTILS
 		pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE_NP);
 		pthread_mutex_init(&mutex, &mutex_attr);
 #endif
-	};
+	}
 
 	CCritSec::~CCritSec()
 	{
@@ -29,7 +29,7 @@ namespace UTILS
 		pthread_mutexattr_destroy(&mutex_attr);
 #endif
 		
-	};
+	}
 
 	void CCritSec::Lock()
 	{
@@ -39,7 +39,7 @@ namespace UTILS
 		pthread_mutex_lock(&mutex);
 #endif
 		
-	};
+	}
 
 	void CCritSec::Unlock()
 	{
@@ -48,9 +48,8 @@ namespace UTILS
 #else
 		pthread_mutex_unlock(mutex);
 #endif
-		
-	};
-
+	
+	}
 
 	bool CCritSec::TryLock(unsigned int timeout /*= 5000*/) {
 		BOOL ret = false;
@@ -61,12 +60,62 @@ namespace UTILS
 			if (ret) {
 				break;
 			}
-			if ((GetTickCount() - dwCut) >= timeout) {
+			if (abs((int)(GetTickCount() - dwCut)) >= timeout) {
 				break;
 			}
 			Sleep(10);
 		} while (true);
 		return ret ? true : false;
+	}
+
+	CLock::CLock()
+	{
+		_using = false;
+	}
+
+	CLock::~CLock()
+	{
+	}
+
+	bool CLock::Lock()
+	{
+		_mtx.lock();
+		if (_using){//其他线程正在使用
+			_mtx.unlock();
+			return false;
+		}
+		return true;
+	}
+
+	bool CLock::WaitAck(std::unique_lock<std::mutex>& lck,unsigned int uiTimeOut)
+	{
+		if (_using){
+			return false;
+		}
+
+		_using = true;
+		_ack = false;
+		if (!_cv.wait_for(lck, std::chrono::milliseconds(uiTimeOut), [this]() ->bool {
+			return _ack;
+		})) {//std::cv_status::timeout
+			_using = false;
+			return false;
+		}
+		
+		_using = false;
+		return true;
+	}
+
+	void CLock::UnLock()
+	{
+		_mtx.unlock();
+	}
+
+	void CLock::Ack()
+	{
+		std::unique_lock<std::mutex> lck(_mtx);
+		_ack = true;
+		_cv.notify_one();
 	}
 
 	CThreadBox::CThreadBox()
