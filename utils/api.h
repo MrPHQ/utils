@@ -139,7 +139,7 @@ namespace UTILS { namespace API {
 	\param cmd.
 		命令行.
 	\param uiTimeOut.
-		超时时间. <=0 永远等待,直到程序退出.
+		超时时间. 
 	\return
 		char*
 	*/
@@ -147,7 +147,7 @@ namespace UTILS { namespace API {
 		uint32_t uiProcessID;
 		HANDLE hProcessHandle;
 	}PROCESS_PROPERTY, *PPROCESS_PROPERTY;
-	UTILS_API int RunProcess(const char* cmd, PPROCESS_PROPERTY pProcessProperty = NULL, unsigned int uiTimeOut = 0);
+	UTILS_API int RunProcess(const char* cmd, PPROCESS_PROPERTY pProcessProperty = NULL, unsigned int uiTimeOut = 0, BOOL bShow=FALSE);
 
 	/*
 		文件路径相关.

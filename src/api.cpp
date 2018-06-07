@@ -385,7 +385,7 @@ namespace UTILS {namespace API {
 		return iCount;
 	}
 
-	int RunProcess(const char* cmd, PPROCESS_PROPERTY pProcessProperty /*= NULL*/, unsigned int uiTimeOut /*= 0*/) {
+	int RunProcess(const char* cmd, PPROCESS_PROPERTY pProcessProperty /*= NULL*/, unsigned int uiTimeOut /*= 0*/, BOOL bShow /*= FALSE*/) {
 		int ret = UTILS::UTILS_ERROR_SUCCESS;
 		if (cmd == NULL){
 			ret = UTILS::UTILS_ERROR_PAR;
@@ -397,7 +397,7 @@ namespace UTILS {namespace API {
 		Memset(&stStartInfo, 0, sizeof(STARTUPINFO));
 		stStartInfo.cb = sizeof(STARTUPINFO);
 		stStartInfo.dwFlags = STARTF_USESHOWWINDOW;
-		stStartInfo.wShowWindow = SW_HIDE;
+		stStartInfo.wShowWindow = bShow ? SW_SHOW : SW_HIDE;
 		BOOL bRet = CreateProcess(NULL, (char*)cmd, NULL, NULL, FALSE, 0, NULL, NULL, &stStartInfo, &stProcessInfo);
 		if (stProcessInfo.hProcess == NULL) {
 			ret = UTILS::UTILS_ERROR_FAIL;

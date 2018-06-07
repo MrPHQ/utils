@@ -111,12 +111,168 @@ namespace UTILS
 		_mtx.unlock();
 	}
 
+
+
 	void CLock::Ack()
 	{
 		std::unique_lock<std::mutex> lck(_mtx);
 		_ack = true;
 		_cv.notify_one();
 	}
+
+#ifdef _WIN32
+	CProcessLock::CProcessLock()
+		:m_pMutex(nullptr), m_pEvent(nullptr)
+	{
+
+	}
+
+	CProcessLock::~CProcessLock()
+	{
+		if (m_pEvent != nullptr){
+			CloseHandle(m_pEvent);
+			m_pEvent = nullptr;
+		}
+		if (m_pMutex != nullptr){
+			CloseHandle(m_pMutex);
+			m_pMutex = nullptr;
+		}
+	}
+
+	bool CProcessLock::Init(const char* lpMutex /*= nullptr*/, const char* lpEvent /*= nullptr*/)
+	{
+		SECURITY_DESCRIPTOR stSecDes;
+		::InitializeSecurityDescriptor(&stSecDes, SECURITY_DESCRIPTOR_REVISION);
+		//参数三设置为NULL，相当于将object的安全级别降到了最低，所有的访问请求都将成功
+		::SetSecurityDescriptorDacl(&stSecDes, TRUE, NULL, FALSE);
+		SECURITY_ATTRIBUTES stSecAttr;
+		// set SECURITY_ATTRIBUTES
+		stSecAttr.nLength = sizeof SECURITY_ATTRIBUTES;
+		stSecAttr.bInheritHandle = FALSE;
+		stSecAttr.lpSecurityDescriptor = &stSecDes;
+
+		memset(m_szMutexName, 0, sizeof(m_szMutexName));
+		memset(m_szEventName, 0, sizeof(m_szEventName));
+		if ((nullptr != lpMutex) && (strlen(lpMutex) > 0)){
+			int min = (strlen(lpMutex)>(sizeof(m_szMutexName)-1)) ? (sizeof(m_szMutexName)-1) : strlen(lpMutex);
+			strncpy_s(m_szMutexName, _TRUNCATE, lpMutex, min);
+
+			m_pMutex = ::OpenMutex(MUTEX_ALL_ACCESS, FALSE, m_szMutexName);
+			if (m_pMutex == nullptr) {
+				m_pMutex = CreateMutex(&stSecAttr, FALSE, m_szMutexName);
+			}
+		}
+		if ((nullptr != lpEvent) && (strlen(lpEvent) > 0)){
+			int min = (strlen(lpEvent)>(sizeof(m_szEventName)-1)) ? (sizeof(m_szEventName)-1) : strlen(lpEvent);
+			strncpy_s(m_szEventName, _TRUNCATE, lpEvent, min);
+			m_pEvent = ::OpenEvent(EVENT_ALL_ACCESS, FALSE, m_szEventName);
+			if (m_pEvent == nullptr) {
+				m_pEvent = ::CreateEvent(&stSecAttr, FALSE, FALSE, m_szEventName);
+			}
+		}
+		if ((m_pEvent == nullptr) || (m_pMutex == nullptr)){
+			OutputDebugString("CProcessLock Error....");
+			return false;
+		}
+		return true;
+	}
+
+	bool CProcessLock::Lock()
+	{
+		if (NULL == m_pMutex){
+			return false;
+		}
+    
+		DWORD nRet = WaitForSingleObject(m_pMutex, INFINITE);
+		if (nRet != WAIT_OBJECT_0){
+			return false;
+		}
+		return true;
+	}
+
+	bool CProcessLock::WaitLock(unsigned int uiTimeOut)
+	{
+		if (NULL == m_pMutex){
+			return false;
+		}
+
+		DWORD nRet = WaitForSingleObject(m_pMutex, uiTimeOut);
+		if (nRet != WAIT_OBJECT_0){
+			return false;
+		}
+		return true;
+	}
+	bool CProcessLock::UnLock()
+	{
+		if (m_pMutex == nullptr){
+			return false;
+		}
+		return ReleaseMutex(m_pMutex) ? true : false;
+	}
+
+	bool CProcessLock::WaitAck(unsigned int uiTimeOut)
+	{
+		if (m_pEvent == nullptr){
+			OutputDebugString("WaitAck Error....");
+			return false;
+		}
+		DWORD dwWaitResult = WaitForSingleObject(m_pEvent, uiTimeOut);
+		if (WAIT_OBJECT_0 == dwWaitResult) {
+			return true;
+		}
+		return false;
+	}
+
+	void CProcessLock::Ack()
+	{
+		if (m_pEvent == nullptr){
+			return;
+		}
+		SetEvent(m_pEvent);
+	}
+
+#endif
+
+#ifdef linux
+
+	CProcessLock::CProcessLock(const char* name)
+	{
+		memset(m_cMutexName, 0 ,sizeof(m_cMutexName));
+		int min = strlen(name)>(sizeof(m_cMutexName)-1)?(sizeof(m_cMutexName)-1):strlen(name);
+		strncpy(m_cMutexName, name, min);
+		m_pSem = sem_open(name, O_RDWR | O_CREAT, 0644, 1);
+	}
+
+	CProcessLock::~CProcessLock()
+	{
+		int ret = sem_close(m_pSem);
+		if (0 != ret)
+		{
+			printf("sem_close error %d\n", ret);
+		}
+		sem_unlink(m_cMutexName);
+	}
+
+	bool CProcessLock::Lock()
+	{
+		int ret = sem_wait(m_pSem);
+		if (ret != 0)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	bool CProcessLock::UnLock()
+	{
+		int ret = sem_post(m_pSem);
+		if (ret != 0)
+		{
+			return false;
+		}
+		return true;
+	}
+#endif
 
 	CThreadBox::CThreadBox()
 	{

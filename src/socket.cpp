@@ -1,5 +1,6 @@
 #include "../utils/socket.h"
 #include "../utils/error.h"
+#include "internal.h"
 #include <atomic>
 #include <memory>
 #include <MSWSock.h>
@@ -189,6 +190,7 @@ namespace UTILS
 	{
 		if (_sock != INVALID_SOCKET){
 			::closesocket(_sock);
+			//shutdown(_sock, SD_BOTH);
 			_sock = INVALID_SOCKET;
 		}
 	}
@@ -756,7 +758,7 @@ namespace UTILS
 		bool recvfrom /*= false*/, struct sockaddr *from /*= nullptr*/, int *fromlen /*= nullptr*/, const int ciReadLen /*= 0*/, unsigned int uiTimeOut/* = 5000*/)
 	{
 		int iDataLen = 0, iReadLen = 0;
-		BOOL bRecvData = TRUE;
+		BOOL bRecvData = FALSE;
 		DWORD dwTimeOut = GetTickCount();
 		fd_set readfd, excepfd;
 		struct timeval select_time;
@@ -787,6 +789,7 @@ namespace UTILS
 					iRet = FD_ISSET(sock, &excepfd);
 					if (iRet){//error
 						error = SOCKET_ERROR;
+						MSG_INFO("SOCKET err:%d LINE:%d", WSAGetLastError(), __LINE__);
 						break;
 					}
 					//是否有数据
@@ -815,6 +818,7 @@ namespace UTILS
 				}
 				if (iReadLen == 0){//Server CloseSocket
 					error = SOCKET_ERROR;
+					MSG_INFO("SOCKET err LINE:%d", __LINE__);
 					break;
 				}
 				if (iReadLen == SOCKET_ERROR){
@@ -837,9 +841,7 @@ namespace UTILS
 					}
 					iError = errno;
 #endif
-					char log[64];
-					_snprintf_s(log, 64, "WSAGetLastError:%d", iError);
-					OutputDebugString(log);
+					MSG_INFO("SOCKET err:%d LINE:%d", iError, __LINE__);
 					error = SOCKET_ERROR;
 					break;
 				}
@@ -882,6 +884,7 @@ namespace UTILS
 					iRet = FD_ISSET(sock, &excepfd);
 					if (iRet){//error
 						error = SOCKET_ERROR;
+						MSG_INFO("SOCKET err:%d LINE:%d", WSAGetLastError(), __LINE__);
 						break;
 					}
 					//是否有数据
@@ -918,9 +921,7 @@ namespace UTILS
 					}
 					//EINTR
 #endif
-					char log[64];
-					_snprintf_s(log, 64, "WSAGetLastError:%d", iError);
-					OutputDebugString(log);
+					MSG_INFO("SOCKET err:%d LINE:%d", iError, __LINE__);
 					error = SOCKET_ERROR;
 					break;
 				}

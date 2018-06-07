@@ -87,7 +87,7 @@ namespace UTILS
 		void UnLock();
 		/**
 		\brief
-			其他其他线程处理结果
+			等待其他线程处理结果
 		\param uiTimeOut
 			等待时间(毫秒).
 		\return bool
@@ -104,6 +104,82 @@ namespace UTILS
 			获取互斥对象
 		*/
 		std::mutex& GetMutex() { return _mtx; }
+	};
+
+	/**
+	\brief
+		CProcessLock class.
+		多进程锁, [mutex] + [condition_variable]
+	*/
+	class UTILS_API CProcessLock
+	{
+		CProcessLock(CProcessLock const &) = delete;
+		CProcessLock(CProcessLock &&) = delete;
+		CProcessLock & operator = (CProcessLock const &) = delete;
+		CProcessLock & operator = (CProcessLock &&) = delete;
+	public:
+		/**
+		\brief
+			构造函数
+		\param 
+		*/
+		CProcessLock();
+		~CProcessLock();
+		/**
+		\brief
+			初始化
+		*/
+		bool Init(const char* lpMutex = nullptr, const char* lpEvent = nullptr);
+		/**
+		\brief
+			手动加锁
+		*/
+		bool Lock();
+		/**
+		\brief
+			手动加锁,等待超时时间
+		\param uiTimeOut
+			等待时间(毫秒).
+		\return bool
+			被激活返回 true ，超时或其他情况返回 false
+		*/
+		bool WaitLock(unsigned int uiTimeOut);
+		/**
+		\brief
+			手动释放锁
+		*/
+		bool UnLock();
+		/**
+		\brief
+			等待其他进程处理结果
+		\param uiTimeOut
+			等待时间(毫秒).
+		\return bool
+			被激活返回 true ，超时或其他情况返回 false
+		*/
+		bool WaitAck(unsigned int uiTimeOut);
+		/**
+		\brief
+			其他进程处理完成
+		*/
+		void Ack();
+	private:
+
+		/** 互斥量句柄*/
+#ifdef WIN32
+		void* m_pMutex;
+#endif
+		/** 事件句柄*/
+#ifdef WIN32
+		void* m_pEvent;
+#endif
+	#ifdef linux
+		sem_t* m_pSem;
+	#endif
+		/** 互斥量名称*/
+		char m_szMutexName[64];
+		/** 事件名称*/
+		char m_szEventName[64];
 	};
 
 	typedef void(*BOX_THREAD_PROCESS)(BOOL& bRun, HANDLE hWait, void* context);

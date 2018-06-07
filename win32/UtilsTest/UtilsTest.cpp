@@ -177,8 +177,40 @@ void assign_lunch_partner(Employee &e1, Employee &e2)
 	send_mail(e2, e1);
 }
 
+UTILS::CProcessLock lock;
+
+/// 模块退出通知事件
+#define TEST_EVENT "Global\\{ECEF3391-EC8B-487F-8BBB-AE444B4EF4E2}"
+#define TEST_MUTEX "Global\\{AAC6E35D-537B-4CC4-A935-E18B8780C04A}"
+
+
 int _tmain(int argc, _TCHAR* argv[])
 {
+	std::cin.ignore();
+	{
+		lock.Init(TEST_MUTEX, TEST_EVENT);
+
+		std::cout << "加锁锁" << std::endl;
+		lock.Lock();
+		std::cout << "加锁成功" << std::endl;
+
+		UTILS::API::RunProcess("E:\\GitRep\\utils\\bin\\UtilsDemo.exe", nullptr, 0, TRUE);
+
+		Sleep(5000);
+		std::cout << "释放所" << std::endl;
+		lock.Ack();
+		lock.UnLock();
+	
+
+		Sleep(1000);
+		std::cout << "加锁" << std::endl;
+		lock.Lock();
+		std::cout << "加锁成功" << std::endl;
+		lock.UnLock();
+
+		std::cin.ignore();
+
+	}
 	std::cin.ignore();
 	{
 		Employee alice("alice"), bob("bob"), christina("christina"), dave("dave");
