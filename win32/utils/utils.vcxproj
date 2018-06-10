@@ -98,6 +98,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\internal.h" />
     <ClInclude Include="..\..\utils\api.h" />
+    <ClInclude Include="..\..\utils\buff.h" />
     <ClInclude Include="..\..\utils\buffer.h" />
     <ClInclude Include="..\..\utils\config.h" />
     <ClInclude Include="..\..\utils\ConfigFile.h" />
@@ -120,6 +121,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\api.cpp" />
+    <ClCompile Include="..\..\src\buff.cpp" />
     <ClCompile Include="..\..\src\buffer.cpp" />
     <ClCompile Include="..\..\src\file.cpp" />
     <ClCompile Include="..\..\src\internal.cpp" />

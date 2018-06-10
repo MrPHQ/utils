@@ -17,6 +17,7 @@
 #include <utils\Thread.h>
 #include <iostream>
 #include <utils\net.h>
+#include <utils\buff.h>
 
 #pragma comment(lib, "utils/utils.lib")
 
@@ -187,6 +188,43 @@ UTILS::CProcessLock lock;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	std::cin.ignore();
+	{
+		uint8_t output[512] = { 0 };
+		uint8_t data[256] = { 0 };
+		for (int i = 0; i < 256; i++)
+			data[i] = i;
+
+		UTILS::BUFFER::CRingBuffer fifo(128);
+		fifo.Write((char*)data, 100);
+
+		fifo.Read((char*)output, 50);
+
+		fifo.Write((char*)data, 30);
+
+		auto c = fifo.Write((char*)(data + 10), 92);
+
+		std::cout << "Empty:" << fifo.IsEmpty() << std::endl;
+		std::cout << "Left Space:" << fifo.Space() << std::endl;
+		std::cout << "Length:" << fifo.Size() << std::endl;
+		//uint8_t a = fifo.size - fifo.in + fifo.out;
+		//uint8_t b = fifo.in - fifo.out;
+
+		std::cout << "=======================================" << std::endl;
+		fifo.Read((char*)output, 128);
+		std::cout << "Empty:" << fifo.IsEmpty() << std::endl;
+		std::cout << "Left Space:" << fifo.Space() << std::endl;
+		std::cout << "Length:" << fifo.Size() << std::endl;
+
+		std::cout << "======================================" << std::endl;
+		fifo.Write((char*)output, 100);
+		std::cout << "Empty:" << fifo.IsEmpty() << std::endl;
+		auto d = static_cast<uint8_t>(fifo.Space());
+		auto e = static_cast<uint8_t>(fifo.Size());
+		printf("Left Space:%d\n", d);
+		printf("Length:%d\n", e);
+	}
+
 	std::cin.ignore();
 	{
 		char szStr[] = "×Ö·û¼¯×ª»»Ê¾Àý...";
