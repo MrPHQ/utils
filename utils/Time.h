@@ -93,7 +93,7 @@ namespace UTILS
 		\param uiNow
 			当前运行时间
 		\param update
-			是否已经时间戳
+			是否更新时间戳
 		\return
 			bool 如果达到超时时间,返回true,否则返回false
 		*/

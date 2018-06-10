@@ -2245,4 +2245,73 @@ namespace UTILS {namespace API {
 		}
 		return sign * exp * mantissa;
 	}
+	void GBKToUtf8(char* buff, int iBuffLen, const char* pSrc, int iSrcLen)
+	{
+		if (buff == nullptr || pSrc == nullptr){
+			return;
+		}
+		int len = MultiByteToWideChar(CP_ACP, 0, (LPCTSTR)pSrc, iSrcLen, NULL, 0);
+		unsigned short * wszUtf8 = new unsigned short[len];
+		if (wszUtf8 == NULL){
+			return;
+		}
+		memset(wszUtf8, 0, len);
+		MultiByteToWideChar(CP_ACP, 0, (LPCTSTR)pSrc, iSrcLen, (LPWSTR)wszUtf8, len);
+		len = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR)wszUtf8, -1, NULL, 0, NULL, NULL);
+		char *szUtf8 = new char[len];
+		if (szUtf8 == NULL){
+			return;
+		}
+		memset(szUtf8, 0, len);
+		WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR)wszUtf8, -1, szUtf8, len, NULL, NULL);
+		if (len < 1024)
+		{
+			int tmp = min(iBuffLen - 1, len);
+			strncpy_s(buff, iBuffLen, szUtf8, tmp);
+			buff[tmp] = '\0';
+		}
+		else {
+			int tmp = min(iBuffLen - 1, len);
+			memcpy(buff, szUtf8, tmp);
+			buff[tmp] = '\0';
+		}
+
+		delete[] szUtf8;
+		delete[] wszUtf8;
+	}
+
+	void Utf8ToGBK(char* buff, int iBuffLen, const char *pSrc, int iSrcLen)
+	{
+		if (buff == nullptr || pSrc == nullptr){
+			return;
+		}
+		int len = MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pSrc, iSrcLen, NULL, 0);
+		unsigned short * wszGBK = new unsigned short[len];
+		if (wszGBK == NULL){
+			return;
+		}
+		memset(wszGBK, 0, len);
+		MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pSrc, iSrcLen, (LPWSTR)wszGBK, len);
+		len = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)wszGBK, -1, NULL, 0, NULL, NULL);
+		char *szGBK = new char[len];
+		if (szGBK == NULL){
+			return;
+		}
+		memset(szGBK, 0, len);
+		WideCharToMultiByte(CP_ACP, 0, (LPWSTR)wszGBK, -1, szGBK, len, NULL, NULL);
+		if (len < 1024)
+		{
+			int tmp = min(iBuffLen - 1, len);
+			strncpy_s(buff, iBuffLen, szGBK, tmp);
+			buff[tmp] = '\0';
+		}
+		else {
+			int tmp = min(iBuffLen - 1, len);
+			memcpy(buff, szGBK, tmp);
+			buff[tmp] = '\0';
+		}
+
+		delete[] szGBK;
+		delete[] wszGBK;
+	}
 }}

@@ -111,8 +111,6 @@ namespace UTILS
 		_mtx.unlock();
 	}
 
-
-
 	void CLock::Ack()
 	{
 		std::unique_lock<std::mutex> lck(_mtx);

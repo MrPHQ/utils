@@ -49,6 +49,30 @@ namespace UTILS { namespace API {
 		char *inbuf, int inlen, char *outbuf,
 		int outlen, int* OutIdleLen, int* NoConvertLen);
 #endif
+	/**
+	@brief GBK字符串转 UTF-8字符串
+	\param buff.
+		存放结果的缓存区.
+	\param iBuffLen.
+		存放结果的缓存区大小.
+	\param pSrc.
+		源字符串
+	\param iSrcLen.
+		源字符串大小,包括字符串结束符 strlen(x)+1
+	*/
+	UTILS_API void GBKToUtf8(char* buff, int iBuffLen, const char* pSrc, int iSrcLen);
+	/**
+	@brief UTF-8字符串 转 GBK字符串
+	\param buff.
+		存放结果的缓存区.
+	\param iBuffLen.
+		存放结果的缓存区大小.
+	\param pSrc.
+		源字符串
+	\param iSrcLen.
+		源字符串大小,包括字符串结束符 strlen(x)+1
+	*/
+	UTILS_API void Utf8ToGBK(char* buff, int iBuffLen, const char* pSrc, int iSrcLen);
 
 	/// 转换字符串中的指定所有字符
 	UTILS_API void CharConvert(char*, char s, char d);
@@ -130,6 +154,16 @@ namespace UTILS { namespace API {
 	UTILS_API int GetCurrentProcessID();
 	UTILS_API int ForceKillProcess(const char* name);
 	UTILS_API BOOL ForceKillProcess(DWORD dwPID);
+	/**
+	\brief
+		根据进程名获取所有的进程ID
+	\param lpszProName.
+		进程名.
+	\param dwPID.
+		存储进程ID的缓存区. 
+	\param iSize.
+		存储进程ID的缓存区大小. 
+	*/
 	UTILS_API int GetprocessIDs(const char* lpszProName, DWORD dwPID[], int iSize);
 
 	/**
@@ -157,6 +191,25 @@ namespace UTILS { namespace API {
 	UTILS_API bool IsPathExists(const char*);
 	UTILS_API void CreateFolders(const char*);
 	UTILS_API bool DelFolders(const char*);
+	/**
+	\brief
+		枚举目录下的文件/子目录
+
+	\param pDir.
+		指定目录.
+	\param pExt.
+		扩展名数组. 如 szExt[2][16] = {".log",".exe"} 
+	\param iExtNum
+		搜索的扩展名数量
+	\param lstDirs
+		子目录缓存区, 如果不需要,传入 nullptr
+	\param lstFiles
+		文件缓存区, 如果不需要,传入 nullptr
+	\param bRecursive
+		是否递归搜索
+	\return
+		char*
+	*/
 	UTILS_API void EnumDirectoryFiles(const char* pDir,
 		char pExt[][16],
 		int iExtNum,

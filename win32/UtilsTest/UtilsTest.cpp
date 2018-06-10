@@ -189,6 +189,23 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
 	{
+		char szStr[] = "字符集转换示例...";
+		char* pStr = szStr;
+		char buff[1024], buff2[1024];
+		int iOutIdleLen = 0, iNoConvertLen = 0;
+		std::cout << "源字符串:" << "\t" << pStr << std::endl;
+		//std::cout << strOut.capacity() <<"\t"<< strOut.max_size() << std::endl;
+		buff[0] = '\0';
+		UTILS::API::GBKToUtf8(buff, 1024, pStr, strlen(pStr)+1);
+		if (strlen(buff) > 0)
+		{
+			std::cout << "转换后字符串:" << "\t" << buff << std::endl;
+			UTILS::API::Utf8ToGBK(buff2, 1024, buff, strlen(buff)+1);
+			std::cout << "还原后字符串:" << "\t" << buff2 << std::endl;
+		}
+	}
+	std::cin.ignore();
+	{
 		char buff[1024];
 		sockaddr stUdpSrc;
 		int len = sizeof(sockaddr);
@@ -629,6 +646,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 	std::cin.ignore();
 	{
+#if 0
 		std::string str("字符集转换示例...");
 		std::string strOut, strOut2;
 		char szStr[] = "字符集转换示例...";
@@ -647,11 +665,13 @@ int _tmain(int argc, _TCHAR* argv[])
 			buff2[1024 - iOutIdleLen] = '\0';
 			std::cout << "还原后字符串:" << "\t" << buff2 << std::endl;
 		}
+#endif
 	}
 
 
 	std::cin.ignore();
 	{
+#if 0
 		char key[] = "2E3234F6591B4E69";
 		char* pkey = key;
 		char iv[] = "B91D10A7BE5B1FAB";
@@ -662,6 +682,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		int err = UTILS::API::DecryptionFile(pfile2, "x.zip", pkey, piv);
 		std::cout << "解密:" << err << std::endl;
+#endif
 	}
 
 	std::cin.ignore();

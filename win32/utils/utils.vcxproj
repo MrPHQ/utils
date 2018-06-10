@@ -105,6 +105,7 @@
     <ClInclude Include="..\..\utils\dll.h" />
     <ClInclude Include="..\..\utils\error.h" />
     <ClInclude Include="..\..\utils\file.h" />
+    <ClInclude Include="..\..\utils\LogFile.h" />
     <ClInclude Include="..\..\utils\logger.h" />
     <ClInclude Include="..\..\utils\net.h" />
     <ClInclude Include="..\..\utils\pipe.h" />
@@ -122,6 +123,7 @@
     <ClCompile Include="..\..\src\buffer.cpp" />
     <ClCompile Include="..\..\src\file.cpp" />
     <ClCompile Include="..\..\src\internal.cpp" />
+    <ClCompile Include="..\..\src\LogFile.cpp" />
     <ClCompile Include="..\..\src\logger.cpp" />
     <ClCompile Include="..\..\src\net.cpp" />
     <ClCompile Include="..\..\src\pipe.cpp" />

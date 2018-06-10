@@ -84,6 +84,9 @@
     <ClInclude Include="..\..\utils\net.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\utils\LogFile.h">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\api.cpp">
@@ -126,6 +129,9 @@
       <Filter>src\win32</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\net.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\LogFile.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
