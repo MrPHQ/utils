@@ -33,6 +33,8 @@ namespace UTILS{
 			端口
 		\param error
 			错误码
+		\return SOCKET
+			返回有效或无效套接字
 		*/
 		SOCKET OpenSocket(TRANS_PROTOCOL_TYPE nType, const char* host, unsigned short port, int* error = nullptr);
 
@@ -47,8 +49,12 @@ namespace UTILS{
 			端口
 		\param error
 			错误码
+		\param bConn
+			针对UDP有效,如果[true]与UDP服务端建立连接,[false]不建立连接
+		\return SOCKET
+			返回有效或无效套接字
 		*/
-		SOCKET ConnectSocket(TRANS_PROTOCOL_TYPE nType, const char* host, unsigned short port, int* error = nullptr);
+		SOCKET ConnectSocket(TRANS_PROTOCOL_TYPE nType, const char* host, unsigned short port, int* error = nullptr, bool bConn = true);
 
 		/*
 		@brief 复制套接字.
@@ -101,6 +107,17 @@ namespace UTILS{
 			端口
 		*/
 		int UTILS_API GetSktName(SOCKET skt, char* ip, int len, int* port);
+
+		/*
+		@brief 填充[sockaddr]结构体.
+		\param ip
+			存放IP地址的缓存区
+		\param port
+			端口
+		param addr
+			输出[sockaddr]结构体.缓存区
+		*/
+		int UTILS_API StuffSockAddr(TRANS_PROTOCOL_TYPE nType, char* ip, int port, sockaddr& addr);
 
 		namespace SELECT{
 
@@ -310,8 +327,12 @@ namespace UTILS{
 					端口
 				\param error
 					错误码
+				\param bConn
+					针对UDP有效,如果[true]与UDP服务端建立连接,[false]不建立连接
+				\return SOCKET
+					返回有效或无效套接字
 				*/
-				int ConnectSocket(TRANS_PROTOCOL_TYPE nType, const char* host, unsigned short port, int* error = nullptr);
+				int ConnectSocket(TRANS_PROTOCOL_TYPE nType, const char* host, unsigned short port, int* error = nullptr, bool bConn = true);
 
 				/*
 				@brief 关联套接字.
@@ -362,9 +383,7 @@ namespace UTILS{
 				SOCKET Accept();
 
 			};
-
-			int CloseSocket(SOCKET sock);
-			int ShutdownSocket(SOCKET sock);
+			//int ShutdownSocket(SOCKET sock);
 		}
 	}
 }

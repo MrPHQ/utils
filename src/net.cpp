@@ -11,7 +11,7 @@ std::atomic_flag lock = ATOMIC_FLAG_INIT;
 *	原子操作.
 */
 void InitSocket(){
-	if (lock.test_and_set()){
+	if (!lock.test_and_set()){
 		WSADATA wsa;
 		int ret = WSAStartup(MAKEWORD(2, 2), &wsa);
 		if (ret != 0){
@@ -60,7 +60,6 @@ namespace UTILS{
 			std::unique_ptr<ADDRINFOT, ADDRINFOT_deleter> plstAddrInfo;
 			char szPort[32];
 			_snprintf_s(szPort, _TRUNCATE, "%d", port);
-			std::string strPort = szPort;
 			int iRetVal=0;
 
 			stAddrInfoInts.ai_family = AF_INET;
@@ -80,9 +79,9 @@ namespace UTILS{
 
 			//AI_PASSIVE  - 当hostName为NULL时，给出ADDR_ANY和IN6ADDR_ANY_INIT
 			stAddrInfoInts.ai_flags = AI_PASSIVE;
-			iRetVal = GetAddrInfo(host, strPort.data(), &stAddrInfoInts, &ai);
+			iRetVal = GetAddrInfo(host, szPort, &stAddrInfoInts, &ai);
 			if (iRetVal != 0){
-				MSG_INFO("ERROR ERR:%d LINE:%d", WSAGetLastError(), __LINE__);
+				MSG_INFO("ERROR err:%d ERR:%d LINE:%d", iRetVal, WSAGetLastError(), __LINE__);
 				if (nullptr != error){
 					*error = SOCKET_ERROR;
 				}
@@ -126,14 +125,13 @@ namespace UTILS{
 			return skt;
 		}
 
-		SOCKET ConnectSocket(TRANS_PROTOCOL_TYPE nType, const char* host, unsigned short port, int* error /*= nullptr*/)
+		SOCKET ConnectSocket(TRANS_PROTOCOL_TYPE nType, const char* host, unsigned short port, int* error /*= nullptr*/, bool bConn /*= true*/)
 		{
 			ADDRINFOT stAddrInfoInts{};
 			PADDRINFOT ai = nullptr;
 			std::unique_ptr<ADDRINFOT, ADDRINFOT_deleter> plstAddrInfo;
 			char szPort[32];
 			_snprintf_s(szPort, _TRUNCATE, "%d", port);
-			std::string strPort = szPort;
 			int iRetVal = 0;
 
 			stAddrInfoInts.ai_family = AF_INET;
@@ -152,7 +150,7 @@ namespace UTILS{
 			}
 
 			stAddrInfoInts.ai_flags = AI_NUMERICSERV;
-			iRetVal = GetAddrInfo(host, strPort.data(), &stAddrInfoInts, &ai);
+			iRetVal = GetAddrInfo(host, szPort, &stAddrInfoInts, &ai);
 			if (iRetVal != 0){
 				MSG_INFO("ERROR ERR:%d LINE:%d", WSAGetLastError(), __LINE__);
 				if (nullptr != error){
@@ -175,10 +173,13 @@ namespace UTILS{
 				if (skt == INVALID_SOCKET)
 					continue;
 
+				if (!bConn){
+					break;
+				}
 				while (((iRetVal = ::connect(skt, rp->ai_addr, static_cast<int>(rp->ai_addrlen))) == SOCKET_ERROR) && (WSAGetLastError() == WSAEINTR)){
 					MSG_INFO("connect LINE:%d", __LINE__);
 				}
-				if (iRetVal != SOCKET_ERROR){
+				if (iRetVal == SOCKET_ERROR){
 					MSG_INFO("ERROR ERR:%d LINE:%d",WSAGetLastError(), __LINE__);
 					closesocket(skt);
 					if (nullptr != error){
@@ -265,9 +266,46 @@ namespace UTILS{
 				char szIP[64];
 				szIP[0] = '\0';
 				inet_ntop(AF_INET, &name.sin_addr, szIP, 64);
-				strncpy_s(ip, len - 1, szIP, min(_TRUNCATE, (len - 1 < 0 ? 0 : len - 1)));
+				if (ip != nullptr){
+					strncpy_s(ip, len - 1, szIP, min(_TRUNCATE, (len - 1 < 0 ? 0 : len - 1)));
+				}
 			}
 			return iRet;
+		}
+
+		int UTILS_API StuffSockAddr(TRANS_PROTOCOL_TYPE nType, char* ip, int port, sockaddr& addr)
+		{
+			ADDRINFOT stAddrInfoInts{};
+			PADDRINFOT ai = nullptr;
+			std::unique_ptr<ADDRINFOT, ADDRINFOT_deleter> plstAddrInfo;
+			char szPort[32];
+			_snprintf_s(szPort, _TRUNCATE, "%d", port);
+			int iRetVal = 0;
+
+			stAddrInfoInts.ai_family = AF_INET;
+			switch (nType)
+			{
+			case UTILS::NET::TRANS_PROTOCOL_TYPE_TCP:
+				stAddrInfoInts.ai_socktype = SOCK_STREAM;
+				stAddrInfoInts.ai_protocol = IPPROTO_TCP;
+				break;
+			case UTILS::NET::TRANS_PROTOCOL_TYPE_UDP:
+				stAddrInfoInts.ai_socktype = SOCK_DGRAM;
+				stAddrInfoInts.ai_protocol = IPPROTO_UDP;
+				break;
+			default:
+				return INVALID_SOCKET;
+			}
+
+			stAddrInfoInts.ai_flags = AI_PASSIVE;
+			iRetVal = GetAddrInfo(ip, szPort, &stAddrInfoInts, &ai);
+			if (iRetVal != 0){
+				MSG_INFO("ERROR err:%d ERR:%d LINE:%d", iRetVal, WSAGetLastError(), __LINE__);
+				return INVALID_SOCKET;
+			}
+
+			plstAddrInfo.reset(ai);
+			memcpy(&addr, ai->ai_addr, min(static_cast<int>(ai->ai_addrlen), sizeof(sockaddr)));
 		}
 
 		namespace SELECT{
@@ -331,12 +369,12 @@ namespace UTILS{
 						if (iRet > 0){
 							iDataLen += iRet;
 						}
-						if (iReadLen == 0){//Server CloseSocket
+						if (iRet == 0){//Server CloseSocket
 							iError = SOCKET_ERROR;
 							MSG_INFO("SOCKET err LINE:%d", __LINE__);
 							break;
 						}
-						if (iReadLen == SOCKET_ERROR){
+						if (iRet == SOCKET_ERROR){
 							int iErr = WSAGetLastError();
 							if (iErr != WSAEWOULDBLOCK){//没有数据
 								iError = SOCKET_ERROR;
@@ -761,13 +799,13 @@ namespace UTILS{
 
 			}
 
-			int CNetClient::ConnectSocket(TRANS_PROTOCOL_TYPE nType, const char* host, unsigned short port, int* error /*= nullptr*/)
+			int CNetClient::ConnectSocket(TRANS_PROTOCOL_TYPE nType, const char* host, unsigned short port, int* error /*= nullptr*/, bool bConn /*= true*/)
 			{
 				if (nType != m_nTransProType){
 					m_nTransProType = nType;
 				}
 				int iErrorCode = 0;
-				SOCKET skt = UTILS::NET::ConnectSocket(m_nTransProType, host, port, &iErrorCode);
+				SOCKET skt = UTILS::NET::ConnectSocket(m_nTransProType, host, port, &iErrorCode, bConn);
 				if (iErrorCode != 0){
 					SetErrorCode(iErrorCode, __LINE__);
 					return -1;
@@ -818,7 +856,7 @@ namespace UTILS{
 			{
 				SOCKET skt = ::accept(m_Skt, nullptr, nullptr);
 				if (skt != INVALID_SOCKET) {
-					pClientIns = new CNetClient(TRANS_PROTOCOL_TYPE_TCP);
+					pClientIns = new CNetClient(skt,TRANS_PROTOCOL_TYPE_TCP);
 					if (pClientIns == nullptr){
 						return false;
 					}
