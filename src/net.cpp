@@ -294,7 +294,7 @@ namespace UTILS{
 				stAddrInfoInts.ai_protocol = IPPROTO_UDP;
 				break;
 			default:
-				return INVALID_SOCKET;
+				return UTILS_ERROR_PAR;
 			}
 
 			stAddrInfoInts.ai_flags = AI_PASSIVE;
@@ -306,6 +306,7 @@ namespace UTILS{
 
 			plstAddrInfo.reset(ai);
 			memcpy(&addr, ai->ai_addr, min(static_cast<int>(ai->ai_addrlen), sizeof(sockaddr)));
+			return UTILS_ERROR_FAIL;
 		}
 
 		namespace SELECT{

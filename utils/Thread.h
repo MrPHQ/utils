@@ -20,8 +20,8 @@ namespace UTILS
 
 		CCritSec(CCritSec const &) = delete;
 		CCritSec(CCritSec &&) = delete;
-		CCritSec & operator = (CCritSec const &) = delete;
-		CCritSec & operator = (CCritSec &&) = delete;
+		CCritSec& operator= (CCritSec const &) = delete;
+		CCritSec& operator= (CCritSec &&) = delete;
 	public:
 #ifdef WIN32
 		CRITICAL_SECTION mutex;
@@ -35,8 +35,8 @@ namespace UTILS
 	{
 		CAutoLock(CAutoLock const &) = delete;
 		CAutoLock(CAutoLock &&) = delete;
-		CAutoLock & operator = (CAutoLock const &) = delete;
-		CAutoLock & operator = (CAutoLock &&) = delete;
+		CAutoLock& operator= (CAutoLock const &) = delete;
+		CAutoLock& operator= (CAutoLock &&) = delete;
 
 	protected:
 		UTILS::CCritSec* m_pLock;
@@ -62,8 +62,8 @@ namespace UTILS
 	{
 		CLock(CLock const &) = delete;
 		CLock(CLock &&) = delete;
-		CLock & operator = (CLock const &) = delete;
-		CLock & operator = (CLock &&) = delete;
+		CLock& operator= (CLock const &) = delete;
+		CLock& operator= (CLock &&) = delete;
 	public:
 		CLock();
 		~CLock();
@@ -115,8 +115,8 @@ namespace UTILS
 	{
 		CProcessLock(CProcessLock const &) = delete;
 		CProcessLock(CProcessLock &&) = delete;
-		CProcessLock & operator = (CProcessLock const &) = delete;
-		CProcessLock & operator = (CProcessLock &&) = delete;
+		CProcessLock& operator= (CProcessLock const &) = delete;
+		CProcessLock& operator= (CProcessLock &&) = delete;
 	public:
 		/**
 		\brief
