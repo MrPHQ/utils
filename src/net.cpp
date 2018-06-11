@@ -160,7 +160,7 @@ namespace UTILS{
 			}
 
 			plstAddrInfo.reset(ai);
-
+			iRetVal = 0;
 			SOCKET skt = INVALID_SOCKET;
 			for (ADDRINFOT * rp = ai; rp; rp = rp->ai_next)
 			{
@@ -187,7 +187,11 @@ namespace UTILS{
 					}
 					break;
 				}
-
+			}
+			if (iRetVal == 0 && skt != INVALID_SOCKET){
+				if (nullptr != error){
+					*error = 0;
+				}
 			}
 			return skt;
 		}
