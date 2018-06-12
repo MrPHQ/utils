@@ -60,7 +60,7 @@ namespace UTILS
 			if (ret) {
 				break;
 			}
-			if (abs((int)(GetTickCount() - dwCut)) >= timeout) {
+			if ((unsigned int)abs((int)(GetTickCount() - dwCut)) >= timeout) {
 				break;
 			}
 			Sleep(10);

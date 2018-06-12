@@ -99,7 +99,6 @@
     <ClInclude Include="..\..\src\internal.h" />
     <ClInclude Include="..\..\utils\api.h" />
     <ClInclude Include="..\..\utils\buff.h" />
-    <ClInclude Include="..\..\utils\buffer.h" />
     <ClInclude Include="..\..\utils\config.h" />
     <ClInclude Include="..\..\utils\ConfigFile.h" />
     <ClInclude Include="..\..\utils\define.h" />
@@ -113,7 +112,6 @@
     <ClInclude Include="..\..\utils\service.h" />
     <ClInclude Include="..\..\utils\ShareMemory.h" />
     <ClInclude Include="..\..\utils\Singleton.h" />
-    <ClInclude Include="..\..\utils\socket.h" />
     <ClInclude Include="..\..\utils\Thread.h" />
     <ClInclude Include="..\..\utils\Time.h" />
     <ClInclude Include="..\..\utils\utils.h" />
@@ -122,7 +120,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\api.cpp" />
     <ClCompile Include="..\..\src\buff.cpp" />
-    <ClCompile Include="..\..\src\buffer.cpp" />
     <ClCompile Include="..\..\src\file.cpp" />
     <ClCompile Include="..\..\src\internal.cpp" />
     <ClCompile Include="..\..\src\LogFile.cpp" />
@@ -130,7 +127,6 @@
     <ClCompile Include="..\..\src\net.cpp" />
     <ClCompile Include="..\..\src\pipe.cpp" />
     <ClCompile Include="..\..\src\service.cpp" />
-    <ClCompile Include="..\..\src\socket.cpp" />
     <ClCompile Include="..\..\src\Thread.cpp" />
     <ClCompile Include="..\..\src\Time.cpp" />
     <ClCompile Include="..\..\src\utils.cpp" />

@@ -343,10 +343,6 @@ namespace UTILS{
 							break;
 						}
 					}
-					if (abs((int)(GetTickCount() - dwTimeOut)) >= (int)uiTimeOut){
-						//超时退出
-						break;
-					}
 
 					if (!bRecvData){
 						FD_ZERO(&fdRead);
@@ -355,7 +351,7 @@ namespace UTILS{
 						FD_SET(skt, &fdExcep);
 
 						stTimeOut.tv_sec = 0;
-						stTimeOut.tv_usec = 100000;
+						stTimeOut.tv_usec = 10000;
 						iRet = select(-1, &fdRead, NULL, &fdExcep, &stTimeOut);
 						if (iRet > 0){
 							iRet = FD_ISSET(skt, &fdExcep);
@@ -392,6 +388,11 @@ namespace UTILS{
 						}
 					}
 
+					if ((!bRecvData) && abs((int)(GetTickCount() - dwTimeOut)) >= (int)uiTimeOut){
+						//超时退出
+						break;
+					}
+
 				} while (iDataLen < iBuffLen);
 				if (nullptr != error){
 					*error = iError;
@@ -416,10 +417,7 @@ namespace UTILS{
 						//读取到数据直接返回.
 						break;
 					}
-					if (abs((int)(GetTickCount() - dwTimeOut)) >= (int)uiTimeOut){
-						//超时退出
-						break;
-					}
+
 					if (!bRecvData){
 						FD_ZERO(&fdRead);
 						FD_ZERO(&fdExcep);
@@ -427,7 +425,7 @@ namespace UTILS{
 						FD_SET(skt, &fdExcep);
 
 						stTimeOut.tv_sec = 0;
-						stTimeOut.tv_usec = 100000;
+						stTimeOut.tv_usec = 10000;
 						iRet = select(-1, &fdRead, NULL, &fdExcep, &stTimeOut);
 						if (iRet > 0){
 							iRet = FD_ISSET(skt, &fdExcep);
@@ -463,6 +461,10 @@ namespace UTILS{
 							}
 						}
 					}
+					if ((!bRecvData) && abs((int)(GetTickCount() - dwTimeOut)) >= (int)uiTimeOut){
+						//超时退出
+						break;
+					}
 
 				} while (iDataLen < iBuffLen);
 				if (nullptr != error){
@@ -488,10 +490,6 @@ namespace UTILS{
 						//数据发送完成.
 						break;
 					}
-					if (abs((int)(GetTickCount() - dwTimeOut)) >= (int)uiTimeOut){
-						//超时退出
-						break;
-					}
 
 					if (!bSendData){
 						FD_ZERO(&fdWrite);
@@ -500,7 +498,7 @@ namespace UTILS{
 						FD_SET(skt, &fdExcep);
 
 						stTimeOut.tv_sec = 0;
-						stTimeOut.tv_usec = 100000;
+						stTimeOut.tv_usec = 10000;
 						int iRet = select(-1, NULL, &fdWrite, &fdExcep, &stTimeOut);
 						if (iRet > 0){
 							iRet = FD_ISSET(skt, &fdExcep);
@@ -532,6 +530,10 @@ namespace UTILS{
 						}
 					}
 
+					if ((!bSendData) && abs((int)(GetTickCount() - dwTimeOut)) >= (int)uiTimeOut){
+						//超时退出
+						break;
+					}
 				} while (iSendLen < iBuffLen);
 				if (nullptr != error){
 					*error = iError;
@@ -556,10 +558,6 @@ namespace UTILS{
 						//数据发送完成.
 						break;
 					}
-					if (abs((int)(GetTickCount() - dwTimeOut)) >= (int)uiTimeOut){
-						//超时退出
-						break;
-					}
 
 					if (!bSendData){
 						FD_ZERO(&fdWrite);
@@ -568,7 +566,7 @@ namespace UTILS{
 						FD_SET(skt, &fdExcep);
 
 						stTimeOut.tv_sec = 0;
-						stTimeOut.tv_usec = 100000;
+						stTimeOut.tv_usec = 10000;
 						int iRet = select(-1, NULL, &fdWrite, &fdExcep, &stTimeOut);
 						if (iRet > 0){
 							iRet = FD_ISSET(skt, &fdExcep);
@@ -598,6 +596,10 @@ namespace UTILS{
 								break;
 							}
 						}
+					}
+					if ((!bSendData) && abs((int)(GetTickCount() - dwTimeOut)) >= (int)uiTimeOut){
+						//超时退出
+						break;
 					}
 
 				} while (iSendLen < iBuffLen);
@@ -644,7 +646,7 @@ namespace UTILS{
 
 			bool CNet::IsError() const
 			{
-				return m_ErrorCode != 0;
+				return (m_ErrorCode != 0) || (m_Skt == INVALID_SOCKET);
 			}
 
 			int CNet::SetSktOpt(int level, int optname, const char* optval, int optlen)

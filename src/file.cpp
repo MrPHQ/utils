@@ -209,7 +209,7 @@ namespace UTILS
 			return UTILS_ERROR_FAIL;
 		}
 		if (pDataLen != nullptr) {
-			*pDataLen = m_file.gcount();
+			*pDataLen = (int)m_file.gcount();
 		}
 		return UTILS_ERROR_SUCCESS;
 	}

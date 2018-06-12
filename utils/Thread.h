@@ -54,9 +54,8 @@ namespace UTILS
 	};
 
 	/**
-	\brief
-		CLock class.
-		多线程锁, [mutex] + [condition_variable]
+	\brief 多线程锁.
+		[mutex] + [condition_variable]
 	*/
 	class UTILS_API CLock
 	{
@@ -68,48 +67,88 @@ namespace UTILS
 		CLock();
 		~CLock();
 	private:
+		/** 互斥对象*/
 		std::mutex _mtx;
+		/** 条件变量*/
 		std::condition_variable _cv;
-		/// 正在使用,其他线程不允许使用.
+		/** 某个线程正在使用*/
 		bool _using;
-		/// 等待答复
+		/** 等待答复*/
 		bool _ack;
+		/** 自定义数据*/
+		struct{
+			BYTE* buff;
+			int len;
+		}_context;
 	public:
 		/**
-		\brief
-			手动加锁
+		\brief 手动加锁.
+			内部会判断[_using]标识,如果true,则返回失败.
 		*/
 		bool Lock();
 		/**
-		\brief
-			手动释放锁
+		\brief 手动释放锁.
 		*/
 		void UnLock();
 		/**
-		\brief
-			等待其他线程处理结果
+		\brief 等待其他线程处理结果.
+			内部是调用条件变量 _cv.wait_for
+		\param mt
+			必须是同一实例的 [_mtx]
 		\param uiTimeOut
 			等待时间(毫秒).
 		\return bool
 			被激活返回 true ，超时或其他情况返回 false
 		*/
-		bool WaitAck(std::unique_lock<std::mutex>&, unsigned int uiTimeOut);
+		bool WaitAck(std::unique_lock<std::mutex>& mt, unsigned int uiTimeOut);
 		/**
-		\brief
-			其他线程处理完成
+		\brief 其他线程处理完成.
+			触发条件变量条件满足
 		*/
 		void Ack();
 		/**
-		\brief
-			获取互斥对象
+		\brief 获取互斥对象.
 		*/
 		std::mutex& GetMutex() { return _mtx; }
+		/**
+		\brief 判断其他线程是否已经锁定互斥对象.
+		*/
+		bool IsBusy() const { return _using; }
+		/**
+		\brief 复位自定义数据缓存区.
+		*/
+		void ResetContextData() { 
+			_context.buff = nullptr; 
+			_context.len = 0;
+		}
+		/**
+		\brief 设置自定义数据.
+		\param buff
+			数据缓存区
+		\param len
+			数据缓存区大小
+		*/
+		void SetContextData(BYTE* buff, int len) {
+			_context.buff = buff;
+			_context.len = len;
+		}
+		/**
+		\brief 拷贝数据.
+		\param buff
+			数据指针
+		\param len
+			数据大小
+		*/
+		void PutContextData(BYTE* buff, int len) {
+			if (_context.buff != nullptr && (buff != nullptr)){
+				memcpy(_context.buff, buff, min(len, _context.len));
+			}
+		}
 	};
 
 	/**
-	\brief
-		CProcessLock class.
-		多进程锁, [mutex] + [condition_variable]
+	\brief 多进程锁.
+		[互斥量] + [事件]
 	*/
 	class UTILS_API CProcessLock
 	{
@@ -119,25 +158,21 @@ namespace UTILS
 		CProcessLock& operator= (CProcessLock &&) = delete;
 	public:
 		/**
-		\brief
-			构造函数
+		\brief 构造函数.
 		\param 
 		*/
 		CProcessLock();
 		~CProcessLock();
 		/**
-		\brief
-			初始化
+		\brief 初始化.
 		*/
 		bool Init(const char* lpMutex = nullptr, const char* lpEvent = nullptr);
 		/**
-		\brief
-			手动加锁
+		\brief 手动加锁.
 		*/
 		bool Lock();
 		/**
-		\brief
-			手动加锁,等待超时时间
+		\brief 手动加锁,等待超时时间.
 		\param uiTimeOut
 			等待时间(毫秒).
 		\return bool
@@ -145,13 +180,11 @@ namespace UTILS
 		*/
 		bool WaitLock(unsigned int uiTimeOut);
 		/**
-		\brief
-			手动释放锁
+		\brief 手动释放锁.
 		*/
 		bool UnLock();
 		/**
-		\brief
-			等待其他进程处理结果
+		\brief 等待其他进程处理结果.
 		\param uiTimeOut
 			等待时间(毫秒).
 		\return bool
@@ -159,8 +192,7 @@ namespace UTILS
 		*/
 		bool WaitAck(unsigned int uiTimeOut);
 		/**
-		\brief
-			其他进程处理完成
+		\brief 其他进程处理完成.
 		*/
 		void Ack();
 	private:

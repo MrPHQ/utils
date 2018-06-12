@@ -27,9 +27,6 @@
     <ClInclude Include="..\..\utils\api.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\utils\buffer.h">
-      <Filter>utils</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\utils\config.h">
       <Filter>utils</Filter>
     </ClInclude>
@@ -63,9 +60,6 @@
     <ClInclude Include="..\..\utils\Singleton.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\utils\socket.h">
-      <Filter>utils</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\utils\Thread.h">
       <Filter>utils</Filter>
     </ClInclude>
@@ -95,9 +89,6 @@
     <ClCompile Include="..\..\src\api.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\buffer.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\file.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -111,9 +102,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\service.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\socket.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Thread.cpp">

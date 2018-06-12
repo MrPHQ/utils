@@ -123,7 +123,7 @@ namespace UTILS{
 
 			/*
 			@brief 从TCP协议套接字上读取数据.
-				最小超时时间 100毫秒
+				最小超时时间 10毫秒
 			\param skt
 				有效的套接字
 			\param pBuff
@@ -135,13 +135,13 @@ namespace UTILS{
 			\param error
 				输出错误码
 			\param uiTimeOut
-				超时时间
+				超时时间, =0,也会保证[select]检测一次
 			\return 读取的数据大小
 			*/
 			unsigned int ReadFromTcp(SOCKET skt, char* pBuff, int iBuffLen, const int iReadLen = 0, int* error = nullptr, unsigned int uiTimeOut = 5000);
 			/*
 			@brief 从UDP协议套接字上读取数据.
-				最小超时时间 100毫秒
+				最小超时时间 10毫秒
 			\param skt
 				有效的套接字
 			\param pBuff
@@ -155,13 +155,13 @@ namespace UTILS{
 			\param error
 				输出错误码
 			\param uiTimeOut
-				超时时间
+				超时时间,=0,也会保证[select]检测一次
 			\return 读取的数据大小
 			*/
 			unsigned int ReadFromUdp(SOCKET skt, char* pBuff, int iBuffLen, struct sockaddr& from, int fromlen, int* error = nullptr, unsigned int uiTimeOut = 5000);
 			/*
 			@brief 从TCP协议套接字上写入数据.
-				最小超时时间 100毫秒
+				最小超时时间 10毫秒
 			\param skt
 				有效的套接字
 			\param pBuff
@@ -171,13 +171,13 @@ namespace UTILS{
 			\param error
 				输出错误码
 			\param uiTimeOut
-				超时时间
+				超时时间,=0,也会保证[select]检测一次
 			\return 写入的数据大小
 			*/
 			unsigned int WriteFromTcp(SOCKET skt, const char* pBuff, int iBuffLen, int* error = nullptr, unsigned int uiTimeOut = 5000);
 			/*
 			@brief 从UDP协议套接字上写入数据.
-				最小超时时间 100毫秒
+				最小超时时间 10毫秒
 			\param skt
 				有效的套接字
 			\param pBuff
@@ -191,7 +191,7 @@ namespace UTILS{
 			\param error
 				输出错误码
 			\param uiTimeOut
-				超时时间
+				超时时间,=0,也会保证[select]检测一次
 			\return 写入的数据大小
 			*/
 			unsigned int WriteFromUDP(SOCKET skt, const char* pBuff, int iBuffLen, struct sockaddr& to, int tolen, int* error = nullptr, unsigned int uiTimeOut = 5000);
@@ -285,6 +285,11 @@ namespace UTILS{
 				*/
 				int SetSktReuseAddr(bool bReuse);
 
+				/*
+				@brief 读写数据..
+				\param uiTimeOut
+					超时时间,=0,也会保证[select]检测一次
+				*/
 				unsigned int Read(char* pBuff, int iBuffLen, const int iReadLen = 0, unsigned int uiTimeOut = 5000);
 				unsigned int Read(char* pBuff, int iBuffLen, struct sockaddr& from, int fromlen, unsigned int uiTimeOut = 5000);
 				unsigned int Write(const char* pBuff, int iBuffLen, unsigned int uiTimeOut = 5000);

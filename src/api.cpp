@@ -309,7 +309,7 @@ namespace UTILS {namespace API {
 		DWORD dwExitCode;
 		char szProName[128] , szModuleName[128];
 		Sprintf(szProName, sizeof(szProName), "%s", name);
-		Transform(szProName, 128);
+		Transform(szProName);
 
 		hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 		if (INVALID_HANDLE_VALUE == hSnapshot)
@@ -1282,13 +1282,13 @@ namespace UTILS {namespace API {
 		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 		osvi.dwMajorVersion = dwMajorVersion;
 		osvi.dwMinorVersion = dwMinorVersion;
-		osvi.wProductType = wProductType;
+		osvi.wProductType = (BYTE)wProductType;
 
 		// Initialize the condition mask.
 
-		VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, op);
-		VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, op);
-		VER_SET_CONDITION(dwlConditionMask, VER_PRODUCT_TYPE, op);
+		VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, (BYTE)op);
+		VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, (BYTE)op);
+		VER_SET_CONDITION(dwlConditionMask, VER_PRODUCT_TYPE, (BYTE)op);
 
 		// Perform the test.
 
@@ -1999,7 +1999,7 @@ namespace UTILS {namespace API {
 		{
 			strncat_s(buff, len, v.at(i).data(), min(len - 1 - strlen(buff), v.at(i).length()));
 			if (i + 1 < iCnt){
-				strncat_s(buff, len, to, min(len - 1 - strlen(buff), toLen));
+				strncat_s(buff, len, to, min((int)(len - 1 - strlen(buff)), toLen));
 			}
 		}
 	}
@@ -2065,7 +2065,7 @@ namespace UTILS {namespace API {
 			}
 			if (!bFind && strlen(strToken) > 0){
 				if (iIdx == index){
-					strncpy_s(buff, bufflen, strToken, min(bufflen - 1, strlen(strToken)));
+					strncpy_s(buff, bufflen, strToken, min((int)(bufflen - 1), (int)strlen(strToken)));
 				}
 			}
 		}
@@ -2235,13 +2235,13 @@ namespace UTILS {namespace API {
 		dwPar = dwVal;
 		dwPar <<= 1;
 		dwPar >>= 24;
-		exp = dwPar - 127;
-		exp = pow(2, exp);
+		exp = (float)(dwPar - 127);
+		exp = (float)pow(2, exp);
 
 		//ÇóÎ²Âë
 		for (int i = 1; i < 24; i++)
 		{
-			mantissa += GetBit(dwVal, i)* pow(2, 0 - (24 - i));
+			mantissa += (float)(GetBit(dwVal, i)* pow(2, 0 - (24 - i)));
 		}
 		return sign * exp * mantissa;
 	}

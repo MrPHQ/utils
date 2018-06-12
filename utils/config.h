@@ -35,7 +35,8 @@
 #include <vector>
 #include <condition_variable>
 #include <mutex>
-
+#pragma warning( disable: 4251 )
+#pragma warning( disable: 4819 )
 #else //linux相关
 
 #include <stdio.h>

@@ -9,7 +9,7 @@ namespace UTILS
 	typedef struct _FILE_PROPERTY
 	{
 		int iSize;
-		_off_t st_size; //文件字节数  
+		LONGLONG st_size; //文件字节数  
 		time_t st_atime; //上次访问时间  
 		time_t st_mtime; //上次修改时间  
 		time_t st_ctime; //创建时间  
