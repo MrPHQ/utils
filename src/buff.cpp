@@ -22,6 +22,7 @@ namespace UTILS
 		{
 			_temp_buffer._buffer = nullptr;
 			_temp_buffer._size = 0;
+			_InitLock();
 		}
 		CRingBuffer::CRingBuffer(size_t uiCapacity)
 			: _size(0)
@@ -31,6 +32,18 @@ namespace UTILS
 		{
 			_temp_buffer._buffer = nullptr;
 			_temp_buffer._size = 0;
+			_InitLock();
+			Init(uiCapacity);
+		}
+
+		CRingBuffer::~CRingBuffer()
+		{
+			UnInit();
+			_UnInitLock();
+		}
+
+		void CRingBuffer::_InitLock()
+		{
 #ifdef _WIN32
 			InitializeCriticalSection(&_lock);
 #else
@@ -38,12 +51,10 @@ namespace UTILS
 			pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE_NP);
 			pthread_mutex_init(&mutex, &mutex_attr);
 #endif
-			Init(uiCapacity);
 		}
 
-		CRingBuffer::~CRingBuffer()
+		void CRingBuffer::_UnInitLock()
 		{
-			UnInit();
 #ifdef _WIN32
 			DeleteCriticalSection(&_lock);
 #else
@@ -90,6 +101,9 @@ namespace UTILS
 		}
 
 		size_t CRingBuffer::Size() {
+			if (!_init) {
+				return 0;
+			}
 			uint32_t len = 0;
 			
 #ifdef _WIN32
@@ -107,6 +121,9 @@ namespace UTILS
 		}
 
 		size_t CRingBuffer::Space() {
+			if (!_init) {
+				return 0;
+			}
 			uint32_t len = 0;
 #ifdef _WIN32
 			EnterCriticalSection(&_lock);
@@ -138,6 +155,9 @@ namespace UTILS
 		}
 
 		void CRingBuffer::Write(size_t size) {
+			if (!_init) {
+				return;
+			}
 #ifdef _WIN32
 			EnterCriticalSection(&_lock);
 #else
@@ -152,6 +172,9 @@ namespace UTILS
 		}
 		size_t CRingBuffer::Write(const char *data, size_t bytesWriteOfNumber)
 		{
+			if (!_init) {
+				return 0;
+			}
 			uint32_t ret;
 #ifdef _WIN32
 			EnterCriticalSection(&_lock);
@@ -169,6 +192,9 @@ namespace UTILS
 
 		size_t CRingBuffer::Read(char *data, size_t bytesReadOfNumber)
 		{
+			if (!_init) {
+				return 0;
+			}
 			uint32_t ret;
 #ifdef _WIN32
 			EnterCriticalSection(&_lock);
@@ -189,6 +215,9 @@ namespace UTILS
 
 		size_t CRingBuffer::ReadEx(char*& buff, size_t bytesReadOfNumber)
 		{
+			if (!_init) {
+				return 0;
+			}
 			uint32_t ret;
 #ifdef _WIN32
 			EnterCriticalSection(&_lock);

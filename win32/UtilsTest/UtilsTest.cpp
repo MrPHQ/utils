@@ -189,6 +189,79 @@ UTILS::CProcessLock lock;
 int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
+	{// tcp
+		UTILS::NET::SELECT::CNetServer cNetServer;
+		int err = cNetServer.OpenSocket(UTILS::NET::TRANS_PROTOCOL_TYPE_TCP, nullptr, 9898);
+		if (err != 0 || cNetServer.IsError() || !cNetServer.IsValidSkt()){
+			std::cout << "OpenSocket err" << std::endl;
+			return -1;
+		}
+		cNetServer.SetSktNoBlock();
+		cNetServer.SetTcpNoDelay();
+		cNetServer.SetSktReuseAddr(true);
+		UTILS::NET::SELECT::CNetClient* pNetClient = nullptr;
+		std::thread clt([](){
+			Sleep(3000);
+			UTILS::NET::SELECT::CNetClient clt;
+
+			clt.ConnectSocket(UTILS::NET::TRANS_PROTOCOL_TYPE_TCP, "127.0.0.1", 9898);
+			clt.SetSktNoBlock();
+			if (!clt.IsError() && clt.IsValidSkt()) {
+				std::cout << "链接成功." << std::endl;
+				std::string str;
+				char buff[1024];
+				int len = 0;
+
+				while (true)
+				{
+					str = "";
+					std::cout << "输入:" << std::endl;
+					std::cin >> str;
+
+					if (str.length()) {
+						len = clt.Write((const char*)str.data(), str.length(), 2000);
+						std::cout << "w:" << len << std::endl;
+					}
+
+					len = clt.Read(buff, 1024, 0, 2000);
+					if (len > 0) {
+						buff[len] = '\0';
+						std::cout << "客户端接收到数据:" << buff << std::endl;
+					}
+				}
+			}
+			else {
+				std::cout << "链接失败." << std::endl;
+			}
+		});
+		while (true)
+		{
+			if (cNetServer.Accept(pNetClient)){
+				pNetClient->SetSktNoBlock();
+				new std::thread([](UTILS::NET::SELECT::CNetClient*& skt){
+					char szData[1024];
+					int len = 0;
+					while (true)
+					{
+						szData[0] = '\0';
+						len = skt->Read(szData, 1024);
+						if (len <= 0) {
+							continue;
+						}
+						szData[len] = '\0';
+						std::cout << szData << std::endl;
+
+						strncat_s(szData, _TRUNCATE, "—SERVER", _TRUNCATE);
+						skt->Write(szData, strlen(szData), 2000);
+					}
+				}, std::ref(pNetClient));
+			}
+			else{
+				Sleep(10);
+			}
+		}
+	}
+	std::cin.ignore();
 	{
 		uint8_t output[512] = { 0 };
 		uint8_t data[256] = { 0 };
@@ -308,79 +381,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	}
 
-	std::cin.ignore();
-	{
-		UTILS::NET::SELECT::CNetServer cNetServer;
-		int err = cNetServer.OpenSocket(UTILS::NET::TRANS_PROTOCOL_TYPE_TCP, nullptr, 9898);
-		if (err != 0 || cNetServer.IsError() || !cNetServer.IsValidSkt()){
-			std::cout << "OpenSocket err" << std::endl;
-			return -1;
-		}
-		cNetServer.SetSktNoBlock();
-		cNetServer.SetTcpNoDelay();
-		cNetServer.SetSktReuseAddr(true);
-		UTILS::NET::SELECT::CNetClient* pNetClient = nullptr;
-		std::thread clt([](){
-			Sleep(3000);
-			UTILS::NET::SELECT::CNetClient clt;
-
-			clt.ConnectSocket(UTILS::NET::TRANS_PROTOCOL_TYPE_TCP, "127.0.0.1", 9898);
-			clt.SetSktNoBlock();
-			if (!clt.IsError() && clt.IsValidSkt()) {
-				std::cout << "链接成功." << std::endl;
-				std::string str;
-				char buff[1024];
-				int len = 0;
-
-				while (true)
-				{
-					str = "";
-					std::cout << "输入:" << std::endl;
-					std::cin >> str;
-
-					if (str.length()) {
-						len = clt.Write((const char*)str.data(), str.length(),2000);
-						std::cout << "w:" << len << std::endl;
-					}
-
-					len = clt.Read(buff, 1024,0, 2000);
-					if (len > 0) {
-						buff[len] = '\0';
-						std::cout << "客户端接收到数据:" << buff << std::endl;
-					}
-				}
-			}
-			else {
-				std::cout << "链接失败." << std::endl;
-			}
-		});
-		while (true)
-		{
-			if (cNetServer.Accept(pNetClient)){
-				pNetClient->SetSktNoBlock();
-				new std::thread([](UTILS::NET::SELECT::CNetClient*& skt){
-					char szData[1024];
-					int len = 0;
-					while (true)
-					{
-						szData[0] = '\0';
-						len = skt->Read(szData, 1024);
-						if (len <= 0) {
-							continue;
-						}
-						szData[len] = '\0';
-						std::cout << szData << std::endl;
-
-						strncat_s(szData, _TRUNCATE, "—SERVER", _TRUNCATE);
-						skt->Write(szData, strlen(szData), 2000);
-					}
-				}, std::ref(pNetClient));
-			}
-			else{
-				Sleep(10);
-			}
-		}
-	}
 	std::cin.ignore();
 	{
 		lock.Init(TEST_MUTEX, TEST_EVENT);

@@ -146,6 +146,7 @@ namespace UTILS{
 				stAddrInfoInts.ai_protocol = IPPROTO_UDP;
 				break;
 			default:
+				MSG_INFO("ERROR LINE:%d", __LINE__);
 				return INVALID_SOCKET;
 			}
 
@@ -188,10 +189,13 @@ namespace UTILS{
 					break;
 				}
 			}
-			if (iRetVal == 0 && skt != INVALID_SOCKET){
+			if ((iRetVal == 0) && (skt != INVALID_SOCKET)){
 				if (nullptr != error){
 					*error = 0;
 				}
+			}
+			else{
+				MSG_INFO("ERROR ERR:%d LINE:%d", WSAGetLastError(), __LINE__);
 			}
 			return skt;
 		}
@@ -322,7 +326,6 @@ namespace UTILS{
 				DWORD dwTimeOut = GetTickCount();
 				fd_set fdRead, fdExcep;
 				struct timeval stTimeOut;
-
 				if (nullptr == pBuff || iBuffLen <= 0){
 					return UTILS_ERROR_PAR;
 				}
@@ -662,7 +665,9 @@ namespace UTILS{
 			void CNet::SetErrorCode(int iErrorCode, int line)
 			{
 				m_ErrorCode = iErrorCode;
-				MSG_INFO("SOCKET err:%d win.err:%d LINE:%d", m_ErrorCode, WSAGetLastError(), line);
+				if (m_ErrorCode != 0){
+					MSG_INFO("SOCKET err:%d win.err:%d LINE:%d", m_ErrorCode, WSAGetLastError(), line);
+				}
 			}
 
 			int CNet::SetSktNoBlock()
@@ -785,7 +790,7 @@ namespace UTILS{
 			}
 
 
-			CNetClient::CNetClient(){
+			CNetClient::CNetClient():CNet(){
 
 			}
 			CNetClient::CNetClient(UTILS::NET::TRANS_PROTOCOL_TYPE nType)
@@ -809,6 +814,7 @@ namespace UTILS{
 				if (nType != m_nTransProType){
 					m_nTransProType = nType;
 				}
+				SetErrorCode(0,__LINE__);
 				int iErrorCode = 0;
 				SOCKET skt = UTILS::NET::ConnectSocket(m_nTransProType, host, port, &iErrorCode, bConn);
 				if (iErrorCode != 0){
@@ -821,6 +827,7 @@ namespace UTILS{
 
 			void CNetClient::Attach(SOCKET skt)
 			{
+				SetErrorCode(0, __LINE__);
 				m_nTransProType = TRANS_PROTOCOL_TYPE_TCP;
 				if (m_Skt != INVALID_SOCKET){
 					Close();
@@ -828,7 +835,7 @@ namespace UTILS{
 				m_Skt = skt;
 			}
 
-			CNetServer::CNetServer(){
+			CNetServer::CNetServer() :CNet(){
 
 			}
 			CNetServer::CNetServer(UTILS::NET::TRANS_PROTOCOL_TYPE nType)
@@ -847,6 +854,7 @@ namespace UTILS{
 				if (nType != m_nTransProType){
 					m_nTransProType = nType;
 				}
+				SetErrorCode(0, __LINE__);
 				int iErrorCode = 0;
 				SOCKET skt = UTILS::NET::OpenSocket(m_nTransProType, host, port, &iErrorCode);
 				if (iErrorCode != 0){
