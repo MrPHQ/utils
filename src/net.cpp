@@ -200,7 +200,7 @@ namespace UTILS{
 			return skt;
 		}
 		
-		int DuplicateSocket(SOCKET iSocket, DWORD pid, BYTE* pProtocolInfo, int iBuffLen, int* pDataLen) {
+		int UTILS_API DuplicateSocket(SOCKET iSocket, DWORD pid, BYTE* pProtocolInfo, int iBuffLen, int* pDataLen) {
 #ifdef WIN32
 			WSAPROTOCOL_INFO info = { 0 };
 			int err = ::WSADuplicateSocket(iSocket, pid, &info);
@@ -219,7 +219,7 @@ namespace UTILS{
 #endif
 		}
 
-		int CreateSocketFromDuplicate(BYTE* pProtocolInfo, int iDataLen, SOCKET& skt)
+		int UTILS_API CreateSocketFromDuplicate(BYTE* pProtocolInfo, int iDataLen, SOCKET& skt)
 		{
 #ifdef WIN32
 			if (NULL == pProtocolInfo){
@@ -239,7 +239,7 @@ namespace UTILS{
 #endif
 		}
 
-		int GetSktPeerInfo(SOCKET skt, char* ip, int len, int* port)
+		int UTILS_API GetSktPeerInfo(SOCKET skt, char* ip, int len, int* port)
 		{
 			int iRet, iLen;
 			struct sockaddr_in name;
@@ -260,7 +260,7 @@ namespace UTILS{
 			return iRet;
 		}
 
-		int GetSktName(SOCKET skt, char* ip, int len, int* port)
+		int UTILS_API GetSktName(SOCKET skt, char* ip, int len, int* port)
 		{
 			int iRet, iLen;
 			struct sockaddr_in name;
@@ -279,6 +279,21 @@ namespace UTILS{
 				}
 			}
 			return iRet;
+		}
+
+		int UTILS_API GetSktNameEx(sockaddr& addr, char* ip, int len, int* port)
+		{
+			sockaddr_in* pInfo = (sockaddr_in*)&addr;
+			if (port != NULL){
+				*port = ntohs(pInfo->sin_port);
+			}
+			char szIP[64];
+			szIP[0] = '\0';
+			inet_ntop(AF_INET, &pInfo->sin_addr, szIP, 64);
+			if (ip != nullptr){
+				strncpy_s(ip, len - 1, szIP, min(_TRUNCATE, (len - 1 < 0 ? 0 : len - 1)));
+			}
+			return 0;
 		}
 
 		int UTILS_API StuffSockAddr(TRANS_PROTOCOL_TYPE nType, char* ip, int port, sockaddr& addr)
@@ -649,6 +664,11 @@ namespace UTILS{
 				return (m_ErrorCode != 0) || (m_Skt == INVALID_SOCKET);
 			}
 
+			UTILS::NET::TRANS_PROTOCOL_TYPE CNet::GetTransProtocol() const
+			{
+				return m_nTransProType;
+			}
+
 			int CNet::SetSktOpt(int level, int optname, const char* optval, int optlen)
 			{
 				return setsockopt(m_Skt, level, optname, optval, optlen);
@@ -747,9 +767,7 @@ namespace UTILS{
 					break;
 				case UTILS::NET::TRANS_PROTOCOL_TYPE_UDP:{
 					struct sockaddr stAddr;
-					if (GetPeerAddrInfo(stAddr) == 0){
-						iError = ReadFromUdp(m_Skt, pBuff, iBuffLen, stAddr, sizeof(struct sockaddr), &iErrorCode, uiTimeOut);
-					}
+					iError = ReadFromUdp(m_Skt, pBuff, iBuffLen, stAddr, sizeof(struct sockaddr), &iErrorCode, uiTimeOut);
 				}
 					break;
 				default:
@@ -761,7 +779,7 @@ namespace UTILS{
 				return iError;
 			}
 
-			unsigned int CNet::Read(char* pBuff, int iBuffLen, struct sockaddr& from, int fromlen, unsigned int uiTimeOut /*= 5000*/)
+			unsigned int CNet::ReadFromUDP(char* pBuff, int iBuffLen, struct sockaddr& from, int fromlen, unsigned int uiTimeOut /*= 5000*/)
 			{
 				int iErrorCode = 0;
 				int err = ReadFromUdp(m_Skt, pBuff, iBuffLen, from, fromlen, &iErrorCode, uiTimeOut);
@@ -781,7 +799,7 @@ namespace UTILS{
 				return len;
 			}
 
-			unsigned int CNet::Write(const char* pBuff, int iBuffLen, struct sockaddr& to, int tolen, unsigned int uiTimeOut /*= 5000*/)
+			unsigned int CNet::WriteToUDP(const char* pBuff, int iBuffLen, struct sockaddr& to, int tolen, unsigned int uiTimeOut /*= 5000*/)
 			{
 				int iErrorCode = 0;
 				unsigned int len = WriteFromUDP(m_Skt, pBuff, iBuffLen, to, tolen, &iErrorCode, uiTimeOut);

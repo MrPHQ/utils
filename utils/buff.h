@@ -59,13 +59,7 @@ namespace UTILS
 			@brief 获取缓存区数据结束位置..
 			\return [ptr]
 			*/
-			const char* GetDataEnd() const {
-				char log[64];
-				OutputDebugString("xxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-				_snprintf_s(log, _TRUNCATE, ".............:%d %d", _buffer, _in);
-				OutputDebugString(log);
-				return _buffer + _in; 
-			}
+			const char* GetDataEnd() const {return _buffer + _in; }
 
 			/*
 			@brief 获取缓存区大小..

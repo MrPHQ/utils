@@ -144,6 +144,13 @@ namespace UTILS
 				memcpy(_context.buff, buff, min(len, _context.len));
 			}
 		}
+
+		/**
+		\brief 获取自定义数据.
+		*/
+		BYTE* GutContextData() {
+			return _context.buff;
+		}
 	};
 
 	/**
