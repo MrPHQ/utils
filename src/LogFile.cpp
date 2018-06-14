@@ -84,13 +84,16 @@ public:
 						if (pBuff == nullptr){
 							break;
 						}
-
 						iDataLen = m_WriteThread.ReadData(pBuff, iBuffLen);
 						if (iDataLen <= 0){
 							break;
 						}
-						m_logfile.Write((const char*)pBuff, iDataLen);
+						pBuff[min(iBuffLen-1, iDataLen)] = '\0';
+						//m_logfile.Write((const char*)pBuff, iDataLen);
+						m_logfile.PutLine((const char*)pBuff, iDataLen);
 					} while (pBuff != nullptr);
+					//Ë¢ÐÂ.
+					m_logfile.Flush();
 				}
 				if ((iBuffLen > 1024 * 4) && (pBuff != nullptr)){
 					delete[] pBuff;
@@ -147,7 +150,8 @@ public:
 			break;
 		case UTILS::LOG_FILE_MODE_SYNC:
 			if (p != nullptr){
-				m_logfile.Write(p, iLogLen);
+				//m_logfile.Write(p, iLogLen);
+				m_logfile.PutLine(p, iLogLen);
 			}
 			if (IsCheck())
 			{
@@ -221,7 +225,8 @@ public:
 			if (iDataLen <= 0){
 				break;
 			}
-			m_logfile.Write((const char*)pBuff, iDataLen);
+			//m_logfile.Write((const char*)pBuff, iDataLen);
+			m_logfile.PutLine((const char*)pBuff, iDataLen);
 		} while (pBuff != nullptr);
 		if ((iBuffLen > 1024 * 4) && (pBuff != nullptr)){
 			delete[] pBuff;
@@ -315,7 +320,7 @@ private:
 		m_stDate.iYear = st.wYear;
 		m_stDate.iMonth = st.wMonth;
 		m_stDate.iDay = st.wDay;
-		return m_logfile.Open(UTILS::PATH_FILE_OPENMODE_APP | UTILS::PATH_FILE_OPENMODE_BINARY, m_szFile);
+		return m_logfile.Open(UTILS::PATH_FILE_OPENMODE_APP /*| UTILS::PATH_FILE_OPENMODE_BINARY*/, m_szFile);
 	}
 	/**
 	\brief
@@ -437,8 +442,11 @@ private:
 			szFileName[0] = '\0';
 			iFileIndex = 0;
 			ZeroMemory(&stDate, sizeof(LogFileDate));
-			sscanf_s(szTmp, "%s_%04d%02d%02d_%d", szFileName, &stDate.iYear, &stDate.iMonth, &stDate.iDay, &iFileIndex);
-			if (strcmp(szFileName, szName)){
+			sscanf_s(szTmp, "%s_%04d%02d%02d_%d", szFileName, sizeof(szFileName), &stDate.iYear, &stDate.iMonth, &stDate.iDay, &iFileIndex);
+			if (!strcmp(szFileName, szName)){
+				continue;
+			}
+			if (stDate.iYear*stDate.iDay*stDate.iMonth <= 0){
 				continue;
 			}
 			stHisFile.iIndex = iFileIndex;
@@ -501,7 +509,7 @@ private:
 			strncat_s(szLog, 1024 * 16, szTmp, min(strlen(szTmp), 1024 * 16 - 1 - strlen(szLog)));
 		}
 		int iTotalLen = strlen(szLog) + len;
-		iTotalLen = min(len, 1024 * 16 - 1);
+		iTotalLen = min(iTotalLen, 1024 * 16 - 1);
 		memcpy(szLog + strlen(szLog), log, iTotalLen);
 		szLog[iTotalLen] = '\0';
 		if (pNewLen != nullptr){

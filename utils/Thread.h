@@ -103,7 +103,7 @@ namespace UTILS
 		bool WaitAck(std::unique_lock<std::mutex>& mt, unsigned int uiTimeOut);
 		/**
 		\brief 其他线程处理完成.
-			触发条件变量条件满足
+			触发条件变量条件满足,调用此接口,外部不需要手动加锁.
 		*/
 		void Ack();
 		/**

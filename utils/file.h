@@ -47,13 +47,11 @@ namespace UTILS
 	{
 	public:
 		/**
-		\brief
-			构造函数,默认使用当前程序的根目录
+		\brief 构造函数,默认使用当前程序的根目录
 		*/
 		CFile();
 		/**
-		\brief
-			构造函数
+		\brief 构造函数
 		\param path
 			文件名,
 		*/
@@ -61,8 +59,7 @@ namespace UTILS
 		~CFile();
 
 		/**
-		\brief
-			获取详细信息
+		\brief 获取详细信息
 		\param pInfo
 			输出参数,
 		\return
@@ -71,8 +68,7 @@ namespace UTILS
 		static int GetStat(const char* path, PFILE_PROPERTY pInfo);
 		int GetStat(PFILE_PROPERTY pInfo) const { return UTILS::CFile::GetStat(this->m_stPath.szPath, pInfo); }
 		/**
-		\brief
-			路径是指向一个现有的文件或目录.
+		\brief 路径是指向一个现有的文件或目录.
 		\param pInfo
 			path.
 		\return
@@ -81,8 +77,7 @@ namespace UTILS
 		static bool Exists(const char* path);
 		bool Exists() const{return UTILS::CFile::Exists(this->m_stPath.szPath);}
 		/**
-		\brief
-			文件大小..
+		\brief 文件大小..
 		\param pInfo
 			path.
 		\return
@@ -91,8 +86,7 @@ namespace UTILS
 		static uint64_t Size(const char* path);
 		uint64_t Size();
 		/**
-		\brief
-			文件是否打开.
+		\brief 文件是否打开.
 		\param pInfo
 			path.
 		\return
@@ -100,8 +94,7 @@ namespace UTILS
 		*/
 		bool IsOpen() const { return this->m_stPath.bOpen; }
 		/**
-		\brief
-			获取文件目录.
+		\brief 获取文件目录.
 		\param pInfo
 			path.
 		\return
@@ -110,8 +103,7 @@ namespace UTILS
 		static void GetDir(const char* path, char* buff, int len);
 		void GetDir(char* buff, int len) const { UTILS::CFile::GetDir(this->m_stPath.szPath, buff,len); }
 		/**
-		\brief
-			获取文件名称.
+		\brief 获取文件名称.
 		\param pInfo
 			path.
 		\return
@@ -120,8 +112,7 @@ namespace UTILS
 		static void GetFileName(const char* path, char* buff, int len);
 		void GetFileName(char* buff, int len) const { UTILS::CFile::GetFileName(this->m_stPath.szPath, buff, len); }
 		/**
-		\brief
-			获取后缀.
+		\brief 获取后缀.
 		\param pInfo
 			path.
 		\return
@@ -131,8 +122,7 @@ namespace UTILS
 		void GetSuffix(char* buff, int len) const { UTILS::CFile::GetSuffix(this->m_stPath.szPath, buff, len); }
 
 		/**
-		\brief
-			删除目录/文件.
+		\brief 删除目录/文件.
 		\param pInfo
 			path.
 		\return
@@ -142,8 +132,7 @@ namespace UTILS
 		int Delete();
 
 		/**
-		\brief
-			打开文件.
+		\brief 打开文件.
 		\param mode
 			PATH_FILE_OPENMODE
 		\param pInfo
@@ -155,8 +144,7 @@ namespace UTILS
 		int ReOpen();
 
 		/**
-		\brief
-			写文件.
+		\brief 写文件.
 		\param data
 			path.
 		\return
@@ -166,8 +154,7 @@ namespace UTILS
 		int Write(const char* data, int len);
 
 		/**
-		\brief
-			读文件.
+		\brief 读文件.
 		\param buff
 			数据存放缓存区.
 		\param len
@@ -179,8 +166,7 @@ namespace UTILS
 		int Read(char* buff, int len, int* pDataLen = nullptr);
 
 		/**
-		\brief
-			偏移.
+		\brief 偏移.
 		\param offset
 			偏移长度.
 		\param origin
@@ -191,24 +177,37 @@ namespace UTILS
 		int Seek(unsigned int offset, PATH_SEEK_TYPE origin = PATH_SEEK_NONE);
 
 		/**
-		\brief
-			关闭文件.
+		\brief 关闭文件.
 		\return
 			int Error.h
 		*/
 		int Close();
 
 		/**
-		\brief
-			获取路径.
+		\brief 刷新.
+		\return
+			int Error.h
+		*/
+		int Flush();
+		/**
+		\brief 获取路径.
 		\return
 			int Error.h
 		*/
 		const char* GetPath() const { return m_stPath.szPath; }
 
 		/**
-		\brief
-			自定义数据.
+		\brief 写文件.
+		\param data
+			path.
+		\return
+			int UTILS_ERROR_SUCCESS
+		*/
+		static int PutLine(int mode, const char* path, const char* data, int len, int* pDataLen = nullptr);
+		int PutLine(const char* data, int len, int* pDataLen = nullptr);
+
+		/**
+		\brief 自定义数据.
 		\return
 			int Error.h
 		*/

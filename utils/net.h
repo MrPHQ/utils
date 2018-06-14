@@ -309,6 +309,22 @@ namespace UTILS{
 			*/
 			unsigned int WriteFromUDP(SOCKET skt, const char* pBuff, int iBuffLen, struct sockaddr& to, int tolen, int* error = nullptr, unsigned int uiTimeOut = 5000);
 		}
+
+		/*
+		@brief 初始化套接字使用环境,使用Winsock DLL.
+		*/
+		int UTILS_API InitSocket();
+
+		/*
+		@brief
+		*/
+		int UTILS_API UnInitSocket();
+
+		/*
+		@brief 关闭套接字
+		*/
+		int UTILS_API CloseSocket(SOCKET);
+
 		/*
 		@brief 创建监听套接字.
 			服务器端创建套接字使用.内部会创建\绑定\监听套接字

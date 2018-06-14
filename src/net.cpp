@@ -10,7 +10,7 @@ std::atomic_flag lock = ATOMIC_FLAG_INIT;
 * @brief 初始化启动进程使用Winsock DLL。
 *	原子操作.
 */
-void InitSocket(){
+void _InitSocket(){
 	if (!lock.test_and_set()){
 		WSADATA wsa;
 		int ret = WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -52,7 +52,23 @@ void UdpConnResetError(SOCKET skt)
 
 namespace UTILS{
 	namespace NET{
-
+		int UTILS_API InitSocket()
+		{
+			_InitSocket();
+			return 0;
+		}
+		int UTILS_API UnInitSocket()
+		{
+			WSACleanup();
+			return 0;
+		}
+		int UTILS_API CloseSocket(SOCKET skt)
+		{
+			if (skt != INVALID_SOCKET){
+				closesocket(skt);
+			}
+			return 0;
+		}
 		SOCKET OpenSocket(TRANS_PROTOCOL_TYPE nType, const char* host, unsigned short port, int* error /*= nullptr*/)
 		{
 			ADDRINFOT stAddrInfoInts{};
@@ -627,7 +643,7 @@ namespace UTILS{
 			CNet::CNet()
 				:m_nTransProType(TRANS_PROTOCOL_TYPE_NONE), m_ErrorCode(0), m_Skt(INVALID_SOCKET)
 			{
-				InitSocket();
+				_InitSocket();
 			}
 			CNet::CNet(UTILS::NET::TRANS_PROTOCOL_TYPE nType)
 				: m_nTransProType(nType), m_ErrorCode(0), m_Skt(INVALID_SOCKET)

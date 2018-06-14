@@ -139,6 +139,27 @@ namespace UTILS
 			return len;
 		}
 
+		size_t CRingBuffer::SpaceEx()
+		{
+			if (!_init) {
+				return 0;
+			}
+			uint32_t len = 0;
+#ifdef _WIN32
+			EnterCriticalSection(&_lock);
+#else
+			pthread_mutex_lock(&_lock);
+#endif
+			len = _space();
+			len = std::min(len, _size - (_in & (_size - 1)));
+#ifdef _WIN32
+			LeaveCriticalSection(&_lock);
+#else
+			pthread_mutex_unlock(&_lock);
+#endif
+			return len;
+		}
+
 		void CRingBuffer::Clear()
 		{
 #ifdef _WIN32

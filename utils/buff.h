@@ -53,13 +53,19 @@ namespace UTILS
 			@brief 获取缓存区数据起始位置..
 			\return [ptr]
 			*/
-			const char* GetDataStart() const { return _buffer + _out; }
+			const char* GetDataStart() const { return _buffer + (_out & (_size - 1))/*_buffer + _out*/; }
 
 			/*
 			@brief 获取缓存区数据结束位置..
 			\return [ptr]
 			*/
-			const char* GetDataEnd() const {return _buffer + _in; }
+			const char* GetDataEnd() const { return _buffer + (_in & (_size - 1))/*_buffer + _in*/; }
+
+			/*
+			@brief 判断写入指定大小的数据是否是物理上连续的缓存区(跳转到开始处)..
+			\return [ptr]
+			*/
+			bool IsContinuousBuff(size_t size) const { return size <= _size - (_in & (_size - 1)); }
 
 			/*
 			@brief 获取缓存区大小..
@@ -78,6 +84,12 @@ namespace UTILS
 			\return [size_t]
 			*/
 			size_t Space();
+
+			/*
+			@brief 获取缓存区可用空间大小(物理上连续的缓存区)..
+			\return [size_t]
+			*/
+			size_t SpaceEx();
 
 			/*
 			@brief 复位数据..

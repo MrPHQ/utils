@@ -1115,7 +1115,7 @@ namespace UTILS {namespace API {
 
 	void RemoveExtension(char* path) {
 #ifdef _WIN32
-		if (NULL == path){
+		if (NULL == path || strlen(path) <= 0){
 			return;
 		}
 		PathRemoveExtension(path);
@@ -1127,7 +1127,7 @@ namespace UTILS {namespace API {
 
 	void RemoveFileSpec(char* path) {
 #ifdef _WIN32
-		if (NULL == path){
+		if (NULL == path || strlen(path) <= 0){
 			return;
 		}
 		PathRemoveFileSpec(path);
@@ -1138,7 +1138,7 @@ namespace UTILS {namespace API {
 
 	void StripPath(char* path) {
 #ifdef _WIN32
-		if (NULL == path){
+		if (NULL == path || strlen(path) <= 0){
 			return;
 		}
 		PathStripPath(path);
@@ -1149,7 +1149,7 @@ namespace UTILS {namespace API {
 
 	char* FindExtension(char* path) {
 #ifdef _WIN32
-		if (NULL == path){
+		if (NULL == path || strlen(path) <= 0){
 			return NULL;
 		}
 		return PathFindExtension(path);
@@ -1568,6 +1568,9 @@ namespace UTILS {namespace API {
 		else {
 			_hKey = hKey;
 		}
+		if (_hKey == NULL) {
+			return UTILS_ERROR_FAIL;
+		}
 		int lRetCode = RegSetValueEx(_hKey, value,0,REG_SZ,(BYTE *)val,len);
 		if (bClose) {
 			RegCloseKey(_hKey);
@@ -1633,6 +1636,10 @@ namespace UTILS {namespace API {
 		else {
 			_hKey = hKey;
 		}
+		if (_hKey == NULL){
+			return UTILS_ERROR_FAIL;
+		}
+
 		str[0] = '\0';
 		//RegQueryValueEx(_hKey, value, 0, &DataType, NULL, &BuffLen);在不知道长度的时候,可以先读取需要长度.
 		int lRetCode = RegQueryValueEx(_hKey, value, 0, &DataType, (BYTE*)&str, &BuffLen);
@@ -1666,6 +1673,10 @@ namespace UTILS {namespace API {
 		}
 		else {
 			_hKey = hKey;
+		}
+
+		if (_hKey == NULL){
+			return UTILS_ERROR_FAIL;
 		}
 
 		int lRetCode = RegQueryValueEx(_hKey, value, 0, &DataType, (BYTE*)&v, &BuffLen);
@@ -1711,6 +1722,10 @@ namespace UTILS {namespace API {
 		}
 		else {
 			_hKey = key;
+		}
+
+		if (_hKey == NULL){
+			return UTILS_ERROR_FAIL;
 		}
 
 		// Get the class name and the value count. 

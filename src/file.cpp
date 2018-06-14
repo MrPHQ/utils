@@ -85,7 +85,7 @@ namespace UTILS
 
 	void CFile::GetDir(const char* path, char* buff, int len)
 	{
-		if (NULL == buff || len <= 1){
+		if (NULL == buff || len <= 1 || nullptr == path){
 			return;
 		}
 		API::Strcpy(buff, len, path);
@@ -94,10 +94,11 @@ namespace UTILS
 
 	void CFile::GetFileName(const char* path, char* buff, int len)
 	{
-		if (NULL == buff || len <= 1){
+		if (NULL == buff || len <= 1 || nullptr == path){
 			return;
 		}
 		char szPath[MAX_PATH];
+		szPath[0] = '\0';
 		API::Strcpy(szPath, sizeof(szPath), path);
 		API::StripPath(szPath);
 		API::Strcpy(buff, len, szPath);
@@ -105,7 +106,7 @@ namespace UTILS
 
 	void CFile::GetSuffix(const char* path, char* buff, int len)
 	{
-		if (NULL == buff || len <= 1){
+		if (NULL == buff || len <= 1 || nullptr == path){
 			return;
 		}
 		char szPath[MAX_PATH];;
@@ -159,6 +160,7 @@ namespace UTILS
 		if (!m_file.is_open() || m_file.bad()){
 			return UTILS_ERROR_FAIL;
 		}
+
 		m_stPath.bOpen = true;
 		return UTILS_ERROR_SUCCESS;
 	}
@@ -267,6 +269,16 @@ namespace UTILS
 		return UTILS_ERROR_SUCCESS;
 	}
 
+	int CFile::Flush()
+	{
+		if (!m_file.is_open()){
+			return UTILS_ERROR_FAIL;
+		}
+		m_file.flush();
+		//seek
+		return UTILS_ERROR_SUCCESS;
+	}
+
 	int CFile::Read(int mode, const char* path, char* buff, int len, int* pDataLen /*= nullptr*/)
 	{
 		UTILS::CFile file;
@@ -314,5 +326,41 @@ namespace UTILS
 
 	void* CFile::GetContextData() {
 		return m_stPath.pContext;
+	}
+
+	int CFile::PutLine(const char* data, int len, int* pDataLen /*= nullptr*/)
+	{
+		if (NULL == data || len <= 0){
+			return UTILS_ERROR_PAR;
+		}
+		if (!m_file.is_open()){
+			return UTILS_ERROR_FAIL;
+		}
+		if (m_file.bad()){
+			return UTILS_ERROR_FAIL;
+		}
+		m_file << std::endl << data;
+		if (m_file.bad()){
+			return UTILS_ERROR_FAIL;
+		}
+		if (pDataLen != nullptr) {
+			*pDataLen = (int)m_file.gcount();
+		}
+		return UTILS_ERROR_SUCCESS;
+	}
+
+	int CFile::PutLine(int mode, const char* path, const char* data, int len, int* pDataLen /*= nullptr*/)
+	{
+		UTILS::CFile file;
+		file.Open(mode, path);
+		if (!file.IsOpen()) {
+			return UTILS_ERROR_FAIL;
+		}
+		int err = file.PutLine(data, len, pDataLen);
+		if (err != UTILS_ERROR_SUCCESS) {
+			return err;
+		}
+		file.Close();
+		return err;
 	}
 }

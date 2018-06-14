@@ -11,116 +11,14 @@
 #define UTILS_ENABLE_REGEDIT
 
 #include <utils\utils.h>
-#include <utils\logger.h>
-#include <utils\socket.h>
 #include <utils\file.h>
 #include <utils\Thread.h>
 #include <iostream>
 #include <utils\net.h>
 #include <utils\buff.h>
-
+#include <utils\LogFile.h>
 #pragma comment(lib, "utils/utils.lib")
 
-void func2()
-{
-	Sleep(2000);
-
-	UTILS::ClientSocket clt(UTILS::PROTO_TYPE_UDP);
-
-	std::string str;
-	char buff[1024];
-	int len = 0;
-	struct sockaddr_in src;
-	sockaddr src2;
-	int deslen = sizeof(sockaddr_in);
-	ZeroMemory(&src, sizeof(sockaddr_in));
-
-	UTILS::GetSockAddr(UTILS::PROTO_TYPE_UDP, "127.0.0.1", 8999, (sockaddr*)&src);
-	clt.UDPBind(nullptr, 9001);
-#if 0
-	sockaddr_in* p = (sockaddr_in*)&src;
-	char IPdotdec[64];
-	IPdotdec[0] = '\0';
-	inet_ntop(AF_INET, &p->sin_addr, IPdotdec, 64);
-	std::cout << IPdotdec << std::endl;
-	std::cout << p->sin_port << std::endl;
-#endif
-
-	while (true)
-	{
-		str = "";
-		std::cout << "输入:" << std::endl;
-		std::cin >> str;
-
-		if (str.length()) {
-			len = clt.write_to((const char*)str.data(), str.length(), (sockaddr*)&src, sizeof(sockaddr_in));
-		}
-		buff[0] = '\0';
-		len = clt.read_from(buff, 1024, (sockaddr*)&src2, &deslen, 0, 2000);
-		//std::cout << "Client:" << len << std::endl;
-		if (len > 0) {
-			buff[len] = '\0';
-			std::cout << "接收到数据:" << buff << std::endl;
-		}
-	}
-
-}
-
-void func1(UTILS::ClientSocket& skt)
-{
-	char szData[1024];
-	int len = 0;
-	while (true)
-	{
-		szData[0] = '\0';
-		len = skt.read(szData, 1024);
-		if (len <= 0) {
-			continue;
-		}
-		szData[len] = '\0';
-		std::cout << szData << std::endl;
-
-		strncat_s(szData, _TRUNCATE, "—SERVER", _TRUNCATE);
-		skt.write(szData, strlen(szData));
-	}
-}
-
-void func3()
-{
-	Sleep(2000);
-
-	UTILS::ClientSocket clt;
-
-	clt.Connect("127.0.0.1", 8060);
-	if (clt.isConnect()) {
-		std::cout << "链接成功." << std::endl;
-		std::string str;
-		char buff[1024];
-		int len = 0;
-
-		while (true)
-		{
-			str = "";
-			std::cout << "输入:" << std::endl;
-			std::cin >> str;
-
-			if (str.length()) {
-				len = clt.write((const char*)str.data(), str.length());
-				std::cout << "w:" << len << std::endl;
-			}
-
-			len = clt.read(buff, 1024);
-			if (len > 0) {
-				buff[len] = '\0';
-				std::cout << "接收到数据:" << buff << std::endl;
-			}
-		}
-	}
-	else {
-		std::cout << "链接失败." << std::endl;
-	}
-
-}
 
 class CTest
 {
@@ -188,6 +86,30 @@ UTILS::CProcessLock lock;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	std::cin.ignore();
+	{
+		DWORD dwLogHeadFlag = 0;
+		dwLogHeadFlag |= UTILS::LOG_FILE_HEAD_TIME;
+		dwLogHeadFlag |= UTILS::LOG_FILE_HEAD_PROC_NAME;
+		dwLogHeadFlag |= UTILS::LOG_FILE_HEAD_PROC_ID;
+		dwLogHeadFlag |= UTILS::LOG_FILE_HEAD_THREAD_ID;
+		dwLogHeadFlag |= UTILS::LOG_FILE_HEAD_FILE_NAME;
+		dwLogHeadFlag |= UTILS::LOG_FILE_HEAD_FILE_LINE;
+		char szFile[256];
+		int iCnt = 0;
+		_snprintf_s(szFile, _TRUNCATE, "%s\\utilsTest.log", UTILS::API::GetCurrentPath());
+		UTILS::LOG_INIT(UTILS::LOG_FILE_MODE_ASYNC_IN, dwLogHeadFlag, szFile, 2, 1024*1024);
+		UTILS::LOG_WRITE_EX("启动.");
+		while (true)
+		{
+			Sleep(100);
+			UTILS::LOG_WRITE_EX("日志..xxsdf no:%d..", iCnt++);
+			if (iCnt > 20){
+				break;
+			}
+		}
+		std::cout << "..." << std::endl;
+	}
 	std::cin.ignore();
 	{// tcp
 		UTILS::NET::SELECT::CNetServer cNetServer;
@@ -353,7 +275,7 @@ int _tmain(int argc, _TCHAR* argv[])
 						std::cout << "w:" << len << std::endl;
 					}
 
-					len = clt.Read(buff, 1024, (struct sockaddr&)stUdpSrc, iAddrLen, 2000);
+					len = clt.ReadFromUDP(buff, 1024, (struct sockaddr&)stUdpSrc, iAddrLen, 2000);
 					if (len > 0) {
 						buff[len] = '\0';
 						std::cout << "客户端接收到数据:" << buff << std::endl;
@@ -368,12 +290,12 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			buff[0] = '\0';
 
-			int iDataLen = cNetServer.Read(buff, 1024, (struct sockaddr&)stUdpSrc, len, 2000);
+			int iDataLen = cNetServer.ReadFromUDP(buff, 1024, (struct sockaddr&)stUdpSrc, len, 2000);
 			if (iDataLen > 0 && iDataLen < 1024) {
 
 				buff[iDataLen] = '\0';
 				strncat_s(buff, sizeof(buff), " Server ok", strlen(" Server ok"));
-				cNetServer.Write(buff, strlen(buff), (sockaddr&)stUdpSrc, len);
+				cNetServer.WriteToUDP(buff, strlen(buff), (sockaddr&)stUdpSrc, len);
 			}
 			else{
 				//std::cout << "UDP Server Not Read Data." << std::endl;
@@ -608,70 +530,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		file.Open(UTILS::PATH_FILE_OPENMODE_OUT, "E:\\中文\\txt.txt");
 		file.Write("xxxxxxxxxx", strlen("xxxxxxxxxx"));
 		file.Close();
-	}
-	//TCP
-	std::cin.ignore();
-	{
-		UTILS::AbstractSocket::InitEnv();
-		UTILS::ServerSocket tcp_server(UTILS::PROTO_TYPE_TCP,8060);
-		UTILS::ClientSocket clt;
-		std::thread clt2(func3);
-		while (true)
-		{
-			if (tcp_server.Accept(clt) && clt.isOpen()) {
-				new std::thread(func1, std::ref(clt));
-			}
-			Sleep(10);
-		}
-	}
-
-	//UDP
-	std::cin.ignore();
-	{
-		UTILS::AbstractSocket::InitEnv();
-		UTILS::ServerSocket udp_server;
-		char buff[1024];
-		struct sockaddr_in src, src2;
-		int addr_len = sizeof(sockaddr_in);
-		std::thread clt2(func2);
-
-		udp_server.Init(UTILS::PROTO_TYPE_UDP, nullptr, 8999);
-
-#if 0
-		int len = sizeof(sockaddr);
-		udp_server.GetSockName((sockaddr*)&src2, &len);
-		sockaddr_in* p = (sockaddr_in*)&src2;
-		char IPdotdec[64];
-		IPdotdec[0] = '\0';
-		inet_ntop(AF_INET, &p->sin_addr, IPdotdec, 64);
-		std::cout << IPdotdec << std::endl;
-		std::cout << p->sin_port << std::endl;
-#endif
-
-		while (true)
-		{
-			buff[0] = '\0';
-			/* 填写sockaddr_in 结构 */
-
-			int iDataLen = udp_server.read_from(buff, 1024,
-				(sockaddr*)&src, &addr_len, 0,
-				2000);
-			//std::cout << "Server:" << iDataLen << std::endl;
-			if (iDataLen > 0 && iDataLen < 1024) {
-#if 0
-				sockaddr_in* p = (sockaddr_in*)&src;
-				char IPdotdec[64];
-				IPdotdec[0] = '\0';
-				inet_ntop(AF_INET, &p->sin_addr, IPdotdec, 64);
-				std::cout << IPdotdec << std::endl;
-				std::cout << p->sin_port << std::endl;
-#endif
-
-				buff[iDataLen] = '\0';
-				strncat_s(buff, sizeof(buff), " Server ok", strlen(" Server ok"));
-				udp_server.write_to(buff, strlen(buff), (sockaddr*)&src, addr_len);
-			}
-		}
 	}
 
 	std::cin.ignore();
