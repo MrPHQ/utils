@@ -88,6 +88,26 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
 	{
+		std::list<UTILS::API::FILE_VERSION_PROPERTY> lstFileVersions;
+		UTILS::API::GetFileVersionForFolder("F:\\GitRepository\\utils\\bin", lstFileVersions, true);
+		char szVer[64];
+		for (auto& it : lstFileVersions)
+		{
+			_snprintf_s(szVer, _TRUNCATE, "%d.%d.%d.%d/%d.%d.%d.%d", 
+				it.stFileVersion.dwMajorVersion,
+				it.stFileVersion.dwMinorVersion,
+				it.stFileVersion.dwBuildNumber,
+				it.stFileVersion.dwRevisionNumber,
+				it.stProductVersion.dwMajorVersion,
+				it.stProductVersion.dwMinorVersion,
+				it.stProductVersion.dwBuildNumber,
+				it.stProductVersion.dwRevisionNumber);
+			std::cout << it.szFile << "\t" << szVer<< std::endl;
+		}
+		std::cout<<"end"<<std::endl;
+	}
+	std::cin.ignore();
+	{
 		DWORD dwLogHeadFlag = 0;
 		dwLogHeadFlag |= UTILS::LOG_FILE_HEAD_TIME;
 		dwLogHeadFlag |= UTILS::LOG_FILE_HEAD_PROC_NAME;

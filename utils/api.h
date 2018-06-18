@@ -363,10 +363,49 @@ namespace UTILS { namespace API {
 	UTILS_API int Random(int start, int end);
 
 	/*
-		IEEE754单精度浮点数格式
+	@brief	IEEE754单精度浮点数格式
 		4个Byte
 	*/
 	UTILS_API BYTE GetBit(unsigned int dwValue, int iIndex);
 	UTILS_API float ByteToFloat(BYTE*);
+
+	/*
+	@brief	读取文件版本信息
+	\param pFile
+		文件路径.
+	\param pVerInfo
+		存放文件版本信息缓存区.
+	\param pProductVerInfo
+		存放产品版本信息缓存区
+	\param pBuffer
+		版本信息缓存区. 如果不为空,则拷贝VS_FIXEDFILEINFO信息到缓存区
+	\param iBuffLen
+		缓存区大小
+	*/
+	struct VERSION_PROPERTY
+	{
+		DWORD dwMajorVersion;
+		DWORD dwMinorVersion;
+		DWORD dwBuildNumber;
+		DWORD dwRevisionNumber;
+	};
+	UTILS_API int GetFileVersion(const char* pFile, VERSION_PROPERTY* pVerInfo, VERSION_PROPERTY* pProductVerInfo = nullptr, BYTE* pBuffer = nullptr, int iBuffLen = 0);
+	struct FILE_VERSION_PROPERTY
+	{
+		char szFile[MAX_PATH];
+		VERSION_PROPERTY stFileVersion;
+		VERSION_PROPERTY stProductVersion;
+	};
+	/*
+	@brief	读取文件版本信息
+		枚举执行目录下的所有文件.并读取版本信息
+	\param pFolder
+		目录.
+	\param lstFileVersions
+		存放文件版本信息缓存区.
+	\param bRecursive
+		是否递归搜索
+	*/
+	UTILS_API int GetFileVersionForFolder(const char* pFolder, std::list<FILE_VERSION_PROPERTY>& lstFileVersions, bool bRecursive = true);
 }}
 #endif

@@ -13,7 +13,7 @@
 #include <Rpc.h> //guid
 #pragma comment(lib, "Rpcrt4.lib")
 #endif
-
+#pragma comment(lib, "version")
 #ifdef UTILS_ENABLE_ZIP
 #include <zlib\include\zlib.h>
 #include <libzip\include\zip.h>
@@ -2328,5 +2328,90 @@ namespace UTILS {namespace API {
 
 		delete[] szGBK;
 		delete[] wszGBK;
+	}
+
+	int GetFileVersion(const char* pFile, VERSION_PROPERTY* pVerInfo, VERSION_PROPERTY* pProductVerInfo /*= nullptr*/, BYTE* pBuffer /*= nullptr*/, int iBuffLen /*= 0*/)
+	{
+		DWORD dwHandle;
+		BYTE buff[1024];
+		BYTE* lpVersionData = nullptr;
+		DWORD dwBuffLen = 1024;
+		lpVersionData = buff;
+
+		if (pVerInfo == nullptr){
+			return -1;
+		}
+		DWORD dwDataSize = ::GetFileVersionInfoSize(pFile, &dwHandle);
+		if (dwDataSize == 0){
+			MSG_INFO("err no:%d line:%d", GetLastError(), __LINE__);
+			return -1;
+		}
+		// Allocate buffer and retrieve version information  
+		if (dwBuffLen < dwDataSize){
+			dwBuffLen = dwDataSize;
+			lpVersionData = new BYTE[dwBuffLen];
+		}
+		if (lpVersionData == nullptr){
+			return -2;
+		}
+		if (!::GetFileVersionInfo(pFile, dwHandle, dwDataSize, (void*)lpVersionData))
+		{
+			if (dwBuffLen > 1024){
+				delete[] lpVersionData;
+				lpVersionData = nullptr;
+			}
+			MSG_INFO("err no:%d line:%d", GetLastError(), __LINE__);
+			return -3;
+		}
+
+		UINT nQuerySize = 0;
+		VS_FIXEDFILEINFO* pVsffi = nullptr;
+		if (!::VerQueryValue((void **)lpVersionData, "\\",(void**)&pVsffi, &nQuerySize))
+		{
+			if (dwBuffLen > 1024){
+				delete[] lpVersionData;
+				lpVersionData = nullptr;
+			}
+			MSG_INFO("err no:%d line:%d", GetLastError(), __LINE__);
+			return -4;
+		}
+
+		pVerInfo->dwMajorVersion = HIWORD(pVsffi->dwFileVersionMS);
+		pVerInfo->dwMinorVersion = LOWORD(pVsffi->dwFileVersionMS);
+		pVerInfo->dwBuildNumber = HIWORD(pVsffi->dwFileVersionLS);
+		pVerInfo->dwRevisionNumber = LOWORD(pVsffi->dwFileVersionLS);
+		if (pProductVerInfo != nullptr){
+			pProductVerInfo->dwMajorVersion = HIWORD(pVsffi->dwProductVersionMS);
+			pProductVerInfo->dwMinorVersion = LOWORD(pVsffi->dwProductVersionMS);
+			pProductVerInfo->dwBuildNumber = HIWORD(pVsffi->dwProductVersionLS);
+			pProductVerInfo->dwRevisionNumber = LOWORD(pVsffi->dwProductVersionLS);
+		}
+
+		if ((pBuffer != nullptr) && (iBuffLen >= sizeof(VS_FIXEDFILEINFO))){
+			memcpy(pBuffer, &pVsffi, min(iBuffLen, sizeof(VS_FIXEDFILEINFO)));
+		}
+		if (dwBuffLen > 1024){
+			delete[] lpVersionData;
+			lpVersionData = nullptr;
+		}
+		return 0;
+	}
+
+	UTILS_API int GetFileVersionForFolder(const char* pFolder, std::list<FILE_VERSION_PROPERTY>& lstFileVersions, bool bRecursive /*= true*/)
+	{
+		FILE_VERSION_PROPERTY stFileVersion;
+		std::list<std::string> lstFiles;
+		int ret = 0;
+		EnumDirectoryFiles(pFolder, nullptr, 0, nullptr, &lstFiles, bRecursive);
+		for (auto& it : lstFiles)
+		{
+			ret = GetFileVersion(it.data(), &stFileVersion.stFileVersion, &stFileVersion.stProductVersion);
+			MSG_INFO("...%s..%d", it.data(), ret);
+			if (ret == 0){
+				_snprintf_s(stFileVersion.szFile, _TRUNCATE, "%s", it.data());
+				lstFileVersions.emplace_back(stFileVersion);
+			}
+		}
+		return 0;
 	}
 }}
