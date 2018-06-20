@@ -691,9 +691,11 @@ namespace UTILS {namespace API {
 		bool bRecursive) {
 #ifdef _WIN32
 		if ((pDir == NULL) || strlen(pDir) == 0){
+			MSG_INFO("err LINE:%d",__LINE__);
 			return;
 		}
 		if (!IsPathExists(pDir)){
+			MSG_INFO("err LINE:%d par:%s", __LINE__, pDir);
 			return;
 		}
 
@@ -712,6 +714,7 @@ namespace UTILS {namespace API {
 		Sprintf(szPath, sizeof(szPath), "%s\\*.*", szDir);
 		HANDLE hFile = FindFirstFile(szPath, &FindFileData);
 		if (hFile == INVALID_HANDLE_VALUE) {
+			MSG_INFO("err LINE:%d", __LINE__);
 			return;
 		}
 		while (IsFinded){
@@ -2406,7 +2409,7 @@ namespace UTILS {namespace API {
 		for (auto& it : lstFiles)
 		{
 			ret = GetFileVersion(it.data(), &stFileVersion.stFileVersion, &stFileVersion.stProductVersion);
-			MSG_INFO("...%s..%d", it.data(), ret);
+			//MSG_INFO("...%s..%d", it.data(), ret);
 			if (ret == 0){
 				_snprintf_s(stFileVersion.szFile, _TRUNCATE, "%s", it.data());
 				lstFileVersions.emplace_back(stFileVersion);
