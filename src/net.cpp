@@ -397,6 +397,11 @@ namespace UTILS{
 								bRecvData = TRUE;
 							}
 						}
+						else{
+							if (skt == INVALID_SOCKET){
+								break;
+							}
+						}
 					}
 					else {
 						iRet = ::recv(skt, pBuff + iDataLen, iReadLen > 0 ? iReadLen - iDataLen : iBuffLen, 0);
@@ -469,6 +474,11 @@ namespace UTILS{
 							iRet = FD_ISSET(skt, &fdRead);
 							if (iRet){
 								bRecvData = TRUE;
+							}
+						}
+						else{
+							if (skt == INVALID_SOCKET){
+								break;
 							}
 						}
 					}
@@ -544,6 +554,11 @@ namespace UTILS{
 								bSendData = TRUE;
 							}
 						}
+						else{
+							if (skt == INVALID_SOCKET){
+								break;
+							}
+						}
 					}
 					else {
 						iRet = ::send(skt, pBuff + iSendLen, iBuffLen - iSendLen, 0);
@@ -610,6 +625,11 @@ namespace UTILS{
 							iRet = FD_ISSET(skt, &fdWrite);
 							if (iRet){
 								bSendData = TRUE;
+							}
+						}
+						else{
+							if (skt == INVALID_SOCKET){
+								break;
 							}
 						}
 					}
