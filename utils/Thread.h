@@ -31,6 +31,66 @@ namespace UTILS
 #endif
 	};
 
+	/**
+	\brief 读写锁.
+	*/
+	class UTILS_API CRWLock
+	{
+		CRWLock(CRWLock const &) = delete;
+		CRWLock(CRWLock &&) = delete;
+		CRWLock& operator= (CRWLock const &) = delete;
+		CRWLock& operator= (CRWLock &&) = delete;
+	public:
+		CRWLock();
+		~CRWLock();
+		/**
+		\brief 读锁
+		\return bool
+			被激活返回 true 其他情况返回 false
+		*/
+		bool RLock();
+		/**
+		\brief 读锁
+		\return bool
+			被激活返回 true 其他情况返回 false
+		*/
+		bool TryRLock();
+		/**
+		\brief 释放读锁
+		*/
+		void RUnLock();
+		/**
+		\brief 写锁
+		\return bool
+			被激活返回 true 其他情况返回 false
+		*/
+		bool WLock();
+		/**
+		\brief 写锁
+		\return bool
+			被激活返回 true 其他情况返回 false
+		*/
+		bool TryWLock();
+		/**
+		\brief 释放写锁
+		*/
+		void WUnLock();
+	private:
+		int Init();
+		void Destroy();
+		bool IsInit() const { return init_; }
+	private:
+		/**< 释放初始化.*/
+		bool init_;
+		/**< 读者数量.*/
+		unsigned int num_readers_;
+		/**< 读.临界资源.*/
+		CRITICAL_SECTION num_readers_lock_;
+		/**< 写.信号量.*/
+		HANDLE write_semaphore_;
+	};
+
+	class CCRWLock;
 	class UTILS_API CAutoLock
 	{
 		CAutoLock(CAutoLock const &) = delete;
@@ -39,17 +99,55 @@ namespace UTILS
 		CAutoLock& operator= (CAutoLock &&) = delete;
 
 	protected:
-		UTILS::CCritSec* m_pLock;
-
+		void* m_pLock;
+		enum LOCK_TYPE
+		{
+			LOCK_TYPE_NONE = 0,
+			/**< CCritSec.*/
+			LOCK_TYPE_CRITSEC = 1,
+			/**< CRWLock RLOCK.*/
+			LOCK_TYPE_RWLOCK_RD = 2,
+			/**< CRWLock WLOCK.*/
+			LOCK_TYPE_RWLOCK_WR = 3
+		};
+		LOCK_TYPE m_nLockType;
 	public:
-		CAutoLock(UTILS::CCritSec * plock){
+		CAutoLock(UTILS::CCritSec* plock){
 			assert(plock != nullptr);
 			m_pLock = plock;
-			m_pLock->Lock();
+			plock->Lock();
+			m_nLockType = LOCK_TYPE_CRITSEC;
 		};
-
+		CAutoLock(UTILS::CRWLock* plock, bool read = true){
+			assert(plock != nullptr);
+			m_pLock = plock;
+			m_nLockType = read ? LOCK_TYPE_RWLOCK_RD : LOCK_TYPE_RWLOCK_WR;
+			if (read){
+				plock->RLock();
+			}
+			else{
+				plock->WLock();
+			}
+		};
 		~CAutoLock(){
-			m_pLock->Unlock();
+			if (m_nLockType == LOCK_TYPE_CRITSEC){
+				UTILS::CCritSec* p = static_cast<UTILS::CCritSec*>(m_pLock);
+				if (p){
+					p->Unlock();
+				}
+			}
+			else if ((m_nLockType == LOCK_TYPE_RWLOCK_RD) || (m_nLockType == LOCK_TYPE_RWLOCK_WR))
+			{
+				UTILS::CRWLock* p = static_cast<UTILS::CRWLock*>(m_pLock);
+				if (p){
+					if (m_nLockType == LOCK_TYPE_RWLOCK_RD){
+						p->RUnLock();
+					}
+					else{
+						p->WUnLock();
+					}
+				}
+			}
 		};
 	};
 

@@ -88,6 +88,74 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
 	{
+		int iValue = 0;
+		UTILS::CRWLock rwLock;
+		std::thread wtr([](int& v, UTILS::CRWLock& lock){
+			for (int i = 0; i < 10; i++)
+			{
+				UTILS::CAutoLock lck(&lock, false);
+				v++;
+				Sleep(500);
+			}
+		}, std::ref(iValue), std::ref(rwLock));
+
+		std::thread rdt[10];
+		for (int i = 0; i < 10; i++)
+		{
+			rdt[i].swap(std::thread([](int& v, UTILS::CRWLock& lock){
+				DWORD dwTimeOut = GetTickCount();
+				while (true)
+				{
+					Sleep(UTILS::API::Random(100, 5000));
+					UTILS::CAutoLock lck(&lock);
+					std::cout << GetCurrentThreadId() << ":" << v << std::endl;
+					if (abs((int)(GetTickCount() - dwTimeOut)) > 20000){
+						break;
+					}
+				}
+				std::cout << "end" << std::endl;
+
+			}, std::ref(iValue), std::ref(rwLock)));
+		}
+		std::cin.ignore();
+	}
+	std::cin.ignore();
+	{
+		int iValue = 0;
+		UTILS::CRWLock rwLock;
+		std::thread wtr([](int& v, UTILS::CRWLock& lock){
+			for (int i = 0; i < 10; i++)
+			{
+				lock.WLock();
+				v++;
+				Sleep(500);
+				lock.WUnLock();
+			}
+		}, std::ref(iValue), std::ref(rwLock));
+
+		std::thread rdt[10];
+		for (int i = 0; i < 10; i++)
+		{
+			rdt[i].swap(std::thread([](int& v, UTILS::CRWLock& lock){
+				DWORD dwTimeOut = GetTickCount();
+				while (true)
+				{
+					Sleep(UTILS::API::Random(100, 5000));
+					lock.RLock();
+					std::cout <<GetCurrentThreadId()<<":"<<  v << std::endl;
+					lock.RUnLock();
+					if (abs((int)(GetTickCount() - dwTimeOut)) > 30000){
+						break;
+					}
+				}
+				std::cout << "end" << std::endl;
+
+			}, std::ref(iValue), std::ref(rwLock)));
+		}
+		std::cin.ignore();
+	}
+	std::cin.ignore();
+	{
 		std::list<UTILS::API::FILE_VERSION_PROPERTY> lstFileVersions;
 		UTILS::API::GetFileVersionForFolder("F:\\GitRepository\\utils\\bin", lstFileVersions, true);
 		char szVer[64];

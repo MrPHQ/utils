@@ -272,6 +272,170 @@ namespace UTILS
 	}
 #endif
 
+	CRWLock::CRWLock():
+		init_(false)
+	{
+		Init();
+	}
+
+	CRWLock::~CRWLock()
+	{
+		Destroy();
+	}
+
+	int CRWLock::Init()
+	{
+		if (init_){
+			return 0;
+		}
+		/* Initialize the semaphore that acts as the write lock. */
+		HANDLE handle = CreateSemaphore(NULL, 1, 1, NULL);
+		if (handle == NULL)
+			return -1;
+		write_semaphore_ = handle;
+
+		/* Initialize the critical section protecting the reader count. */
+		InitializeCriticalSection(&num_readers_lock_);
+
+		/* Initialize the reader count. */
+		num_readers_ = 0;
+		init_ = true;
+		return 0;
+	}
+
+	void CRWLock::Destroy()
+	{
+		if (!init_){
+			return;
+		}
+		DeleteCriticalSection(&num_readers_lock_);
+		CloseHandle(write_semaphore_);
+		init_ = false;
+	}
+
+	bool CRWLock::RLock()
+	{
+		if (!IsInit()){
+			return false;
+		}
+		/* Acquire the lock that protects the reader count. */
+		EnterCriticalSection(&num_readers_lock_);
+
+		/* Increase the reader count, and lock for write if this is the first
+		* reader.
+		* 增加读取器数量，如果这是第一个读取器，则锁定写入
+		*/
+		if (++num_readers_ == 1) {
+			DWORD r = WaitForSingleObject(write_semaphore_, INFINITE);
+			if (r != WAIT_OBJECT_0){
+				//log(GetLastError(), "WaitForSingleObject");
+				return false;
+			}
+		}
+
+		/* Release the lock that protects the reader count. */
+		LeaveCriticalSection(&num_readers_lock_);
+		return true;
+	}
+
+	bool CRWLock::TryRLock()
+	{
+		if (!IsInit()){
+			return false;
+		}
+		int err;
+
+		if (!TryEnterCriticalSection(&num_readers_lock_))
+			return false;
+
+		err = 0;
+
+		if (num_readers_ == 0) {
+			/* Currently there are no other readers, which means that the write lock
+			* needs to be acquired.
+			* 目前没有其他读取器，这意味着需要获取写锁
+			*/
+			DWORD r = WaitForSingleObject(write_semaphore_, 0);
+			if (r == WAIT_OBJECT_0)
+				num_readers_++;
+			else if (r == WAIT_TIMEOUT)
+				err = -1;
+			else if (r == WAIT_FAILED){
+				err = -2;
+				//log(GetLastError(), "WaitForSingleObject");
+			}
+
+		}
+		else {
+			/* The write lock has already been acquired because there are other
+			* active readers.
+			* 已经获取了写锁定，因为还有其他活动读取器。
+			*/
+			num_readers_++;
+		}
+
+		LeaveCriticalSection(&num_readers_lock_);
+		return err == 0;
+	}
+
+	void CRWLock::RUnLock()
+	{
+		if (!IsInit()){
+			return;
+		}
+		EnterCriticalSection(&num_readers_lock_);
+
+		if (--num_readers_ == 0) {
+			if (!ReleaseSemaphore(write_semaphore_, 1, NULL)){
+				//uv_fatal_error(GetLastError(), "ReleaseSemaphore");
+			}
+		}
+
+		LeaveCriticalSection(&num_readers_lock_);
+	}
+
+	bool CRWLock::WLock()
+	{
+		if (!IsInit()){
+			return false;
+		}
+		DWORD r = WaitForSingleObject(write_semaphore_, INFINITE);
+		if (r != WAIT_OBJECT_0){
+			//log(GetLastError(), "WaitForSingleObject");
+			return false;
+		}
+		return true;
+	}
+
+	bool CRWLock::TryWLock()
+	{
+		if (!IsInit()){
+			return false;
+		}
+		DWORD r = WaitForSingleObject(write_semaphore_, 0);
+		if (r == WAIT_OBJECT_0){
+			return true;
+		}
+		else if (r == WAIT_TIMEOUT){
+			return false;
+		}
+		else{
+			//log(GetLastError(), "WaitForSingleObject");
+			return false;
+		}
+		return false;
+	}
+
+	void CRWLock::WUnLock()
+	{
+		if (!IsInit()){
+			return;
+		}
+		if (!ReleaseSemaphore(write_semaphore_, 1, NULL)){
+			//log(GetLastError(), "ReleaseSemaphore");
+		}
+	}
+
 	CThreadBox::CThreadBox()
 	{
 		m_bInit = FALSE;
