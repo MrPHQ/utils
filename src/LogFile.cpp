@@ -20,12 +20,16 @@ public:
 	CLogFileProperty() :m_nMode(UTILS::LOG_FILE_MODE_NONE), m_dwHead(0), m_uiDays(1), m_uiPerFileSize(1024 * 1024){
 		m_szFile[0] = '\0';
 		m_dwCheckTimestamp = 0;
+		m_bInit = FALSE;
 	}
 	~CLogFileProperty(){}
 
 	int Init(UTILS::LOG_FILE_MODE nMode, DWORD nHead, const char* file, unsigned int uiDays, unsigned int uiPerFileSize)
 	{
 		std::unique_lock<std::mutex> lock(m_lock.GetMutex());
+		if (m_bInit){
+			return 0;
+		}
 		m_mapFiles.clear();
 
 		m_dwCheckTimestamp = GetTickCount();
@@ -102,11 +106,16 @@ public:
 			});
 		}
 		/// 打开日志文件
-		return Open();
+		m_bInit = (Open() == 0);
+		return m_bInit ? 0 : -1;
 	}
 
 	void UnInit()
 	{
+		if (!m_bInit){
+			return;
+		}
+		m_bInit = FALSE;
 		m_WriteThread.Cancel();
 		m_WriteThread.Stop(100);
 		m_WriteThread.UnInit();
@@ -518,6 +527,8 @@ private:
 		return szLog;
 	}
 private:
+	/**< 初始化*/
+	BOOL m_bInit;
 	/**< 日志文件模式*/
 	UTILS::LOG_FILE_MODE m_nMode;
 	/**< 日志记录头信息*/
