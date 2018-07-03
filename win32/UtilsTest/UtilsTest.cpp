@@ -88,6 +88,24 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
 	{
+		char szStr[] = "字符集转换示例...字符集转换示例...字符集转换示例...字符集转换示例...字符集转换示例...字符集转换示例...x";
+		char* pStr = szStr;
+		char buff[1024], buff2[1024];
+		int iOutIdleLen = 0, iNoConvertLen = 0;
+		std::cout << "源字符串:" << "\t" << pStr << std::endl;
+		//std::cout << strOut.capacity() <<"\t"<< strOut.max_size() << std::endl;
+		buff[0] = '\0';
+		UTILS::API::GBKToUtf8(buff, 1024, pStr, strlen(pStr)+1);
+		if (strlen(buff) > 0)
+		{
+			std::cout << "转换后字符串:" << "\t" << buff << std::endl;
+			UTILS::API::Utf8ToGBK(buff2, 1024, buff, strlen(buff)+1);
+			std::cout << "还原后字符串:" << "\t" << buff2 << std::endl;
+		}
+	}
+
+	std::cin.ignore();
+	{
 		int iValue = 0;
 		UTILS::CRWLock rwLock;
 		std::thread wtr([](int& v, UTILS::CRWLock& lock){
@@ -308,23 +326,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("Length:%d\n", e);
 	}
 
-	std::cin.ignore();
-	{
-		char szStr[] = "字符集转换示例...";
-		char* pStr = szStr;
-		char buff[1024], buff2[1024];
-		int iOutIdleLen = 0, iNoConvertLen = 0;
-		std::cout << "源字符串:" << "\t" << pStr << std::endl;
-		//std::cout << strOut.capacity() <<"\t"<< strOut.max_size() << std::endl;
-		buff[0] = '\0';
-		UTILS::API::GBKToUtf8(buff, 1024, pStr, strlen(pStr)+1);
-		if (strlen(buff) > 0)
-		{
-			std::cout << "转换后字符串:" << "\t" << buff << std::endl;
-			UTILS::API::Utf8ToGBK(buff2, 1024, buff, strlen(buff)+1);
-			std::cout << "还原后字符串:" << "\t" << buff2 << std::endl;
-		}
-	}
 	std::cin.ignore();
 	{
 		char buff[1024];
