@@ -904,6 +904,42 @@ namespace UTILS {namespace API {
 #endif
 	}
 
+	void CreateFoldersFromFilePath(const char* file) {
+		if (nullptr == file) {
+			return;
+		}
+#ifdef _WIN32
+		char tmp[MAX_PATH];
+		char* p = nullptr;
+		char* ptr = nullptr;
+		tmp[0] = '\0';
+		Strcpy(tmp, sizeof(tmp), file);
+		CharConvert(tmp, '/', '\\');
+		RemoveFileSpec(tmp);
+		ptr = tmp;
+		do
+		{
+			p = strchr(ptr, '\\');
+			if (nullptr == p) {
+				if (!IsPathExists(tmp)) {
+					CreateDirectory(tmp, nullptr);
+				}
+				break;
+			}
+			else {
+				*p = '\0';
+				if (!IsPathExists(tmp)) {
+					CreateDirectory(tmp, nullptr);
+				}
+				*p = '\\';
+			}
+			ptr = p + 1;
+		} while (true);
+#else
+
+#endif
+	}
+
 #ifdef ENABLE_CRYPTOPP
 	int EncryptionFile(const char* src, const char* des, const char* key, const char* iv) {
 		if (nullptr == src || nullptr == des || nullptr == key || nullptr == iv) {
@@ -2263,11 +2299,57 @@ namespace UTILS {namespace API {
 		}
 		return sign * exp * mantissa;
 	}
-	void GBKToUtf8(char* buff, int iBuffLen, const char* pSrc, int iSrcLen)
+	int GBKToUtf8(char* buff, int iBuffLen, const char* pSrc, int iSrcLen)
 	{
 		if (buff == nullptr || pSrc == nullptr){
-			return;
+			return 0;
 		}
+		unsigned short* wszUtf8 = nullptr;
+		char *szUtf8 = nullptr;
+		char tmp1[1024 * 64], tmp2[1024 * 64];
+		const int cilen = 1024 * 64;
+		int iNeedLen1 = cilen, iNeedLen2 = cilen;
+#if 1
+		int len = MultiByteToWideChar(CP_ACP, 0, (LPCTSTR)pSrc, iSrcLen, NULL, 0);
+		if (len > cilen){
+			wszUtf8 = new unsigned short[len];
+			iNeedLen1 = len;
+		}
+		else{
+			wszUtf8 = (unsigned short*)tmp1;
+		}
+		if (wszUtf8 == NULL){
+			return 0;
+		}
+
+		//memset(wszUtf8, 0, len);
+		MultiByteToWideChar(CP_ACP, 0, (LPCTSTR)pSrc, iSrcLen, (LPWSTR)wszUtf8, len);
+		len = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR)wszUtf8, -1, NULL, 0, NULL, NULL);
+		if (len > cilen){
+			szUtf8 = new char[len];
+			iNeedLen2 = len;
+		}
+		else{
+			szUtf8 = tmp2;
+		}
+
+		if (szUtf8 == NULL){
+			return 0;
+		}
+
+		//memset(szUtf8, 0, len);
+		WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR)wszUtf8, -1, szUtf8, len, NULL, NULL);
+		int tmp = min(iBuffLen - 1, len);
+		memcpy(buff, szUtf8, tmp);
+		buff[tmp] = '\0';
+		if (iNeedLen1 > cilen){
+			delete[] wszUtf8;
+		}
+		if (iNeedLen2 > cilen){
+			delete[] szUtf8;
+		}
+		return tmp;
+#else
 		int len = MultiByteToWideChar(CP_ACP, 0, (LPCTSTR)pSrc, iSrcLen, NULL, 0);
 		unsigned short * wszUtf8 = new unsigned short[len];
 		if (wszUtf8 == NULL){
@@ -2296,13 +2378,59 @@ namespace UTILS {namespace API {
 
 		delete[] szUtf8;
 		delete[] wszUtf8;
+#endif
 	}
 
-	void Utf8ToGBK(char* buff, int iBuffLen, const char *pSrc, int iSrcLen)
+	int Utf8ToGBK(char* buff, int iBuffLen, const char *pSrc, int iSrcLen)
 	{
 		if (buff == nullptr || pSrc == nullptr){
-			return;
+			return 0;
 		}
+		unsigned short* wszGBK = nullptr;
+		char *szGBK = nullptr;
+		char tmp1[1024 * 64], tmp2[1024 * 64];
+		const int cilen = 1024 * 64;
+		int iNeedLen1 = cilen, iNeedLen2 = cilen;
+
+#if 1
+		int len = MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pSrc, iSrcLen, NULL, 0);
+		if (len > cilen){
+			wszGBK = new unsigned short[len];
+			iNeedLen1 = len;
+		}
+		else{
+			wszGBK = (unsigned short*)tmp1;
+		}
+		if (wszGBK == NULL){
+			return 0;
+		}
+		//memset(wszGBK, 0, len);
+		MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pSrc, iSrcLen, (LPWSTR)wszGBK, len);
+		len = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)wszGBK, -1, NULL, 0, NULL, NULL);
+		if (len > cilen){
+			szGBK = new char[len];
+			iNeedLen2 = len;
+		}
+		else{
+			szGBK = tmp2;
+		}
+
+		if (szGBK == NULL){
+			return 0;
+		}
+		//memset(szGBK, 0, len);
+		WideCharToMultiByte(CP_ACP, 0, (LPWSTR)wszGBK, -1, szGBK, len, NULL, NULL);
+		int tmp = min(iBuffLen - 1, len);
+		memcpy(buff, szGBK, tmp);
+		buff[tmp] = '\0';
+		if (iNeedLen1 > cilen){
+			delete[] wszGBK;
+		}
+		if (iNeedLen2 > cilen){
+			delete[] szGBK;
+		}
+		return tmp;
+#else
 		int len = MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pSrc, iSrcLen, NULL, 0);
 		unsigned short * wszGBK = new unsigned short[len];
 		if (wszGBK == NULL){
@@ -2331,6 +2459,7 @@ namespace UTILS {namespace API {
 
 		delete[] szGBK;
 		delete[] wszGBK;
+#endif
 	}
 
 	int GetFileVersion(const char* pFile, VERSION_PROPERTY* pVerInfo, VERSION_PROPERTY* pProductVerInfo /*= nullptr*/, BYTE* pBuffer /*= nullptr*/, int iBuffLen /*= 0*/)

@@ -45,9 +45,9 @@ public:
 			m_WriteThread.Init(1024, 1024, TRUE, TRUE);
 			m_WriteThread.Start([this](BOOL& bRun, HANDLE hWait, void* context){
 				DWORD dwCheck = GetTickCount();
-				BYTE buff[1024 * 4];
+				BYTE buff[1024 * 256];
 				BYTE* pBuff = buff;
-				int iBuffLen = 1024*4;
+				int iBuffLen = 1024*256;
 				int iNeedLen = 0, iDataLen = 0;
 
 				while (bRun){
@@ -73,7 +73,7 @@ public:
 						}
 						if (iNeedLen > iBuffLen)
 						{
-							if ((iBuffLen > 1024 * 4) && (pBuff != nullptr)){
+							if ((iBuffLen > 1024 * 256) && (pBuff != nullptr)){
 								delete[] pBuff;
 								pBuff = nullptr;
 							}
@@ -99,7 +99,7 @@ public:
 					//Ë¢ÐÂ.
 					m_logfile.Flush();
 				}
-				if ((iBuffLen > 1024 * 4) && (pBuff != nullptr)){
+				if ((iBuffLen > 1024 * 256) && (pBuff != nullptr)){
 					delete[] pBuff;
 					pBuff = nullptr;
 				}
@@ -486,39 +486,41 @@ private:
 		if (log == nullptr || len <= 0){
 			return nullptr;
 		}
-		static char szLog[1024 * 16];
+		static char szLog[1024 * 256];
 		char szTmp[512];
 		szLog[0] = '\0';
 		if ((m_dwHead&UTILS::LOG_FILE_HEAD_TIME) == UTILS::LOG_FILE_HEAD_TIME){
 			SYSTEMTIME st;
 			GetLocalTime(&st);
 			_snprintf_s(szTmp, _TRUNCATE, "[%04d-%02d-%02d %02d:%02d:%02d]", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
-			strncat_s(szLog, 1024 * 16, szTmp, min(strlen(szTmp), 1024 * 16 - 1 - strlen(szLog)));
+			strncat_s(szLog, 1024 * 256, szTmp, min(strlen(szTmp), 1024 * 256 - 1 - strlen(szLog)));
 		}
 		if ((m_dwHead&UTILS::LOG_FILE_HEAD_PROC_NAME) == UTILS::LOG_FILE_HEAD_PROC_NAME){
 			_snprintf_s(szTmp, _TRUNCATE, "[]");
-			strncat_s(szLog, 1024 * 16, szTmp, min(strlen(szTmp), 1024 * 16 - 1 - strlen(szLog)));
+			strncat_s(szLog, 1024 * 256, szTmp, min(strlen(szTmp), 1024 * 256 - 1 - strlen(szLog)));
 		}
 		if ((m_dwHead&UTILS::LOG_FILE_HEAD_PROC_ID) == UTILS::LOG_FILE_HEAD_PROC_ID){
 			_snprintf_s(szTmp, _TRUNCATE, "[PID:%d]",GetCurrentProcessId());
-			strncat_s(szLog, 1024 * 16, szTmp, min(strlen(szTmp), 1024 * 16 - 1 - strlen(szLog)));
+			strncat_s(szLog, 1024 * 256, szTmp, min(strlen(szTmp), 1024 * 256 - 1 - strlen(szLog)));
 		}
 		if ((m_dwHead&UTILS::LOG_FILE_HEAD_THREAD_ID) == UTILS::LOG_FILE_HEAD_THREAD_ID){
 			_snprintf_s(szTmp, _TRUNCATE, "[TID:%d]", GetCurrentThreadId());
-			strncat_s(szLog, 1024 * 16, szTmp, min(strlen(szTmp), 1024 * 16 - 1 - strlen(szLog)));
+			strncat_s(szLog, 1024 * 256, szTmp, min(strlen(szTmp), 1024 * 256 - 1 - strlen(szLog)));
 		}
 		if ((m_dwHead&UTILS::LOG_FILE_HEAD_FILE_NAME) == UTILS::LOG_FILE_HEAD_FILE_NAME){
 			if (nullptr != file){
 				_snprintf_s(szTmp, _TRUNCATE, "[FILE:%s]", file);
-				strncat_s(szLog, 1024 * 16, szTmp, min(strlen(szTmp), 1024 * 16 - 1 - strlen(szLog)));
+				strncat_s(szLog, 1024 * 256, szTmp, min(strlen(szTmp), 1024 * 256 - 1 - strlen(szLog)));
 			}
 		}
 		if ((m_dwHead&UTILS::LOG_FILE_HEAD_FILE_LINE) == UTILS::LOG_FILE_HEAD_FILE_LINE){
-			_snprintf_s(szTmp, _TRUNCATE, "[LINE:%d]", line);
-			strncat_s(szLog, 1024 * 16, szTmp, min(strlen(szTmp), 1024 * 16 - 1 - strlen(szLog)));
+			if (line > 0){
+				_snprintf_s(szTmp, _TRUNCATE, "[LINE:%d]", line);
+				strncat_s(szLog, 1024 * 256, szTmp, min(strlen(szTmp), 1024 * 256 - 1 - strlen(szLog)));
+			}
 		}
 		int iTotalLen = strlen(szLog) + len;
-		iTotalLen = min(iTotalLen, 1024 * 16 - 1);
+		iTotalLen = min(iTotalLen, 1024 * 256 - 1);
 		memcpy(szLog + strlen(szLog), log, iTotalLen);
 		szLog[iTotalLen] = '\0';
 		if (pNewLen != nullptr){

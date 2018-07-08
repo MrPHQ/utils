@@ -59,8 +59,9 @@ namespace UTILS { namespace API {
 		源字符串
 	\param iSrcLen.
 		源字符串大小,包括字符串结束符 strlen(x)+1
+	\return 返回缓存区存放转换后的数据大小
 	*/
-	UTILS_API void GBKToUtf8(char* buff, int iBuffLen, const char* pSrc, int iSrcLen);
+	UTILS_API int GBKToUtf8(char* buff, int iBuffLen, const char* pSrc, int iSrcLen);
 	/**
 	@brief UTF-8字符串 转 GBK字符串
 	\param buff.
@@ -71,8 +72,9 @@ namespace UTILS { namespace API {
 		源字符串
 	\param iSrcLen.
 		源字符串大小,包括字符串结束符 strlen(x)+1
+	\return 返回缓存区存放转换后的数据大小
 	*/
-	UTILS_API void Utf8ToGBK(char* buff, int iBuffLen, const char* pSrc, int iSrcLen);
+	UTILS_API int Utf8ToGBK(char* buff, int iBuffLen, const char* pSrc, int iSrcLen);
 
 	/// 转换字符串中的指定所有字符
 	UTILS_API void CharConvert(char*, char s, char d);
@@ -191,6 +193,7 @@ namespace UTILS { namespace API {
 	UTILS_API bool IsPathExists(const char*);
 	UTILS_API void CreateFolders(const char*);
 	UTILS_API bool DelFolders(const char*);
+	UTILS_API void CreateFoldersFromFilePath(const char*);
 	/**
 	\brief
 		枚举目录下的文件/子目录
