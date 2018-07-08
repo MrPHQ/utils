@@ -12,10 +12,8 @@ namespace UTILS
 	namespace BUFFER
 	{
 		/**
-		@brief
-		环形(循环)缓存区(CRingBuffer) class.
+		@brief 环形(循环)缓存区(CRingBuffer) class.
 		*/
-
 		class UTILS_API CRingBuffer
 		{
 		public:
@@ -28,8 +26,16 @@ namespace UTILS
 			*/
 			CRingBuffer(size_t uiCapacity);
 			virtual ~CRingBuffer();
+
 			void Init(size_t uiCapacity);
 			void UnInit();
+			/*
+			@brief 启用/停止内部锁..
+				注意: 默认启用内部锁.
+			\param uiCapacity
+				缓存大小
+			*/
+			void SetInternalLock(bool enable) { _UseInternalLock = enable; }
 
 			/*
 			@brief 判断缓冲区为空..
@@ -174,8 +180,94 @@ namespace UTILS
 #else
 			pthread_mutex_t _lock;    //互斥锁
 #endif
+			/**< 启用/停用内部锁标识.*/
+			bool _UseInternalLock;
 			bool _init;
 			char _buff[1024 * 16];
+		};
+
+		class UTILS_API CBoundBuffer
+		{
+		public:
+			CBoundBuffer();
+			~CBoundBuffer();
+			/*
+			@brief 启用/停止内部锁..
+				注意: 默认启用内部锁.
+			\param uiCapacity
+				缓存大小
+			*/
+			void SetInternalLock(BOOL enable) { m_UseInternalLock = enable; }
+
+			/*
+			@brief 初始化缓存区大小.
+			\return 0成功,否则失败
+			*/
+			int Init(int iBlockSize);
+			/*
+			@brief 销毁内存块.
+			\return 0成功,否则失败
+			*/
+			int UnInit();
+			/*
+			@brief 清空内存块.
+			\return 0成功,否则失败
+			*/
+			int Clear();
+			/*
+			@brief 向内存块写入数据.
+			\param pDataBuff
+				数据缓存区
+			\param iDataLen
+				数据长度
+			\param pBlockPostion
+				数据写入位置,可根据该写入读取数据或获得数据读取内存地址
+			\return 0成功,否则失败
+			*/
+			int Write(BYTE* pDataBuff, int iDataLen, int* pBlockPostion);
+			/*
+			@brief 根据内存块数据写入位置读取数据.
+			\param iBlockPostion
+				数据偏移位置
+			\param pDataBuff
+				数据接收缓存区
+			\param iDataLen
+				数据接收长度
+			\return 0成功,否则失败
+			*/
+			int Read(int iBlockPostion, BYTE* pDataBuff, int iDataLen);
+			/*
+			@brief 根据内存快数据写入位置获得数据指针.
+			\param iBlockPostion
+				数据偏移位置
+			\param pBlockAddr
+				数据接收指针
+			\return 0成功,否则失败
+			*/
+			int GetAddr(int iBlockPostion, BYTE*& pBlockAddr);
+
+		private:
+			int _Init(int iBlockSize);
+			int _UnInit();
+			int _Clear();
+			int _Write(BYTE* pDataBuff, int iDataLen, int* pBlockPostion);
+			int _Read(int iBlockPostion, BYTE* pDataBuff, int iDataLen);
+			int _GetAddr(int iBlockPostion, BYTE*& pBlockAddr);
+		private:
+			/**< 初始化锁. */
+			void _InitLock();
+			void _UnInitLock();
+		private:
+			BOOL m_bInit;
+			/**< 内存块总大小.*/
+			int m_iBlockSize;
+			/**< 内存基地址.*/
+			BYTE* m_pBasePointer;
+			/**< 当前写入位置，即下一次数据写入位置，当写入新数据后发生改变.*/
+			int m_iCurrentPosition;
+			/**< 启用/停用内部锁标识.*/
+			BOOL m_UseInternalLock;
+			CRITICAL_SECTION m_lock;
 		};
 	}
 }

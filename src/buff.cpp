@@ -19,6 +19,7 @@ namespace UTILS
 			, _in(0)
 			, _out(0)
 			, _init(false)
+			, _UseInternalLock(true)
 		{
 			_temp_buffer._buffer = nullptr;
 			_temp_buffer._size = 0;
@@ -29,6 +30,7 @@ namespace UTILS
 			, _in(0)
 			, _out(0)
 			, _init(false)
+			, _UseInternalLock(true)
 		{
 			_temp_buffer._buffer = nullptr;
 			_temp_buffer._size = 0;
@@ -104,39 +106,49 @@ namespace UTILS
 			if (!_init) {
 				return 0;
 			}
-			uint32_t len = 0;
-			
+			if (_UseInternalLock){
+				uint32_t len = 0;
+
 #ifdef _WIN32
-			EnterCriticalSection(&_lock);
+				EnterCriticalSection(&_lock);
 #else
-			pthread_mutex_lock(&_lock);
+				pthread_mutex_lock(&_lock);
 #endif
-			len = _len();
+				len = _len();
 #ifdef _WIN32
-			LeaveCriticalSection(&_lock);
+				LeaveCriticalSection(&_lock);
 #else
-			pthread_mutex_unlock(&_lock);
+				pthread_mutex_unlock(&_lock);
 #endif
-			return len;
+				return len;
+			}
+			else{
+				return _len();
+			}
 		}
 
 		size_t CRingBuffer::Space() {
 			if (!_init) {
 				return 0;
 			}
-			uint32_t len = 0;
+			if (_UseInternalLock){
+				uint32_t len = 0;
 #ifdef _WIN32
-			EnterCriticalSection(&_lock);
+				EnterCriticalSection(&_lock);
 #else
-			pthread_mutex_lock(&_lock);
+				pthread_mutex_lock(&_lock);
 #endif
-			len = _space();
+				len = _space();
 #ifdef _WIN32
-			LeaveCriticalSection(&_lock);
+				LeaveCriticalSection(&_lock);
 #else
-			pthread_mutex_unlock(&_lock);
+				pthread_mutex_unlock(&_lock);
 #endif
-			return len;
+				return len;
+			}
+			else{
+				return _space();
+			}
 		}
 
 		size_t CRingBuffer::SpaceEx()
@@ -145,51 +157,66 @@ namespace UTILS
 				return 0;
 			}
 			uint32_t len = 0;
+			if (_UseInternalLock){
 #ifdef _WIN32
-			EnterCriticalSection(&_lock);
+				EnterCriticalSection(&_lock);
 #else
-			pthread_mutex_lock(&_lock);
+				pthread_mutex_lock(&_lock);
 #endif
-			len = _space();
-			len = std::min(len, _size - (_in & (_size - 1)));
+				len = _space();
+				len = std::min(len, _size - (_in & (_size - 1)));
 #ifdef _WIN32
-			LeaveCriticalSection(&_lock);
+				LeaveCriticalSection(&_lock);
 #else
-			pthread_mutex_unlock(&_lock);
+				pthread_mutex_unlock(&_lock);
 #endif
+			}else{
+				len = _space();
+				len = std::min(len, _size - (_in & (_size - 1)));
+			}
 			return len;
 		}
 
 		void CRingBuffer::Clear()
 		{
+			if (_UseInternalLock){
 #ifdef _WIN32
-			EnterCriticalSection(&_lock);
+				EnterCriticalSection(&_lock);
 #else
-			pthread_mutex_lock(&_lock);
+				pthread_mutex_lock(&_lock);
 #endif
-			_in = _out = 0;
+				_in = _out = 0;
 #ifdef _WIN32
-			LeaveCriticalSection(&_lock);
+				LeaveCriticalSection(&_lock);
 #else
-			pthread_mutex_unlock(&_lock);
+				pthread_mutex_unlock(&_lock);
 #endif
+			}
+			else{
+				_in = _out = 0;
+			}
 		}
 
 		void CRingBuffer::Write(size_t size) {
 			if (!_init) {
 				return;
 			}
+			if (_UseInternalLock){
 #ifdef _WIN32
-			EnterCriticalSection(&_lock);
+				EnterCriticalSection(&_lock);
 #else
-			pthread_mutex_lock(&_lock);
+				pthread_mutex_lock(&_lock);
 #endif
-			_in += size;
+				_in += size;
 #ifdef _WIN32
-			LeaveCriticalSection(&_lock);
+				LeaveCriticalSection(&_lock);
 #else
-			pthread_mutex_unlock(&_lock);
+				pthread_mutex_unlock(&_lock);
 #endif
+			}
+			else{
+				_in += size;
+			}
 		}
 		size_t CRingBuffer::Write(const char *data, size_t bytesWriteOfNumber)
 		{
@@ -197,17 +224,22 @@ namespace UTILS
 				return 0;
 			}
 			uint32_t ret;
+			if (_UseInternalLock){
 #ifdef _WIN32
-			EnterCriticalSection(&_lock);
+				EnterCriticalSection(&_lock);
 #else
-			pthread_mutex_lock(&_lock);
+				pthread_mutex_lock(&_lock);
 #endif
-			ret = _write(data, bytesWriteOfNumber);
+				ret = _write(data, bytesWriteOfNumber);
 #ifdef _WIN32
-			LeaveCriticalSection(&_lock);
+				LeaveCriticalSection(&_lock);
 #else
-			pthread_mutex_unlock(&_lock);
+				pthread_mutex_unlock(&_lock);
 #endif
+			}
+			else{
+				ret = _write(data, bytesWriteOfNumber);
+			}
 			return ret;
 		}
 
@@ -217,20 +249,27 @@ namespace UTILS
 				return 0;
 			}
 			uint32_t ret;
+			if (_UseInternalLock){
 #ifdef _WIN32
-			EnterCriticalSection(&_lock);
+				EnterCriticalSection(&_lock);
 #else
-			pthread_mutex_lock(&_lock);
+				pthread_mutex_lock(&_lock);
 #endif
-			ret = _read(data, bytesReadOfNumber);
-			//buffer中没有数据
-			if (_in == _out)
-				_in = _out = 0;
+				ret = _read(data, bytesReadOfNumber);
+				//buffer中没有数据
+				if (_in == _out)
+					_in = _out = 0;
 #ifdef _WIN32
-			LeaveCriticalSection(&_lock);
+				LeaveCriticalSection(&_lock);
 #else
-			pthread_mutex_unlock(&_lock);
+				pthread_mutex_unlock(&_lock);
 #endif
+			}else{
+				ret = _read(data, bytesReadOfNumber);
+				//buffer中没有数据
+				if (_in == _out)
+					_in = _out = 0;
+			}
 			return ret;
 		}
 
@@ -240,20 +279,28 @@ namespace UTILS
 				return 0;
 			}
 			uint32_t ret;
+			if (_UseInternalLock){
 #ifdef _WIN32
-			EnterCriticalSection(&_lock);
+				EnterCriticalSection(&_lock);
 #else
-			pthread_mutex_lock(&_lock);
+				pthread_mutex_lock(&_lock);
 #endif
-			ret = _read2(buff, bytesReadOfNumber);
-			//buffer中没有数据
-			if (_in == _out)
-				_in = _out = 0;
+				ret = _read2(buff, bytesReadOfNumber);
+				//buffer中没有数据
+				if (_in == _out)
+					_in = _out = 0;
 #ifdef _WIN32
-			LeaveCriticalSection(&_lock);
+				LeaveCriticalSection(&_lock);
 #else
-			pthread_mutex_unlock(&_lock);
+				pthread_mutex_unlock(&_lock);
 #endif
+			}
+			else{
+				ret = _read2(buff, bytesReadOfNumber);
+				//buffer中没有数据
+				if (_in == _out)
+					_in = _out = 0;
+			}
 			return ret;
 		}
 
@@ -320,6 +367,225 @@ namespace UTILS
 			memcpy(_buffer, data + len, size_ - len);
 			_in += size_;
 			return size_;
+		}
+
+		CBoundBuffer::CBoundBuffer()
+		{
+			m_bInit = FALSE;
+			m_iBlockSize = 0;
+			m_pBasePointer = NULL;
+			m_iCurrentPosition = 0;
+			m_UseInternalLock = TRUE;
+			_InitLock();
+		}
+
+
+		CBoundBuffer::~CBoundBuffer()
+		{
+			_UnInitLock();
+		}
+
+		int CBoundBuffer::Init(int iBlockSize)
+		{
+			int err = 0;
+			if (m_UseInternalLock){
+				EnterCriticalSection(&m_lock);
+				err = Init(iBlockSize);
+				LeaveCriticalSection(&m_lock);
+			}
+			else{
+				err = Init(iBlockSize);
+			}
+			return err;
+		}
+
+		int CBoundBuffer::UnInit()
+		{
+			int err = 0;
+			if (m_UseInternalLock){
+				EnterCriticalSection(&m_lock);
+				err = _UnInit();
+				LeaveCriticalSection(&m_lock);
+			}
+			else{
+				err = _UnInit();
+			}
+			return err;
+		}
+
+		int CBoundBuffer::Clear()
+		{
+			int err = 0;
+			if (m_UseInternalLock){
+				EnterCriticalSection(&m_lock);
+				err = _Clear();
+				LeaveCriticalSection(&m_lock);
+			}
+			else{
+				err = _Clear();
+			}
+			return err;
+		}
+
+		int CBoundBuffer::Write(BYTE* pDataBuff, int iDataLen, int* pBlockPostion)
+		{
+			int err = 0;
+			if (m_UseInternalLock){
+				EnterCriticalSection(&m_lock);
+				err = _Write(pDataBuff, iDataLen, pBlockPostion);
+				LeaveCriticalSection(&m_lock);
+			}
+			else{
+				err = _Write(pDataBuff, iDataLen, pBlockPostion);
+			}
+			return err;
+		}
+
+		int CBoundBuffer::Read(int iBlockPostion, BYTE* pDataBuff, int iDataLen)
+		{
+			int err = 0;
+			if (m_UseInternalLock){
+				EnterCriticalSection(&m_lock);
+				err = _Read(iBlockPostion, pDataBuff, iDataLen);
+				LeaveCriticalSection(&m_lock);
+			}
+			else{
+				err = _Read(iBlockPostion, pDataBuff, iDataLen);
+			}
+			return err;
+		}
+
+		int CBoundBuffer::GetAddr(int iBlockPostion, BYTE*& pBlockAddr)
+		{
+			int err = 0;
+			if (m_UseInternalLock){
+				EnterCriticalSection(&m_lock);
+				err = _GetAddr(iBlockPostion, pBlockAddr);
+				LeaveCriticalSection(&m_lock);
+			}
+			else{
+				err = _GetAddr(iBlockPostion, pBlockAddr);
+			}
+			return err;
+		}
+
+		int CBoundBuffer::_Init(int iBlockSize)
+		{
+			UnInit();
+
+			if (iBlockSize < 1024)
+			{
+				iBlockSize = 1024;
+			}
+
+			if (iBlockSize >BUFFER_MAX_LEN){
+				return -1;
+			}
+
+			//创建(或打开)共享数据段
+			m_iBlockSize = PAD_SIZE(iBlockSize);
+			m_pBasePointer = new BYTE[m_iBlockSize];
+			m_bInit = TRUE;
+
+			return 0;
+		}
+
+		int CBoundBuffer::_UnInit()
+		{
+			m_bInit = FALSE;
+			if (NULL != m_pBasePointer){
+				delete[] m_pBasePointer;
+			}
+			return 0;
+		}
+
+		//清空内存块
+		int CBoundBuffer::_Clear()
+		{
+			m_iCurrentPosition = 0;
+			return 0;
+		}
+
+		int CBoundBuffer::_Write(BYTE* pDataBuff, int iDataLen, int* pBlockPostion)
+		{
+			if (NULL == pDataBuff || iDataLen > m_iBlockSize)
+			{
+				return -1;
+			}
+			if (!m_bInit)
+			{
+				return -2;
+			}
+
+			BYTE* ptr = NULL;
+			int iBlockPosition = 0;
+			if ((m_iBlockSize - m_iCurrentPosition) > iDataLen)
+			{
+				ptr = (BYTE*)(m_pBasePointer + m_iCurrentPosition);
+				iBlockPosition = m_iCurrentPosition;
+				m_iCurrentPosition += iDataLen;
+			}
+			else
+			{
+				ptr = m_pBasePointer;
+				iBlockPosition = 0;
+				m_iCurrentPosition = iDataLen;
+			}
+			memcpy(ptr, pDataBuff, iDataLen);
+			if (NULL != pBlockPostion)
+			{
+				*pBlockPostion = iBlockPosition;
+			}
+			return 0;
+		}
+
+		int CBoundBuffer::_Read(int iBlockPostion, BYTE* pDataBuff, int iDataLen)
+		{
+			if (iBlockPostion < 0 || iBlockPostion > m_iBlockSize)
+			{
+				return -1;
+			}
+			if (NULL == pDataBuff || (iBlockPostion + iDataLen) > m_iBlockSize)
+			{
+				return -2;
+			}
+			if (!m_bInit)
+			{
+				return -3;
+			}
+
+			BYTE* ptr = m_pBasePointer + iBlockPostion;
+			memcpy(pDataBuff, ptr, iDataLen);
+			return 0;
+		}
+
+		int CBoundBuffer::_GetAddr(int iBlockPostion, BYTE*& pBlockAddr)
+		{
+			if (iBlockPostion < 0 || iBlockPostion > m_iBlockSize)
+			{
+				return -1;
+			}
+			if (!m_bInit)
+			{
+				return -2;
+			}
+			BYTE* ptr = m_pBasePointer + iBlockPostion;
+			if (NULL != pBlockAddr)
+			{
+				pBlockAddr = ptr;
+			}
+
+			return 0;
+		}
+
+		void CBoundBuffer::_InitLock()
+		{
+			InitializeCriticalSection(&m_lock);
+		}
+
+		void CBoundBuffer::_UnInitLock()
+		{
+			DeleteCriticalSection(&m_lock);
 		}
 	}
 }
