@@ -471,7 +471,9 @@ namespace UTILS
 
 		int CBoundBuffer::_Init(int iBlockSize)
 		{
-			UnInit();
+			if (m_bInit){
+				return 0;
+			}
 
 			if (iBlockSize < 1024)
 			{
@@ -485,13 +487,18 @@ namespace UTILS
 			//创建(或打开)共享数据段
 			m_iBlockSize = PAD_SIZE(iBlockSize);
 			m_pBasePointer = new BYTE[m_iBlockSize];
+			if (nullptr == m_pBasePointer){
+				return -2;
+			}
 			m_bInit = TRUE;
-
 			return 0;
 		}
 
 		int CBoundBuffer::_UnInit()
 		{
+			if (!m_bInit){
+				return 0;
+			}
 			m_bInit = FALSE;
 			if (NULL != m_pBasePointer){
 				delete[] m_pBasePointer;
