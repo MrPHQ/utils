@@ -88,6 +88,27 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
 	{
+		UTILS::CLock lock;
+		UTILS::CThreadBox::RunEx([&](void*){
+
+			std::unique_lock<std::mutex> lck(lock.GetMutex());
+
+			if (lock.WaitAck(lck, 2000)){
+
+			}
+			else{
+				OutputDebugString("vvvvvvvvvvvvvvvvvvvvvvvv");
+			}
+		},nullptr);
+
+		while (true)
+		{
+			Sleep(100);
+		}
+	}
+
+	std::cin.ignore();
+	{
 		char szStr[] = "字符集转换示例...字符集转换示例...字符集转换示例...字符集转换示例...字符集转换示例...字符集转换示例...x";
 		char* pStr = szStr;
 		char buff[1024], buff2[1024];
