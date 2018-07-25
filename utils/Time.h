@@ -6,9 +6,7 @@
 namespace UTILS
 {
 	/**
-	\brief
-		时间操作管理..
-
+	\brief 时间操作管理..
 	*/
 	class UTILS_API Time
 	{
@@ -27,19 +25,13 @@ namespace UTILS
 		~Time();
 
 		/**
-		\brief
-			获取本地当前时间
-
-		\return
-			time_t
+		\brief 获取本地当前时间
+		\return time_t
 		*/
 		static void GetNowTime(TIME_INFO&);
 		/**
-		\brief
-			将时间转换为自1970年1月1日以来持续时间的秒数，
-
-		\return
-			time_t
+		\brief 将时间转换为自1970年1月1日以来持续时间的秒数，
+		\return time_t
 		*/
 		static time_t Convert(short wYear, short wMonth, short wDay, 
 			short wHour, short wMinute,short wSecond);
@@ -53,9 +45,7 @@ namespace UTILS
 	};
 
 	/**
-	\brief
-		时间戳..
-
+	\brief 时间戳..
 	*/
 	class UTILS_API CTimeStampWrapper {
 	private:

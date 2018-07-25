@@ -17,6 +17,7 @@
 #include <utils\net.h>
 #include <utils\buff.h>
 #include <utils\LogFile.h>
+#include <utils\Time.h>
 #pragma comment(lib, "utils/utils.lib")
 
 
@@ -86,6 +87,23 @@ UTILS::CProcessLock lock;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	std::cin.ignore();
+	{
+		std::cout << UTILS::API::Random(1, 100) << std::endl;
+		std::cout << UTILS::API::Random(1, 100) << std::endl;
+		std::cout << UTILS::API::Random(1, 100) << std::endl;
+		std::cout << UTILS::API::Random(1, 100) << std::endl;
+		std::cout << UTILS::API::Random(1, 100) << std::endl;
+	}
+
+	std::cin.ignore();
+	{
+		UTILS::Time::TIME_INFO stTime;
+		UTILS::Time::GetNowTime(stTime);
+		time_t t = UTILS::Time::Convert(stTime);
+		std::cout << t << std::endl;
+	}
+
 	std::cin.ignore();
 	{
 		UTILS::CLock lock;

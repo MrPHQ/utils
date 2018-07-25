@@ -1254,8 +1254,9 @@ namespace UTILS {namespace API {
 	}
 
 	int Random(int start, int end) {
-		std::default_random_engine generator;
-		std::uniform_int_distribution<int> distribution(start, end);
+		//static std::default_random_engine generator;
+		static std::default_random_engine generator(time(0));
+		static std::uniform_int_distribution<int> distribution(start, end);
 		int dice_roll = distribution(generator);
 		return dice_roll;
 		/*
