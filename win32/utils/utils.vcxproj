@@ -62,9 +62,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>../../bin/$(TargetName)$(TargetExt)</OutputFile>
+      <OutputFile>../../bin/$(TargetName)d$(TargetExt)</OutputFile>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ImportLibrary>../../bin/$(TargetName).lib</ImportLibrary>
+      <ImportLibrary>../../bin/$(TargetName)d.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
       <Command>$(ProjectDir)..\git_version_commit.bat</Command>
