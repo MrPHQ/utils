@@ -16,17 +16,12 @@ namespace UTILS { namespace API {
 	UTILS_API int	Memcmp(const void* dest, const void* src, int count);
 
 	/**
-		\brief
-			重新分配内存.
-			重新分配内存,会保留原来的数据.
-		\param iNewLen
-			新分配内存大小.
-		\param pBuff
-			缓存区地址.
-		\param iDataLen
-			缓存区原有数据大小.
-		\param bDel
-			是否释放源缓存区.
+	* @brief 重新分配内存.
+	* 	重新分配内存,会保留原来的数据.
+	* @param iNewLen 新分配内存大小.
+	* @param pBuff 缓存区地址.
+	* @param iDataLen 缓存区原有数据大小.
+	* @param bDel 是否释放源缓存区.
 	*/
 	UTILS_API int MallocMemory(unsigned int iNewLen, BYTE*& pBuff, int iDataLen, BOOL bDel /*= TRUE*/);
 	/*
@@ -50,29 +45,21 @@ namespace UTILS { namespace API {
 		int outlen, int* OutIdleLen, int* NoConvertLen);
 #endif
 	/**
-	@brief GBK字符串转 UTF-8字符串
-	\param buff.
-		存放结果的缓存区.
-	\param iBuffLen.
-		存放结果的缓存区大小.
-	\param pSrc.
-		源字符串
-	\param iSrcLen.
-		源字符串大小,包括字符串结束符 strlen(x)+1
-	\return 返回缓存区存放转换后的数据大小
+	* @brief GBK字符串转 UTF-8字符串
+	* @param buff. 存放结果的缓存区.
+	* @param iBuffLen. 存放结果的缓存区大小.
+	* @param pSrc. 源字符串
+	* @param iSrcLen. 源字符串大小,包括字符串结束符 strlen(x)+1
+	* @return 返回缓存区存放转换后的数据大小
 	*/
 	UTILS_API int GBKToUtf8(char* buff, int iBuffLen, const char* pSrc, int iSrcLen);
 	/**
-	@brief UTF-8字符串 转 GBK字符串
-	\param buff.
-		存放结果的缓存区.
-	\param iBuffLen.
-		存放结果的缓存区大小.
-	\param pSrc.
-		源字符串
-	\param iSrcLen.
-		源字符串大小,包括字符串结束符 strlen(x)+1
-	\return 返回缓存区存放转换后的数据大小
+	* @brief UTF-8字符串 转 GBK字符串
+	* @param buff. 存放结果的缓存区.
+	* @param iBuffLen. 存放结果的缓存区大小.
+	* @param pSrc. 源字符串
+	* @param iSrcLen. 源字符串大小,包括字符串结束符 strlen(x)+1
+	* @return 返回缓存区存放转换后的数据大小
 	*/
 	UTILS_API int Utf8ToGBK(char* buff, int iBuffLen, const char* pSrc, int iSrcLen);
 
@@ -86,24 +73,15 @@ namespace UTILS { namespace API {
 	UTILS_API void CharToWchar(char* c, wchar_t* buff, int len);
 	UTILS_API void StringReplace(const char* src, const char* from, const char* to, char* buff, int len);
 	/**
-	\brief
-		根据分隔符查找子串
-		注意 ,输出的,子串有可以是空字符串, 比如 x...x ,,查找 分隔符位 'x'的子串
-
-	\param src.
-		源字符串.
-	\param delims.
-		分隔符.
-	\param index.
-		第几个分隔符.从0开始.
-	\param buff.
-		输出缓存区.
-	\param bufflen.
-		输出缓存区大小.
-	\param bMutil.
-		多分隔符..
-	\return
-		None
+	* @brief 根据分隔符查找子串
+	* 	注意 ,输出的,子串有可以是空字符串, 比如 x...x ,,查找 分隔符位 'x'的子串
+	* @param src. 源字符串.
+	* @param delims. 分隔符.
+	* @param index. 第几个分隔符.从0开始.
+	* @param buff. 输出缓存区.
+	* @param bufflen. 输出缓存区大小.
+	* @param bMutil. 多分隔符..
+	* @return None
 	*/
 	UTILS_API void StrTok(const char* src,
 		const char* delims, 
@@ -157,27 +135,18 @@ namespace UTILS { namespace API {
 	UTILS_API int ForceKillProcess(const char* name);
 	UTILS_API BOOL ForceKillProcess(DWORD dwPID);
 	/**
-	\brief
-		根据进程名获取所有的进程ID
-	\param lpszProName.
-		进程名.
-	\param dwPID.
-		存储进程ID的缓存区. 
-	\param iSize.
-		存储进程ID的缓存区大小. 
+	* @brief 根据进程名获取所有的进程ID
+	* @param lpszProName. 进程名.
+	* @param dwPID. 存储进程ID的缓存区. 
+	* @param iSize. 存储进程ID的缓存区大小. 
 	*/
 	UTILS_API int GetprocessIDs(const char* lpszProName, DWORD dwPID[], int iSize);
 
 	/**
-	\brief
-		运行程序
-
-	\param cmd.
-		命令行.
-	\param uiTimeOut.
-		超时时间. 
-	\return
-		char*
+	* @brief 运行程序
+	* @param cmd. 命令行.
+	* @param uiTimeOut. 超时时间. 
+	* @return char*
 	*/
 	typedef struct _PROCESS_PROPERTY {
 		uint32_t uiProcessID;
@@ -195,23 +164,14 @@ namespace UTILS { namespace API {
 	UTILS_API bool DelFolders(const char*);
 	UTILS_API void CreateFoldersFromFilePath(const char*);
 	/**
-	\brief
-		枚举目录下的文件/子目录
-
-	\param pDir.
-		指定目录.
-	\param pExt.
-		扩展名数组. 如 szExt[2][16] = {".log",".exe"} 
-	\param iExtNum
-		搜索的扩展名数量
-	\param lstDirs
-		子目录缓存区, 如果不需要,传入 nullptr
-	\param lstFiles
-		文件缓存区, 如果不需要,传入 nullptr
-	\param bRecursive
-		是否递归搜索
-	\return
-		char*
+	* @brief 枚举目录下的文件/子目录
+	* @param pDir. 指定目录.
+	* @param pExt. 扩展名数组. 如 szExt[2][16] = {".log",".exe"} 
+	* @param iExtNum 搜索的扩展名数量
+	* @param lstDirs 子目录缓存区, 如果不需要,传入 nullptr
+	* @param lstFiles 文件缓存区, 如果不需要,传入 nullptr
+	* @param bRecursive 是否递归搜索
+	* @return char*
 	*/
 	UTILS_API void EnumDirectoryFiles(const char* pDir,
 		char pExt[][16],
@@ -345,14 +305,37 @@ namespace UTILS { namespace API {
 	/*
 		注册表相关..
 	*/
-	/// 创建KEY ，如果存在则打开, close创建后是否关闭
+	/*
+	* @brief 创建/打开键，如果存在则打开, close创建后是否关闭
+	* @param key. 注册表根键 [HKEY_LOCAL_MACHINE]...
+	* @param subkey. 子键.
+	* @param close. 打开后是否关闭,如果关闭返回值一定是NULL
+	* @return [HKEY]. 操作句柄.
+	*/
 	UTILS_API HKEY CreateRegKey(HKEY key, const char* subkey, bool close = true);
 	UTILS_API int CloseRegKey(HKEY key);
+	/*
+	* @brief 写/修改注册表值项
+	* @param key. 操作句柄
+	* @param subkey. 子键.
+	* @param value. 值项
+	* @param val. 值
+	* @param len. 值大小
+	* @return [int]. 成功返回0.否则返回非0.
+	*/
 	UTILS_API int WriteRegString(HKEY key, const char* subkey, const char* value, const char* val, int len);
 	UTILS_API int WriteRegInt(HKEY key, const char* subkey, const char* value, int val);
 	// HKEY_LOCAL_MACHINE..  section.=SOFTWARE\\InControl\\Install  Entry..= install
 	UTILS_API int ReadRegString(HKEY key, const char* subkey, const char* value, char* buff, int len);
 	UTILS_API int ReadRegInt(HKEY key, const char* subkey, const char* value, int& v);
+	/*
+	* @brief 枚举注册表[子健/值项]
+	* @param key. 操作句柄
+	* @param subkey. 子键.
+	* @param pSubKey. 存放子健队列,可以传NULL
+	* @param pValues. 存放值项队列,可以传NULL
+	* @return [int]. 成功返回0.否则返回非0.
+	*/
 	UTILS_API int EnumRegKey(HKEY key, const char* subkey, std::list<std::string>* pSubKey, std::list<std::string>* pValues);
 
 	/*
@@ -373,17 +356,12 @@ namespace UTILS { namespace API {
 	UTILS_API float ByteToFloat(BYTE*);
 
 	/*
-	@brief	读取文件版本信息
-	\param pFile
-		文件路径.
-	\param pVerInfo
-		存放文件版本信息缓存区.
-	\param pProductVerInfo
-		存放产品版本信息缓存区
-	\param pBuffer
-		版本信息缓存区. 如果不为空,则拷贝VS_FIXEDFILEINFO信息到缓存区
-	\param iBuffLen
-		缓存区大小
+	* @brief 读取文件版本信息
+	* @param pFile 文件路径.
+	* @param pVerInfo 存放文件版本信息缓存区.
+	* @param pProductVerInfo 存放产品版本信息缓存区
+	* @param pBuffer 版本信息缓存区. 如果不为空,则拷贝VS_FIXEDFILEINFO信息到缓存区
+	* @param iBuffLen 缓存区大小
 	*/
 	struct VERSION_PROPERTY
 	{
@@ -400,14 +378,11 @@ namespace UTILS { namespace API {
 		VERSION_PROPERTY stProductVersion;
 	};
 	/*
-	@brief	读取文件版本信息
-		枚举执行目录下的所有文件.并读取版本信息
-	\param pFolder
-		目录.
-	\param lstFileVersions
-		存放文件版本信息缓存区.
-	\param bRecursive
-		是否递归搜索
+	* @brief 读取文件版本信息
+	* 	枚举执行目录下的所有文件.并读取版本信息
+	* @param pFolder 目录.
+	* @param lstFileVersions 存放文件版本信息缓存区.
+	* @param bRecursive 是否递归搜索
 	*/
 	UTILS_API int GetFileVersionForFolder(const char* pFolder, std::list<FILE_VERSION_PROPERTY>& lstFileVersions, bool bRecursive = true);
 }}

@@ -89,6 +89,24 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
 	{
+		//int iRet = UTILS::API::PathMove("H:\\inControl", "I:\\x");
+		int iRet = UTILS::API::PathMove("I:\\x\\inControl\\" ,"H:\\xxx");
+		std::cout << iRet << std::endl;
+	}
+	std::cin.ignore();
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			std::cout << "ÐÂÒ»ÂÖ:" << std::endl;
+			std::cout << UTILS::API::Random(0, 4) << std::endl;
+			std::cout << UTILS::API::Random(0, 4) << std::endl;
+			std::cout << UTILS::API::Random(0, 4) << std::endl;
+			
+		}
+	}
+
+	std::cin.ignore();
+	{
 		std::cout << UTILS::API::Random(1, 100) << std::endl;
 		std::cout << UTILS::API::Random(1, 100) << std::endl;
 		std::cout << UTILS::API::Random(1, 100) << std::endl;
