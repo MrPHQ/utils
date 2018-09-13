@@ -342,6 +342,7 @@ namespace UTILS { namespace API {
 		打印调试信息
 	*/
 	UTILS_API void DEBUG_INFO(char* flag, char*, ...);
+	UTILS_API void DEBUG_INFO2(const char* flag, const char* file, int line, const char* fmt, ...);
 
 	/*
 		随机数c++11

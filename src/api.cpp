@@ -1124,6 +1124,40 @@ namespace UTILS {namespace API {
 #endif
 	}
 
+	void DEBUG_INFO2(const char* flag, const char* file, int line, const char* fmt, ...)
+	{
+#ifdef _WIN32
+		va_list args;
+		char sLog[1024];
+		char sOut[1024];
+		sLog[0] = '\0';
+		sOut[0] = '\0';
+		va_start(args, fmt);
+		_vsnprintf_s(sOut, sizeof(sOut)-1, fmt, args);
+		va_end(args);
+		if (NULL != flag && strlen(flag) > 0) {
+			strncat_s(sLog, _TRUNCATE, "[", min(1, sizeof(sLog)-strlen(sLog) - 1));
+			strncat_s(sLog, _TRUNCATE, flag, min(strlen(flag), sizeof(sLog)-strlen(sLog) - 1));
+			strncat_s(sLog, _TRUNCATE, "] ", min(2, sizeof(sLog)-strlen(sLog) - 1));
+		}
+
+		strncat_s(sLog, _TRUNCATE, sOut, min(strlen(sOut), sizeof(sLog)-strlen(sLog) - 1));
+
+		if (NULL != file && strlen(file) > 0) {
+			strncat_s(sLog, _TRUNCATE, ".[", min(2, sizeof(sLog)-strlen(sLog) - 1));
+			strncat_s(sLog, _TRUNCATE, file, min(strlen(file), sizeof(sLog)-strlen(sLog) - 1));
+			strncat_s(sLog, _TRUNCATE, "] ", min(2, sizeof(sLog)-strlen(sLog) - 1));
+		}
+		if (line >= 0) {
+			char tmp[32];
+			_snprintf_s(tmp, _TRUNCATE, ".[%d]", line);
+			strncat_s(sLog, _TRUNCATE, tmp, min(strlen(tmp), sizeof(sLog)-strlen(sLog) - 1));
+		}
+		OutputDebugString(sLog);
+#else
+#endif
+	}
+
 	bool DelFolders(const char* folders) {
 		if (folders == NULL){
 			return false;
