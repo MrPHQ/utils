@@ -123,8 +123,7 @@ public:
 	}
 
 	/**
-	\brief
-		写入日志.
+	\brief 写入日志.
 	*/
 	void Write(const char* pLog, int len)
 	{
@@ -132,27 +131,22 @@ public:
 	}
 
 	/**
-	\brief
-		写入日志.
-		日志文件模式(LOG_FILE_MODE):
-			LOG_FILE_MODE_SYNC 立即写入日志文件.
-			LOG_FILE_MODE_ASYNC_IN 写入内部缓存区,内部日志线程延迟写入日志文件
-			LOG_FILE_MODE_ASYNC_OUT 写入内部缓存区,然后外部调用[Active],触发写入日志文件
-	\param file
-		日志位置所在文件.
-	\param line
-		日志所在位置文件行号.
-	\param data
-		日志内容
-	\param len
-		日志大小
+	* @brief 写入日志.
+	* @日志文件模式(LOG_FILE_MODE):
+	* 	LOG_FILE_MODE_SYNC 立即写入日志文件.
+	* 	LOG_FILE_MODE_ASYNC_IN 写入内部缓存区,内部日志线程延迟写入日志文件
+	* 	LOG_FILE_MODE_ASYNC_OUT 写入内部缓存区,然后外部调用[Active],触发写入日志文件
+	* @param file 日志位置所在文件.
+	* @param line 日志所在位置文件行号.
+	* @param data 日志内容
+	* @param len 日志大小
 	*/
 	void Write(const char* file, int line, const char* data, int len)
 	{
 		std::unique_lock<std::mutex> lock(m_lock.GetMutex());
 		int iLogLen = 0;
 		const char* p = ConstructLog(file, line, data, len, &iLogLen);
-		UTILS::MSG_INFO((char*)p);
+		//MSG_INFO(p);
 		switch (m_nMode)
 		{
 		case UTILS::LOG_FILE_MODE_NONE:
@@ -184,8 +178,7 @@ public:
 	}
 
 	/**
-	\brief
-		写入日志. 把缓存里的日志写入日志文件
+	\brief 写入日志. 把缓存里的日志写入日志文件
 		只适用	日志文件模式(LOG_FILE_MODE):LOG_FILE_MODE_ASYNC_OUT
 	*/
 	void Active()
@@ -243,9 +236,7 @@ public:
 		}
 	}
 	/**
-	\brief
-		检测文件是否达到存储天数上限
-
+	\brief检测文件是否达到存储天数上限
 		注意: 如果到达上限,内部会删除最早的一天的日志文件
 	*/
 	void CheckStorageDays()
@@ -265,15 +256,14 @@ public:
 
 			for (auto& it : m_mapFiles.begin()->second)
 			{
-				UTILS::MSG_INFO("log file delete :%s", it.strFile.data());
+				MSG_INFO("log file delete :%s", it.strFile.data());
 				DeleteFile(it.strFile.data());
 			}
 			m_mapFiles.erase(m_mapFiles.begin());
 		}
 	}
 	/**
-	\brief
-		检测文件是否达到设置的容量上限
+	\brief 检测文件是否达到设置的容量上限
 		注意: 如果达到上限,则自动切换文件
 	*/
 	void CheckStorageSize()
@@ -290,8 +280,7 @@ public:
 		}
 	}
 	/**
-	\brief
-		检测日期是否切换
+	\brief 检测日期是否切换
 		注意: 如果日期切换,则自动切换文件
 	*/
 	void CheckDateChanged()
@@ -307,11 +296,9 @@ public:
 		}
 	}
 	/**
-	\brief
-		判断是否达到检测超时时间
+	\brief 判断是否达到检测超时时间
 		检测[单个文件大小/日期切换/存储条数]. 默认超时时间10s
-	\return 
-		返回 true 达到超时时间
+	\return  返回 true 达到超时时间
 	*/
 	bool IsCheck()
 	{
@@ -332,14 +319,10 @@ private:
 		return m_logfile.Open(UTILS::PATH_FILE_OPENMODE_APP /*| UTILS::PATH_FILE_OPENMODE_BINARY*/, m_szFile);
 	}
 	/**
-	\brief
-		关闭当前文件
-	\param pFile
-		输出被关闭的文件的名称(全路径)
-	\param len
-		缓存区大小
-	\param pIndex
-		被关闭文件的序号
+	* @brief 关闭当前文件
+	* @param pFile 输出被关闭的文件的名称(全路径)
+	* @param len 缓存区大小
+	* @param pIndex 被关闭文件的序号
 	*/
 	void Close(char* pFile, int len, int* pIndex)
 	{
@@ -393,9 +376,7 @@ private:
 	}
 
 	/**
-	\brief
-		切换文件
-
+	\brief切换文件
 		根据容量大小, 日期切换.需要重新生成日志文件.
 	*/
 	void NewFile()
@@ -420,8 +401,7 @@ private:
 	}
 
 	/**
-	\brief
-		获取历史日志文件
+	\brief 获取历史日志文件
 	*/
 	void GetHistoryLogFile()
 	{
@@ -474,12 +454,9 @@ private:
 		}
 	}
 	/**
-	\brief
-		构造日志记录
-	\param file
-		日志位置所在文件.
-	\param line
-		日志所在位置文件行号.
+	* @brief 构造日志记录
+	* @param file 日志位置所在文件.
+	* @param line 日志所在位置文件行号.
 	*/
 	const char* ConstructLog(const char* file, int line, const char* log, int len, int* pNewLen)
 	{

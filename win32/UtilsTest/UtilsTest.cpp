@@ -18,7 +18,11 @@
 #include <utils\buff.h>
 #include <utils\LogFile.h>
 #include <utils\Time.h>
+#ifdef _DEBUG
+#pragma comment(lib, "utils/utilsd.lib")
+#else
 #pragma comment(lib, "utils/utils.lib")
+#endif
 
 
 class CTest
@@ -87,6 +91,17 @@ UTILS::CProcessLock lock;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	std::cin.ignore();
+	{
+		//int iRet = UTILS::API::PathMove("H:\\inControl", "I:\\x");
+		BOOL bRet = UTILS::API::RegeFullMatch("hello", "h.*o");
+		std::cout <<"1"<<"\t"<< bRet << std::endl;
+		bRet = UTILS::API::RegeFullMatch("hello", "ell");
+		std::cout << "2" << "\t" << bRet << std::endl;
+		bRet = UTILS::API::RegeFullMatch("hello", "hello");
+		std::cout << "3" << "\t" << bRet << std::endl;
+	}
+
 	std::cin.ignore();
 	{
 		//int iRet = UTILS::API::PathMove("H:\\inControl", "I:\\x");

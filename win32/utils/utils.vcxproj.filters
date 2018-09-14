@@ -84,6 +84,9 @@
     <ClInclude Include="..\..\utils\buff.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\win32\dll.h">
+      <Filter>src\win32</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\api.cpp">
@@ -127,6 +130,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\buff.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\win32\dll.cpp">
+      <Filter>src\win32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

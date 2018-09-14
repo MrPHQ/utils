@@ -386,5 +386,18 @@ namespace UTILS { namespace API {
 	* @param bRecursive 是否递归搜索
 	*/
 	UTILS_API int GetFileVersionForFolder(const char* pFolder, std::list<FILE_VERSION_PROPERTY>& lstFileVersions, bool bRecursive = true);
+
+
+	/************************************************************************/
+	/* 正则表达式                                                           */
+	/************************************************************************/
+
+	/*
+	* @brief 完全匹配字符串
+	* @param pStr 源字符串.
+	* @param pPattern 正则表达式.
+	* @return 匹配成功返回TRUE, 否则FALSE
+	*/
+	UTILS_API BOOL RegeFullMatch(const char* pStr, const char* pPattern);
 }}
 #endif

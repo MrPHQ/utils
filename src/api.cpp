@@ -61,6 +61,8 @@
 #endif
 #endif
 
+#include "win32/dll.h"
+
 namespace UTILS {namespace API {
 
 	void* Malloc(int size, bool init /*= false*/){
@@ -2580,5 +2582,65 @@ namespace UTILS {namespace API {
 			}
 		}
 		return 0;
+	}
+
+	UTILS_API BOOL RegeFullMatch(const char* pStr, const char* pPattern)
+	{
+		if ((NULL == pPattern) || (NULL == pStr))
+		{
+			return FALSE;
+		}
+		CDll_PCRE cDll;
+		if (!cDll.IsProcAddress())
+		{
+			MSG_ERROR;
+			return FALSE;
+		}
+		const char *error = NULL;
+		int erroffset = 0;
+		int ovector[30];/* should be a multiple of 3 */
+
+		std::string wrapped = "(?:";  // A non-counting grouping operator
+		wrapped += pPattern;
+		wrapped += ")\\z";
+
+		pcre *re = cDll.pfnCompile()(
+			wrapped.data(),              /* the pattern */
+			0,                    /* default options */
+			&error,               /* for error message */
+			&erroffset,           /* for error offset */
+			NULL);                /* use default character tables */
+		if (re == NULL)
+		{
+			if (NULL != error)
+			{
+				MSG_INFO("PCRE compilation failed at offset %d: %s", erroffset, error);
+			}
+			return FALSE;
+		}
+		int rc = cDll.pfnExec()(
+			re,                   /* the compiled pattern */
+			NULL,                 /* no extra data - we didn't study the pattern */
+			pStr,				  /* the subject string */
+			strlen(pStr),         /* the length of the subject */
+			0,                    /* start at offset 0 in the subject */
+			0,                    /* default options */
+			ovector,              /* output vector for substring information */
+			30);				  /* number of elements in the output vector */
+		if (rc < 0)
+		{
+			switch (rc)
+			{
+			case PCRE_ERROR_NOMATCH: MSG_INFO("No match"); break;
+				/*
+				Handle other special cases if you like
+				*/
+			default: MSG_INFO("Matching error %d", rc); break;
+			}
+			(*cDll.pfnFree())(re);     /* Release memory used for the compiled pattern */
+			return FALSE;
+		}
+		(*cDll.pfnFree())(re);
+		return TRUE;
 	}
 }}

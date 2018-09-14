@@ -13,6 +13,6 @@ DLLIMPORTCLASSEND()
 
 BOOL libiconvLoadSucc();
 
-#define MSG_INFO(...) API::DEBUG_INFO("utils", __VA_ARGS__);
-
+#define MSG_INFO(...) UTILS::API::DEBUG_INFO2("utils", __FILE__, __LINE__, __VA_ARGS__);
+#define MSG_ERROR MSG_INFO("ERROR")
 #endif	//__CRITSEC_H__

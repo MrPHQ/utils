@@ -340,7 +340,7 @@ namespace UTILS
 				}
 				if (size_ <= _temp_buffer._size){
 					if (_temp_buffer._buffer != nullptr){
-						UTILS::MSG_INFO(".new char.LINE:%d",__LINE__);
+						MSG_INFO(".new char.");
 						memcpy(_temp_buffer._buffer, buff, len);
 						memcpy(_temp_buffer._buffer + len, _buffer, size_ - len);
 						buff = _temp_buffer._buffer;

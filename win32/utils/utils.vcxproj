@@ -97,6 +97,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\internal.h" />
+    <ClInclude Include="..\..\src\win32\dll.h" />
     <ClInclude Include="..\..\utils\api.h" />
     <ClInclude Include="..\..\utils\buff.h" />
     <ClInclude Include="..\..\utils\config.h" />
@@ -131,6 +132,7 @@
     <ClCompile Include="..\..\src\Time.cpp" />
     <ClCompile Include="..\..\src\utils.cpp" />
     <ClCompile Include="..\..\src\win32\ConfigFile.cpp" />
+    <ClCompile Include="..\..\src\win32\dll.cpp" />
     <ClCompile Include="..\..\src\win32\ShareMemory.cpp" />
   </ItemGroup>
   <ItemGroup>
