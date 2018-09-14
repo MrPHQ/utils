@@ -1,7 +1,7 @@
 #ifndef __UTILS_DLL_WRAPPER__
 #define __UTILS_DLL_WRAPPER__
 #include "../../utils/api.h"
-#include <pcre.h>
+#include <pcre/include/pcre.h>
 
 class CDll
 {
