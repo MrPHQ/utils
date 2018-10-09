@@ -56,55 +56,39 @@ namespace UTILS
 		~CTimeStampWrapper();
 
 		/**
-		\brief
-			初始化时间戳
-		\param uiNow
-			当前运行时间
-		\param iTimeOut
-			超时时间
-		\return
-			void
+		* @brief 初始化时间戳
+		* @param uiNow 当前运行时间
+		* @param iTimeOut 超时时间
+		* @return void
 		*/
 		void Init(unsigned long long uiNow, int iTimeOut);
 
 		/**
-		\brief
-			更新时间戳
-		\param uiNow
-			当前运行时间
-		\return
-			void
+		* @brief 更新时间戳
+		* @param uiNow 当前运行时间
+		* @return void
 		*/
 		void Update(unsigned long long uiNow);
 
 		/**
-		\brief
-			检测本地时间戳是否已经到达超时时间.
-		\param uiNow
-			当前运行时间
-		\param update
-			是否更新时间戳
-		\return
-			bool 如果达到超时时间,返回true,否则返回false
+		* @brief 检测本地时间戳是否已经到达超时时间.
+		* @param uiNow 当前运行时间
+		* @param update 是否更新时间戳
+		* @return bool 如果达到超时时间,返回true,否则返回false
 		*/
 		bool Check(unsigned long long uiNow, bool update = true);
 
 		/**
-		\brief
-			检测本地时间戳是否已经到达超时时间.
-		\param uiNow
-			当前运行时间
-		\param iTimeOut
-			超时时间
-		\return
-			bool 如果达到超时时间,返回true,否则返回false
+		* @brief 检测本地时间戳是否已经到达超时时间.
+		* @param uiNow 当前运行时间
+		* @param iTimeOut 超时时间
+		* @return bool 如果达到超时时间,返回true,否则返回false
 		*/
 		bool Check(unsigned long long uiNow, int iTimeOut);
 
 		/**
-		\brief
-			获取超时时间.
-		\return
+		* @brief 获取超时时间.
+		* @return
 		*/
 		int GetTimeOut();
 	};

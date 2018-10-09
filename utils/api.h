@@ -399,5 +399,28 @@ namespace UTILS { namespace API {
 	* @return 匹配成功返回TRUE, 否则FALSE
 	*/
 	UTILS_API BOOL RegeFullMatch(const char* pStr, const char* pPattern);
+
+	/************************************************************************/
+	/* 网络		                                                           */
+	/************************************************************************/
+	enum TCP_STATE{
+		TCP_STATE_CLOSED = 1,
+		TCP_STATE_LISTEN = 2,
+		TCP_STATE_SYN_SENT = 3,
+		TCP_STATE_SYN_RCVD = 4,
+		TCP_STATE_ESTAB = 5,
+		TCP_STATE_FIN_WAIT1 = 6,
+		TCP_STATE_FIN_WAIT2 = 7,
+		TCP_STATE_CLOSE_WAIT = 8,
+		TCP_STATE_CLOSING = 9,
+		TCP_STATE_LAST_ACK = 10,
+		TCP_STATE_TIME_WAIT = 11,
+		TCP_STATE_DELETE_TCB = 12,
+	};
+	/*
+	* @brief 获取端口的状态
+	* @param port TCP端口.
+	*/
+	UTILS_API TCP_STATE GetTcpPortState(int port);
 }}
 #endif

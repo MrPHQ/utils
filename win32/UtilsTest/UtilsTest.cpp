@@ -93,6 +93,19 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
 	{
+		UTILS::FILE_PROPERTY stProperty;
+		UTILS::Time::TIME_INFO stTime;
+		BOOL bRet = UTILS::CFile::GetStat("d:\\icpdb.sql", &stProperty);
+		UTILS::Time::Convert(stProperty.st_ctime, stTime);
+		std::cout << stTime.wYear << "\t" << stTime.wMonth << "\t" << stTime.wDay << "\t"<<
+			stTime.wHour << "\t" << stTime.wMinute << "\t" << stTime.wSecond << std::endl;
+		UTILS::Time::Convert(stProperty.st_mtime, stTime);
+		std::cout << stTime.wYear << "\t" << stTime.wMonth << "\t" << stTime.wDay << "\t" <<
+			stTime.wHour << "\t" << stTime.wMinute << "\t" << stTime.wSecond << std::endl;
+	}
+
+	std::cin.ignore();
+	{
 		//int iRet = UTILS::API::PathMove("H:\\inControl", "I:\\x");
 		BOOL bRet = UTILS::API::RegeFullMatch("hello", "h.*o");
 		std::cout <<"1"<<"\t"<< bRet << std::endl;

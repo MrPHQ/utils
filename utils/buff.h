@@ -19,10 +19,9 @@ namespace UTILS
 		public:
 			CRingBuffer();
 			/*
-			@brief 构造函数..
-				客户端创建套接字使用.内部会创建\连接套接字
-			\param uiCapacity
-				缓存大小
+			* @brief 构造函数..
+			* 	客户端创建套接字使用.内部会创建\连接套接字
+			* @param uiCapacity 缓存大小
 			*/
 			CRingBuffer(size_t uiCapacity);
 			virtual ~CRingBuffer();
@@ -32,8 +31,7 @@ namespace UTILS
 			/*
 			@brief 启用/停止内部锁..
 				注意: 默认启用内部锁.
-			\param uiCapacity
-				缓存大小
+			\param uiCapacity 缓存大小
 			*/
 			void SetInternalLock(bool enable) { _UseInternalLock = enable; }
 
@@ -123,23 +121,17 @@ namespace UTILS
 			size_t Write(const char *data, size_t bytesWriteOfNumber);
 
 			/*
-			@brief 从缓存区读取指定大小数据.
-			\param buff
-				数据接收缓存区
-			\param bytesReadOfNumber
-				待读取数据大小.
-			\return [size_t]
-				返回读取的数据大小
+			* @brief 从缓存区读取指定大小数据.
+			* @param buff 数据接收缓存区
+			* @param bytesReadOfNumber 待读取数据大小.
+			* @return [size_t] 返回读取的数据大小
 			*/
 			size_t Read(char* buff, size_t bytesReadOfNumber);
 			/*
-			@brief 从缓存区读取指定大小数据.
-			\param buff
-				指向数据缓存区的数据指针.
-			\param bytesReadOfNumber
-				待读取数据大小.
-			\return [size_t]
-				返回读取的数据大小
+			* @brief 从缓存区读取指定大小数据.
+			* @param buff 指向数据缓存区的数据指针.
+			* @param bytesReadOfNumber 待读取数据大小.
+			* @return [size_t] 返回读取的数据大小
 			*/
 			size_t ReadEx(char*& buff, size_t bytesReadOfNumber);
 
@@ -194,8 +186,7 @@ namespace UTILS
 			/*
 			@brief 启用/停止内部锁..
 				注意: 默认启用内部锁.
-			\param uiCapacity
-				缓存大小
+			\param uiCapacity 缓存大小
 			*/
 			void SetInternalLock(BOOL enable) { m_UseInternalLock = enable; }
 
@@ -216,32 +207,24 @@ namespace UTILS
 			int Clear();
 			/*
 			@brief 向内存块写入数据.
-			\param pDataBuff
-				数据缓存区
-			\param iDataLen
-				数据长度
-			\param pBlockPostion
-				数据写入位置,可根据该写入读取数据或获得数据读取内存地址
+			\param pDataBuff 数据缓存区
+			\param iDataLen 数据长度
+			\param pBlockPostion 数据写入位置,可根据该写入读取数据或获得数据读取内存地址
 			\return 0成功,否则失败
 			*/
 			int Write(BYTE* pDataBuff, int iDataLen, int* pBlockPostion);
 			/*
 			@brief 根据内存块数据写入位置读取数据.
-			\param iBlockPostion
-				数据偏移位置
-			\param pDataBuff
-				数据接收缓存区
-			\param iDataLen
-				数据接收长度
+			\param iBlockPostion 数据偏移位置
+			\param pDataBuff 数据接收缓存区
+			\param iDataLen 数据接收长度
 			\return 0成功,否则失败
 			*/
 			int Read(int iBlockPostion, BYTE* pDataBuff, int iDataLen);
 			/*
 			@brief 根据内存快数据写入位置获得数据指针.
-			\param iBlockPostion
-				数据偏移位置
-			\param pBlockAddr
-				数据接收指针
+			\param iBlockPostion 数据偏移位置
+			\param pBlockAddr 数据接收指针
 			\return 0成功,否则失败
 			*/
 			int GetAddr(int iBlockPostion, BYTE*& pBlockAddr);

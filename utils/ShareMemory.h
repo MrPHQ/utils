@@ -46,44 +46,35 @@ public:
 	/**
 	\brief
 		初始化进程通讯器
-	\param nType
-		类型.
+	\param nType 类型.
 	\param buff
-		.
 	\param iBuffLen
-		.
-	\param dwLength
-		共享内存最大长度
+	\param dwLength 共享内存最大长度
 	\return
 		.
 	*/
 	int	Init(CommunicatorType nType, PSHARE_MEMORY_PROPERTY pProperty,DWORD dwLength);
 	/**
-	\brief
-		释放资源
+	\brief 释放资源
 	*/
 	void UnInit();
 	/**
-	\brief
-		将数据写入共享缓存，初始化为CT_WRITER时有效
+	\brief 将数据写入共享缓存，初始化为CT_WRITER时有效
 	*/
 	int WriteData(CommunicatorPacket_t* pData);
 	/**
-	\brief
-		注册获取共享缓存中写入的数据的回调函数，初始化为CT_READER时有效
+	\brief 注册获取共享缓存中写入的数据的回调函数，初始化为CT_READER时有效
 	*/
 	void RegisterDataCallback(std::function<void(CommunicatorPacket_t* lpPacket, void* pUsrPar)> pCallback, 
 		void* pUsrPar);
 	/**
-	\brief
-		清空数据，初始化为CT_READER时有效
+	\brief 清空数据，初始化为CT_READER时有效
 	*/
 	void ResetData();
 
 protected:
 	/**
-	\brief
-		数据读取线程处理函数
+	\brief 数据读取线程处理函数
 	*/
 	static void  ReadDataThread(BOOL& bRun, HANDLE hWait, void* pUsrPar);
 	void ReadData(BOOL& bRun, HANDLE hWait);
