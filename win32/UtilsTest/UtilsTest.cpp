@@ -93,6 +93,13 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	std::cin.ignore();
 	{
+		//int iRet = UTILS::API::PathMove("H:\\inControl", "I:\\x");
+		int iRet = UTILS::API::PathMove("I:\\x\\Ë®µç·Ñ\\inControl\\", "H:\\xxx");
+		std::cout << iRet << std::endl;
+	}
+
+	std::cin.ignore();
+	{
 		UTILS::FILE_PROPERTY stProperty;
 		UTILS::Time::TIME_INFO stTime;
 		BOOL bRet = UTILS::CFile::GetStat("d:\\icpdb.sql", &stProperty);
@@ -115,12 +122,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		std::cout << "3" << "\t" << bRet << std::endl;
 	}
 
-	std::cin.ignore();
-	{
-		//int iRet = UTILS::API::PathMove("H:\\inControl", "I:\\x");
-		int iRet = UTILS::API::PathMove("I:\\x\\inControl\\" ,"H:\\xxx");
-		std::cout << iRet << std::endl;
-	}
+
 	std::cin.ignore();
 	{
 		for (int i = 0; i < 10; i++)

@@ -2244,7 +2244,12 @@ namespace UTILS {namespace API {
 		FileOp.pFrom = szFrom;
 		FileOp.pTo = szTo;
 		FileOp.wFunc = FO_COPY;
-		return SHFileOperation(&FileOp) == 0;
+		int ret = SHFileOperation(&FileOp);
+		if (ret != 0)
+		{
+			MSG_INFO("err:%d", ret);
+		}
+		return ret == 0;
 	}
 
 	bool PathReName(const TCHAR *_pFrom, const TCHAR *_pTo)
@@ -2262,7 +2267,12 @@ namespace UTILS {namespace API {
 		FileOp.pFrom = szFrom;
 		FileOp.pTo = szTo;
 		FileOp.wFunc = FO_RENAME;
-		return SHFileOperation(&FileOp) == 0;
+		int ret = SHFileOperation(&FileOp);
+		if (ret != 0)
+		{
+			MSG_INFO("err:%d", ret);
+		}
+		return ret == 0;
 	}
 
 	bool PathDelete(const TCHAR* _pFrom)
@@ -2277,7 +2287,12 @@ namespace UTILS {namespace API {
 		FileOp.pTo = NULL;//一定要是NULL
 		FileOp.fFlags = FOF_ALLOWUNDO|FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;;
 		FileOp.wFunc = FO_DELETE; //删除操作
-		return SHFileOperation(&FileOp) == 0;
+		int ret = SHFileOperation(&FileOp);
+		if (ret != 0)
+		{
+			MSG_INFO("err:%d", ret);
+		}
+		return ret == 0;
 	}
 
 	bool PathMove(const TCHAR *_pFrom, const TCHAR *_pTo)
@@ -2291,7 +2306,12 @@ namespace UTILS {namespace API {
 		FileOp.pFrom = szFrom;
 		FileOp.pTo = szTo;
 		FileOp.wFunc = FO_MOVE;
-		return SHFileOperation(&FileOp) == 0;
+		int ret = SHFileOperation(&FileOp);
+		if (ret != 0)
+		{
+			MSG_INFO("err:%d",ret);
+		}
+		return ret == 0;
 	}
 
 	BYTE GetBit(unsigned int dwValue, int iIndex)
