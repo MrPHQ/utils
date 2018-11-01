@@ -422,5 +422,12 @@ namespace UTILS { namespace API {
 	* @param port TCP¶Ë¿Ú.
 	*/
 	UTILS_API TCP_STATE GetTcpPortState(int port);
+
+
+	/************************************************************************/
+	/* ÆäËû		                                                           */
+	/************************************************************************/
+	UTILS_API unsigned int ConvertIp(std::string ip);
+	UTILS_API std::string ConvertIp(unsigned int ip);
 }}
 #endif

@@ -94,6 +94,18 @@ int _tmain(int argc, _TCHAR* argv[])
 	std::cin.ignore();
 	{
 		//int iRet = UTILS::API::PathMove("H:\\inControl", "I:\\x");
+		std::cout << UTILS::API::ConvertIp("127.0.0.1") << std::endl;
+		std::cout << UTILS::API::ConvertIp("193.0.0.1") << std::endl;
+		std::cout << UTILS::API::ConvertIp("192.168.4.2") << std::endl;
+		std::cout << UTILS::API::ConvertIp("234.234.234.234") << std::endl;
+		std::cout << UTILS::API::ConvertIp(UTILS::API::ConvertIp("127.0.0.1")) << std::endl;
+		std::cout << UTILS::API::ConvertIp(UTILS::API::ConvertIp("192.168.4.2")) << std::endl;
+		std::cout << UTILS::API::ConvertIp(UTILS::API::ConvertIp("234.234.234.234")) << std::endl;
+	}
+
+	std::cin.ignore();
+	{
+		//int iRet = UTILS::API::PathMove("H:\\inControl", "I:\\x");
 		int iRet = UTILS::API::PathMove("I:\\x\\Ë®µç·Ñ\\inControl\\", "H:\\xxx");
 		std::cout << iRet << std::endl;
 	}
