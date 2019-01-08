@@ -5,9 +5,27 @@
 #include <utils/define.h>
 namespace UTILS
 {
+	namespace LOCK_FLAG
+	{
+		// LOCK PROPERTIES
+		struct __adopt_lock_t
+		{	// indicates adopt lock
+		};
+
+		struct __defer_lock_t
+		{	// indicates defer lock
+		};
+
+		const __adopt_lock_t lock_adopt;
+		const __defer_lock_t lock_defer;
+	}
+
 	/**
-	\brief
-		THREAD class.
+	* \brief 线程、线程池、线程锁
+	*/
+
+	/**
+	* \brief 临界区封装类
 	*/
 	class UTILS_API CCritSec
 	{
@@ -32,7 +50,7 @@ namespace UTILS
 	};
 
 	/**
-	\brief 读写锁.
+	* \brief 读写锁.
 	*/
 	class UTILS_API CRWLock
 	{
@@ -44,35 +62,31 @@ namespace UTILS
 		CRWLock();
 		~CRWLock();
 		/**
-		\brief 读锁
-		\return bool
-			被激活返回 true 其他情况返回 false
+		* \brief 读锁
+		* \return bool 被激活返回 true 其他情况返回 false
 		*/
 		bool RLock();
 		/**
-		\brief 读锁
-		\return bool
-			被激活返回 true 其他情况返回 false
+		* \brief 读锁
+		* \return bool 被激活返回 true 其他情况返回 false
 		*/
 		bool TryRLock();
 		/**
-		\brief 释放读锁
+		* \brief 释放读锁
 		*/
 		void RUnLock();
 		/**
-		\brief 写锁
-		\return bool
-			被激活返回 true 其他情况返回 false
+		* \brief 写锁
+		* \return bool 被激活返回 true 其他情况返回 false
 		*/
 		bool WLock();
 		/**
-		\brief 写锁
-		\return bool
-			被激活返回 true 其他情况返回 false
+		* \brief 写锁
+		* \return bool 被激活返回 true 其他情况返回 false
 		*/
 		bool TryWLock();
 		/**
-		\brief 释放写锁
+		* \brief 释放写锁
 		*/
 		void WUnLock();
 	private:
@@ -111,14 +125,38 @@ namespace UTILS
 			LOCK_TYPE_RWLOCK_WR = 3
 		};
 		LOCK_TYPE m_nLockType;
+		BOOL m_owns;
 	public:
-		CAutoLock(UTILS::CCritSec* plock){
+		CAutoLock(UTILS::CCritSec* plock)
+		{
 			assert(plock != nullptr);
+			m_owns = FALSE;
 			m_pLock = plock;
-			plock->Lock();
+			UTILS::CCritSec* p = static_cast<UTILS::CCritSec*>(m_pLock);
+			p->Lock();
+			m_owns = TRUE;
 			m_nLockType = LOCK_TYPE_CRITSEC;
 		};
-		CAutoLock(UTILS::CRWLock* plock, bool read = true){
+		CAutoLock(CCritSec * plock, LOCK_FLAG::__adopt_lock_t)
+		{
+			assert(plock != nullptr);
+			m_owns = FALSE;
+			m_pLock = plock;
+			UTILS::CCritSec* p = static_cast<UTILS::CCritSec*>(m_pLock);
+			p->Lock();
+			m_owns = TRUE;
+			m_nLockType = LOCK_TYPE_CRITSEC;
+		};
+		CAutoLock(CCritSec * plock, LOCK_FLAG::__defer_lock_t)
+		{
+			assert(plock != nullptr);
+			m_owns = FALSE;
+			m_pLock = plock;
+			m_nLockType = LOCK_TYPE_CRITSEC;
+		};
+
+		CAutoLock(UTILS::CRWLock* plock, bool read = true)
+		{
 			assert(plock != nullptr);
 			m_pLock = plock;
 			m_nLockType = read ? LOCK_TYPE_RWLOCK_RD : LOCK_TYPE_RWLOCK_WR;
@@ -129,11 +167,61 @@ namespace UTILS
 				plock->WLock();
 			}
 		};
-		~CAutoLock(){
-			if (m_nLockType == LOCK_TYPE_CRITSEC){
+		/**
+		* \brief 是否加锁成功. LOCK_TYPE_CRITSEC
+		*/
+		BOOL Owns()
+		{
+			if (m_nLockType != LOCK_TYPE_CRITSEC)
+			{
+				return FALSE;
+			}
+			return m_owns;
+		}
+		/**
+		* \brief 加锁.直到加锁成功.才返回。 LOCK_TYPE_CRITSEC
+		*/
+		BOOL Lock()
+		{
+			if (NULL == m_pLock)
+			{
+				return FALSE;
+			}
+			UTILS::CCritSec* p = static_cast<UTILS::CCritSec*>(m_pLock);
+			p->Lock();
+			m_owns = TRUE;
+			return TRUE;
+		}
+		/**
+		* \brief 加锁.超时返回。 LOCK_TYPE_CRITSEC
+		* \param uiTimeOut	超时时间.
+		* \return 返回 true加锁成功,否则失败
+		*/
+		BOOL Lock(unsigned int uiTimeOut)
+		{
+			if (NULL == m_pLock)
+			{
+				return FALSE;
+			}
+			UTILS::CCritSec* p = static_cast<UTILS::CCritSec*>(m_pLock);
+			if (p->TryLock(uiTimeOut))
+			{
+				m_owns = TRUE;
+			}
+			return m_owns;
+		}
+
+
+		~CAutoLock()
+		{
+			if (m_nLockType == LOCK_TYPE_CRITSEC)
+			{
 				UTILS::CCritSec* p = static_cast<UTILS::CCritSec*>(m_pLock);
 				if (p){
-					p->Unlock();
+					if (Owns())
+					{
+						p->Unlock();
+					}
 				}
 			}
 			else if ((m_nLockType == LOCK_TYPE_RWLOCK_RD) || (m_nLockType == LOCK_TYPE_RWLOCK_WR))
@@ -321,6 +409,9 @@ namespace UTILS
 
 	typedef void(*BOX_THREAD_PROCESS)(BOOL& bRun, HANDLE hWait, void* context);
 
+	/**
+	* \brief 线程封装类.
+	*/
 	class UTILS_API CThreadBox
 	{
 	public:
@@ -379,6 +470,26 @@ namespace UTILS
 		int m_iDataLen;
 
 		UTILS::CCritSec m_mutexPacket;
+	};
+
+	/**
+	* \brief 线程池封装类.
+	*/
+	class UTILS_API CThreadPool
+	{
+	public:
+		CThreadPool();
+		virtual ~CThreadPool();
+		/**
+		* \brief 线程池封装类.
+		* \param iCapacity 线程池线程个数上限
+		*/
+		int Init(int iCapacity);
+		void UnInit();
+
+	private:
+		/**线程池控制线程*/
+		CThreadBox m_CtrlThread;
 	};
 }
 
