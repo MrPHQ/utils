@@ -88,9 +88,36 @@ UTILS::CProcessLock lock;
 #define TEST_EVENT "Global\\{ECEF3391-EC8B-487F-8BBB-AE444B4EF4E2}"
 #define TEST_MUTEX "Global\\{AAC6E35D-537B-4CC4-A935-E18B8780C04A}"
 
+struct  THREAD_POOL_INFO
+{
+	int id;
+};
+void ThreadPoolProc(void* lpTask, int iTaskDataLen, void* lpUsr)
+{
+	THREAD_POOL_INFO* lpInfo = (THREAD_POOL_INFO*)lpTask;
+	std::cout << "THREAD_ID"<<GetCurrentThreadId()<<" THREAD_POOL_CALLBACK:"<< lpInfo->id << std::endl;
+	Sleep(UTILS::API::Random(500, 10000));
+	std::cout << "THREAD_ID" << GetCurrentThreadId() << " THREAD_POOL_CALLBACK:" << lpInfo->id << " END" << std::endl;
+}
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	std::cin.ignore();
+	{
+		UTILS::CThreadPool threadpool;
+		int err = threadpool.Init(4, 1024 * 64, 512, 30000);
+		err = threadpool.Start(ThreadPoolProc, NULL);
+
+		int iCnt = 0;
+		THREAD_POOL_INFO stInfo;
+		for (int i = 0; i < 20; i++)
+		{
+			stInfo.id = iCnt++;
+			err = threadpool.Task(&stInfo, sizeof(stInfo));
+			std::cout << "Ìí¼ÓÈÎÎñ err:" << err << std::endl;
+		}
+		std::cin.ignore();
+	}
 	std::cin.ignore();
 	{
 		//int iRet = UTILS::API::PathMove("H:\\inControl", "I:\\x");
