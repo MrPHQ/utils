@@ -319,6 +319,7 @@ namespace UTILS
 		if (!IsInit()){
 			return false;
 		}
+		bool lock = true;
 		/* Acquire the lock that protects the reader count. */
 		EnterCriticalSection(&num_readers_lock_);
 
@@ -329,14 +330,14 @@ namespace UTILS
 		if (++num_readers_ == 1) {
 			DWORD r = WaitForSingleObject(write_semaphore_, INFINITE);
 			if (r != WAIT_OBJECT_0){
+				lock = false;
 				//log(GetLastError(), "WaitForSingleObject");
-				return false;
 			}
 		}
 
 		/* Release the lock that protects the reader count. */
 		LeaveCriticalSection(&num_readers_lock_);
-		return true;
+		return lock;
 	}
 
 	bool CRWLock::TryRLock()
